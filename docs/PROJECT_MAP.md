@@ -8,8 +8,9 @@ Fast navigation map for humans and coding agents.
 - `package.json` — scripts/dependencies.
 - `index.html` — browser shell and Yandex SDK script entry.
 - `vite.config.ts` — build/relative hosting configuration.
+- `vitest.config.ts` — unit-test discovery; only `src/**/*.test.ts` belongs to Vitest.
 - `tsconfig.json` — TypeScript contract.
-- `playwright.config.ts` — browser QA configuration.
+- `playwright.config.ts` — browser QA configuration for `tests/*.spec.ts`.
 - `.github/workflows/ci.yml` — continuous quality gates.
 - `.github/workflows/yandex-release.yml` — manual validated Yandex ZIP artifact build.
 
@@ -69,15 +70,16 @@ External platform adapters.
 - `cloudSave.ts` — Yandex Player-data synchronization/reconciliation.
 
 ### `src/i18n.ts`
-RU/EN localization source of truth. Gameplay UI copy must come from here or localized content definitions rather than inline locale branches.
+RU/EN localization source of truth. Gameplay UI copy must come from here or localized content definitions rather than inline locale branches. The table is exported so parity tests can validate the complete contract.
 
 ### `public/assets/`
 Runtime artwork for lots/items.
 
 ## Tests
 - `src/domain/*.test.ts` — fast domain unit tests, including monetization policy.
+- `src/i18n.test.ts` — RU/EN key, non-empty value and interpolation-placeholder parity.
 - `tests/browser.spec.ts` — browser/runtime and responsive regression coverage.
-- `tests/restoration.spec.ts`, `collections.spec.ts`, `tiers.spec.ts`, `daily.spec.ts`, `progression.spec.ts`, `analytics.spec.ts`, `cloud-save.spec.ts` — system/regression coverage.
+- `tests/restoration.spec.ts`, `collections.spec.ts`, `tiers.spec.ts`, `daily.spec.ts`, `progression.spec.ts`, `analytics.spec.ts`, `cloud-save.spec.ts` — Playwright system/regression coverage.
 
 ## Where to make common changes
 - Add content: `src/data/` + content docs if schema changes.
@@ -89,6 +91,6 @@ Runtime artwork for lots/items.
 - Change local save schema: `src/game/save.ts` + migration/compatibility tests.
 - Change cloud sync/Yandex behavior: `src/platform/` + platform docs/tests.
 - Change analytics semantics: `src/analytics.ts` + `docs/ANALYTICS.md`.
-- Change localized copy: `src/i18n.ts`.
+- Change localized copy: `src/i18n.ts` and keep RU/EN placeholders aligned.
 - Change product scope: `docs/GAME_DESIGN.md` + `docs/ROADMAP.md`.
 - Change architecture: `docs/ARCHITECTURE.md` + `docs/DECISIONS.md`.
