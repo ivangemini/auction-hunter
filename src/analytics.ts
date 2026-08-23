@@ -4,6 +4,9 @@ import type { AuctionTierId } from './data/tiers';
 export const ANALYTICS_SCHEMA_VERSION = 1 as const;
 export const ANALYTICS_DOM_EVENT = 'auction-hunter:analytics';
 
+export type RewardedAdPlacement = 'round_summary_cash';
+export type RewardedAdAnalyticsResult = 'rewarded' | 'closed' | 'unavailable' | 'error';
+
 export interface AnalyticsEventMap {
   session_started: {
     locale: Locale;
@@ -82,6 +85,20 @@ export interface AnalyticsEventMap {
     sales: number;
     kept: number;
     daily: boolean;
+  };
+  rewarded_ad_requested: {
+    placement: RewardedAdPlacement;
+    reward: number;
+    finalBid: number;
+  };
+  rewarded_ad_result: {
+    placement: RewardedAdPlacement;
+    reward: number;
+    result: RewardedAdAnalyticsResult;
+  };
+  rewarded_cash_granted: {
+    placement: RewardedAdPlacement;
+    amount: number;
   };
 }
 
