@@ -1,0 +1,17 @@
+---
+description: Auction Hunter repository rules
+alwaysApply: true
+---
+
+# Auction Hunter
+
+Treat `/AGENTS.md` as the canonical instruction set for this repository. Before editing, inspect the relevant nested `AGENTS.md` and source-of-truth docs.
+
+Key constraints:
+- keep economy/content data-driven;
+- keep Yandex SDK access inside `src/platform`;
+- keep persistence behind the store/save boundary;
+- preserve RU/EN localization;
+- do not rename persisted IDs without migration planning;
+- run `npm run typecheck` and `npm run build` for functional changes;
+- do not claim validation passed unless it was executed.
