@@ -1,6 +1,7 @@
 export type Locale = 'ru' | 'en';
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type RestorationGrade = 'perfect' | 'good' | 'rough';
 
 export interface LocalizedText {
   ru: string;
@@ -29,6 +30,10 @@ export interface LotTemplate {
 export interface RevealedItem {
   definition: ItemDefinition;
   appraisedValue: number;
+  condition: number;
+  restored: boolean;
+  restorationGrade?: RestorationGrade;
+  restorationGain?: number;
 }
 
 export interface PlayerSave {

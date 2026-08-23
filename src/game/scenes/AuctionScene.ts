@@ -1,13 +1,14 @@
 import Phaser from 'phaser';
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
-import type { ItemDefinition, Locale, LotTemplate, Rarity, RevealedItem } from '../../domain/types';
+import type { ItemDefinition, Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
 import { t } from '../../i18n';
 import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platform/yandex';
 import { preloadArt, resolveItemTexture, resolveLotTexture } from '../art';
+import { applyRestoration, estimateItemValue } from '../restoration';
 import { GameStore } from '../store';
 import { button } from '../ui';
 
-type RevealStage = 'closed' | 'revealed' | 'appraised';
+type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
 
 interface Opponent {
   id: string;
@@ -41,6 +42,8 @@ export class AuctionScene extends Phaser.Scene {
   private roundSales = 0;
   private roundKept = 0;
   private notice = '';
+  private restorationTargetCenter = 0.5;
+  private restorationTargetHalfWidth = 0.1;
 
   constructor() {
     super('auction');
@@ -89,17 +92,21 @@ export class AuctionScene extends Phaser.Scene {
       if (item) selected.push(item);
     }
 
-    return selected.map((definition) => ({
-      definition,
-      appraisedValue: this.roundToTen(definition.baseValue * Phaser.Math.FloatBetween(0.78, 1.32)),
-    }));
+    return selected.map((definition) => {
+      const condition = Phaser.Math.FloatBetween(0.42, 0.92);
+      const marketFactor = Phaser.Math.FloatBetween(0.9, 1.15);
+      return {
+        definition,
+        condition,
+        restored: false,
+        appraisedValue: estimateItemValue(definition.baseValue, condition, marketFactor),
+      };
+    });
   }
 
   private createOpponents(): Opponent[] {
     const hiddenValue = this.items.reduce((sum, item) => sum + item.appraisedValue, 0);
-    const names = this.locale === 'ru'
-      ? ['Виктор', 'Мира', 'Антон']
-      : ['Victor', 'Mira', 'Anton'];
+    const names = this.locale === 'ru' ? ['Виктор', 'Мира', 'Антон'] : ['Victor', 'Mira', 'Anton'];
     const factors = [
       Phaser.Math.FloatBetween(0.26, 0.38),
       Phaser.Math.FloatBetween(0.34, 0.48),
@@ -121,13 +128,11 @@ export class AuctionScene extends Phaser.Scene {
     this.label(105, 178, t(this.locale, 'lot').toUpperCase(), 14, '#8b93a1');
     this.label(105, 207, this.lot.name[this.locale], 34, '#f7f8fa', 'bold');
     this.label(105, 252, `${t(this.locale, 'location')}: ${this.lot.location[this.locale]}`, 17, '#aeb5c0');
-
     this.renderLotArtwork(285, 405, 360, 205);
 
     this.label(500, 316, t(this.locale, 'visibleClues'), 18, '#e9b949', 'bold');
     this.lot.clues.forEach((clue, index) => {
-      this.label(500, 358 + index * 62, `• ${clue[this.locale]}`, 18, '#d7dbe2')
-        .setWordWrapWidth(285);
+      this.label(500, 358 + index * 62, `• ${clue[this.locale]}`, 18, '#d7dbe2').setWordWrapWidth(285);
     });
 
     this.panel(865, 150, 345, 500, 0x171a20);
@@ -139,10 +144,7 @@ export class AuctionScene extends Phaser.Scene {
     this.label(900, 410, this.locale === 'ru' ? 'Предметов внутри' : 'Items inside', 15, '#8b93a1');
     this.label(900, 440, String(this.lot.itemCount), 27, '#f7f8fa', 'bold');
 
-    button(this, 1038, 565, t(this.locale, 'startAuction'), () => this.startAuction(), {
-      width: 270,
-      height: 64,
-    });
+    button(this, 1038, 565, t(this.locale, 'startAuction'), () => this.startAuction(), { width: 270, height: 64 });
   }
 
   private startAuction(): void {
@@ -157,14 +159,12 @@ export class AuctionScene extends Phaser.Scene {
   private renderBidding(): void {
     this.resetCanvas();
     this.renderHeader();
-
     this.label(80, 160, this.lot.name[this.locale], 28, '#f7f8fa', 'bold');
     this.label(80, 202, this.lot.location[this.locale], 16, '#8b93a1');
 
     this.panel(70, 245, 760, 370);
     this.renderLotArtwork(645, 342, 300, 150);
     this.add.rectangle(495, 267, 1, 326, 0xffffff, 0.08).setOrigin(0);
-
     this.label(105, 285, t(this.locale, 'currentBid'), 17, '#8b93a1');
     this.label(105, 321, this.money(this.currentBid), 52, '#f7f8fa', 'bold');
 
@@ -172,22 +172,11 @@ export class AuctionScene extends Phaser.Scene {
       ? t(this.locale, 'you')
       : this.opponents.find((opponent) => opponent.id === this.currentLeader)?.name ?? t(this.locale, 'npc');
 
-    this.label(
-      105,
-      402,
-      `${t(this.locale, 'leader')}: ${leaderName}`,
-      21,
-      this.currentLeader === 'player' ? '#63d28d' : '#d7dbe2',
-      'bold',
-    );
-
-    if (this.notice) {
-      this.label(105, 452, this.notice, 17, '#ff8d85');
-    }
+    this.label(105, 402, `${t(this.locale, 'leader')}: ${leaderName}`, 21, this.currentLeader === 'player' ? '#63d28d' : '#d7dbe2', 'bold');
+    if (this.notice) this.label(105, 452, this.notice, 17, '#ff8d85');
 
     const nextBid = this.currentBid + this.lot.bidIncrement;
     const canBid = this.store.canAfford(nextBid) && !this.awaitingNpc;
-
     button(this, 250, 555, `${t(this.locale, 'bid')} +${this.money(this.lot.bidIncrement)}`, () => this.placePlayerBid(), {
       width: 280,
       height: 64,
@@ -211,7 +200,6 @@ export class AuctionScene extends Phaser.Scene {
 
   private placePlayerBid(): void {
     if (this.awaitingNpc) return;
-
     const nextBid = this.currentBid + this.lot.bidIncrement;
     if (!this.store.canAfford(nextBid)) {
       this.notice = t(this.locale, 'notEnoughCash');
@@ -224,14 +212,12 @@ export class AuctionScene extends Phaser.Scene {
     this.awaitingNpc = true;
     this.notice = '';
     this.renderBidding();
-
     this.time.delayedCall(550, () => this.npcRespond());
   }
 
   private npcRespond(): void {
     const nextBid = this.currentBid + this.lot.bidIncrement;
     const eligible = this.opponents.filter((opponent) => opponent.maxBid >= nextBid);
-
     if (eligible.length === 0) {
       this.time.delayedCall(450, () => this.finalizeWin());
       return;
@@ -277,14 +263,7 @@ export class AuctionScene extends Phaser.Scene {
     this.centerLabel(640, 190, t(this.locale, 'won'), 42, '#e9b949', 'bold');
     this.centerLabel(640, 395, this.lot.name[this.locale], 26, '#f7f8fa', 'bold');
     this.centerLabel(640, 435, `${t(this.locale, 'paid')}: ${this.money(this.roundCost)}`, 21, '#aeb5c0');
-    this.centerLabel(
-      640,
-      474,
-      this.locale === 'ru' ? 'Теперь узнаем, стоило ли оно того.' : 'Now we find out whether it was worth it.',
-      18,
-      '#d7dbe2',
-    );
-
+    this.centerLabel(640, 474, this.locale === 'ru' ? 'Теперь узнаем, стоило ли оно того.' : 'Now we find out whether it was worth it.', 18, '#d7dbe2');
     button(this, 640, 545, t(this.locale, 'openLot'), () => {
       this.revealIndex = 0;
       this.revealStage = 'closed';
@@ -306,14 +285,7 @@ export class AuctionScene extends Phaser.Scene {
 
     this.resetCanvas();
     this.renderHeader();
-    this.centerLabel(
-      640,
-      142,
-      t(this.locale, 'itemOf', { current: this.revealIndex + 1, total: this.items.length }),
-      17,
-      '#8b93a1',
-    );
-
+    this.centerLabel(640, 142, t(this.locale, 'itemOf', { current: this.revealIndex + 1, total: this.items.length }), 17, '#8b93a1');
     this.panel(245, 165, 790, 465);
 
     if (this.revealStage === 'closed') {
@@ -328,38 +300,114 @@ export class AuctionScene extends Phaser.Scene {
     }
 
     const color = RARITY_COLORS[item.definition.rarity];
-    this.add.rectangle(640, 324, 390, 270, color, 0.07).setStrokeStyle(2, color, 0.5);
-    this.add.image(640, 313, resolveItemTexture(this, item.definition.id)).setDisplaySize(330, 232);
-    this.centerLabel(640, 442, item.definition.name[this.locale], 25, '#f7f8fa', 'bold');
-    this.centerLabel(640, 476, this.rarityLabel(item.definition.rarity), 16, this.hexColor(color), 'bold');
+    this.add.rectangle(640, 304, 390, 238, color, 0.07).setStrokeStyle(2, color, 0.5);
+    this.add.image(640, 296, resolveItemTexture(this, item.definition.id)).setDisplaySize(315, 220);
+    this.centerLabel(640, 421, item.definition.name[this.locale], 24, '#f7f8fa', 'bold');
+    this.centerLabel(640, 454, this.rarityLabel(item.definition.rarity), 16, this.hexColor(color), 'bold');
 
     if (this.revealStage === 'revealed') {
-      this.centerLabel(640, 516, t(this.locale, 'unknownValue'), 18, '#aeb5c0');
-      button(this, 640, 570, t(this.locale, 'appraise'), () => {
+      this.centerLabel(640, 510, t(this.locale, 'unknownValue'), 18, '#aeb5c0');
+      button(this, 640, 568, t(this.locale, 'appraise'), () => {
         this.revealStage = 'appraised';
         this.renderReveal();
       }, { width: 250, height: 58 });
       return;
     }
 
-    this.centerLabel(640, 514, t(this.locale, 'estimatedValue'), 15, '#8b93a1');
-    this.centerLabel(640, 546, this.money(item.appraisedValue), 32, '#63d28d', 'bold');
+    this.label(420, 486, t(this.locale, 'condition'), 14, '#8b93a1');
+    this.label(835, 486, `${this.conditionLabel(item.condition)} · ${Math.round(item.condition * 100)}%`, 14, this.hexColor(this.conditionColor(item.condition)), 'bold').setOrigin(1, 0);
+    this.conditionBar(420, 511, 415, item.condition);
+    this.label(420, 532, t(this.locale, 'estimatedValue'), 14, '#8b93a1');
+    this.label(835, 525, this.money(item.appraisedValue), 28, '#63d28d', 'bold').setOrigin(1, 0);
 
-    button(this, 500, 595, t(this.locale, 'sell'), () => this.sellCurrentItem(), {
-      width: 220,
-      height: 56,
+    if (item.restored) {
+      const grade = item.restorationGrade ? this.restorationGradeLabel(item.restorationGrade) : '';
+      const gain = item.restorationGain ?? 0;
+      this.centerLabel(640, 570, `${grade} · ${t(this.locale, 'restorationGain', { amount: this.money(gain) })}`, 14, '#63d28d', 'bold');
+      button(this, 505, 607, t(this.locale, 'sell'), () => this.sellCurrentItem(), { width: 220, height: 50 });
+      button(this, 775, 607, t(this.locale, 'keep'), () => this.keepCurrentItem(), { width: 220, height: 50, background: 0x3f73b8 });
+      return;
+    }
+
+    button(this, 405, 603, t(this.locale, 'restore'), () => this.startRestoration(), { width: 190, height: 52, background: 0xc4773a });
+    button(this, 640, 603, t(this.locale, 'sell'), () => this.sellCurrentItem(), { width: 190, height: 52 });
+    button(this, 875, 603, t(this.locale, 'keep'), () => this.keepCurrentItem(), { width: 190, height: 52, background: 0x3f73b8 });
+  }
+
+  private startRestoration(): void {
+    const item = this.items[this.revealIndex];
+    if (!item || item.restored) return;
+
+    this.revealStage = 'restoring';
+    this.restorationTargetHalfWidth = this.targetHalfWidth(item.definition.rarity);
+    const edge = this.restorationTargetHalfWidth + 0.08;
+    this.restorationTargetCenter = Phaser.Math.FloatBetween(edge, 1 - edge);
+    this.renderRestoration();
+  }
+
+  private renderRestoration(): void {
+    const item = this.items[this.revealIndex];
+    if (!item) return;
+
+    this.resetCanvas();
+    this.renderHeader();
+    this.panel(180, 145, 920, 500);
+    this.centerLabel(640, 190, t(this.locale, 'restorationTitle'), 34, '#e9b949', 'bold');
+
+    this.add.image(380, 315, resolveItemTexture(this, item.definition.id)).setDisplaySize(300, 210);
+    this.centerLabel(380, 433, `${t(this.locale, 'condition')}: ${Math.round(item.condition * 100)}%`, 18, '#d7dbe2', 'bold');
+
+    this.label(565, 255, t(this.locale, 'restorationHelp'), 18, '#d7dbe2').setWordWrapWidth(420);
+
+    const barX = 320;
+    const barY = 500;
+    const barWidth = 640;
+    const targetX = barX + barWidth * this.restorationTargetCenter;
+    const targetWidth = barWidth * this.restorationTargetHalfWidth * 2;
+
+    this.add.rectangle(barX, barY, barWidth, 26, 0x2b3038).setOrigin(0, 0.5).setStrokeStyle(1, 0xffffff, 0.12);
+    this.add.rectangle(targetX, barY, targetWidth, 26, 0x63d28d, 0.52).setStrokeStyle(2, 0x63d28d, 0.9);
+    const marker = this.add.rectangle(barX, barY, 8, 54, 0xf7f8fa).setOrigin(0.5);
+    const tween = this.tweens.add({
+      targets: marker,
+      x: barX + barWidth,
+      duration: 900,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.inOut',
     });
-    button(this, 780, 595, t(this.locale, 'keep'), () => this.keepCurrentItem(), {
-      width: 220,
-      height: 56,
-      background: 0x3f73b8,
-    });
+
+    button(this, 640, 585, t(this.locale, 'restorationStop'), () => {
+      const markerPosition = Phaser.Math.Clamp((marker.x - barX) / barWidth, 0, 1);
+      tween.stop();
+      this.finishRestoration(markerPosition);
+    }, { width: 260, height: 60, background: 0xc4773a });
+  }
+
+  private finishRestoration(markerPosition: number): void {
+    const item = this.items[this.revealIndex];
+    if (!item) return;
+
+    const outcome = applyRestoration(
+      item.appraisedValue,
+      item.condition,
+      markerPosition,
+      this.restorationTargetCenter,
+      this.restorationTargetHalfWidth,
+    );
+
+    item.condition = outcome.conditionAfter;
+    item.appraisedValue = outcome.valueAfter;
+    item.restored = true;
+    item.restorationGrade = outcome.grade;
+    item.restorationGain = outcome.valueGain;
+    this.revealStage = 'appraised';
+    this.renderReveal();
   }
 
   private sellCurrentItem(): void {
     const item = this.items[this.revealIndex];
     if (!item) return;
-
     this.store.sellItem(item.appraisedValue);
     this.roundSales += item.appraisedValue;
     this.advanceReveal();
@@ -368,7 +416,6 @@ export class AuctionScene extends Phaser.Scene {
   private keepCurrentItem(): void {
     const item = this.items[this.revealIndex];
     if (!item) return;
-
     this.store.keepItem(item.definition.id);
     this.roundKept += 1;
     this.advanceReveal();
@@ -386,12 +433,10 @@ export class AuctionScene extends Phaser.Scene {
     this.renderHeader();
     this.panel(235, 155, 810, 470);
     this.centerLabel(640, 220, t(this.locale, 'roundDone'), 40, '#f7f8fa', 'bold');
-
     this.summaryRow(320, 300, t(this.locale, 'paid'), -this.roundCost);
     this.summaryRow(320, 352, t(this.locale, 'sales'), this.roundSales);
     this.summaryRow(320, 404, t(this.locale, 'kept'), this.roundKept, false);
     this.summaryRow(320, 456, t(this.locale, 'liquidResult'), this.roundSales - this.roundCost);
-
     button(this, 640, 555, t(this.locale, 'nextAuction'), () => {
       this.prepareNextLot();
       this.renderLobby();
@@ -408,7 +453,6 @@ export class AuctionScene extends Phaser.Scene {
   private renderHeader(): void {
     this.label(70, 42, t(this.locale, 'title'), 28, '#f7f8fa', 'bold');
     this.label(70, 80, t(this.locale, 'subtitle'), 15, '#737b88');
-
     const save = this.store.snapshot;
     this.stat(790, t(this.locale, 'cash'), this.money(save.cash));
     this.stat(970, t(this.locale, 'collection'), String(save.collection.length));
@@ -426,9 +470,14 @@ export class AuctionScene extends Phaser.Scene {
       this.add.rectangle(x, y, width, height, 0x20242b).setStrokeStyle(1, 0xffffff, 0.08);
       return;
     }
-
     this.add.image(x, y, texture).setDisplaySize(width, height);
     this.add.rectangle(x, y, width, height, 0x000000, 0).setStrokeStyle(1, 0xffffff, 0.12);
+  }
+
+  private conditionBar(x: number, y: number, width: number, condition: number): void {
+    const normalized = Phaser.Math.Clamp(condition, 0, 1);
+    this.add.rectangle(x, y, width, 8, 0x2b3038).setOrigin(0, 0.5);
+    this.add.rectangle(x, y, width * normalized, 8, this.conditionColor(normalized)).setOrigin(0, 0.5);
   }
 
   private resetCanvas(): void {
@@ -439,23 +488,14 @@ export class AuctionScene extends Phaser.Scene {
   }
 
   private panel(x: number, y: number, width: number, height: number, color = 0x15181e): Phaser.GameObjects.Rectangle {
-    return this.add.rectangle(x, y, width, height, color, 1)
-      .setOrigin(0)
-      .setStrokeStyle(1, 0xffffff, 0.08);
+    return this.add.rectangle(x, y, width, height, color, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.08);
   }
 
   private divider(x: number, y: number, width: number): void {
     this.add.rectangle(x, y, width, 1, 0xffffff, 0.08).setOrigin(0);
   }
 
-  private label(
-    x: number,
-    y: number,
-    text: string,
-    size: number,
-    color: string,
-    style: 'normal' | 'bold' = 'normal',
-  ): Phaser.GameObjects.Text {
+  private label(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
     return this.add.text(x, y, text, {
       fontFamily: 'Arial, sans-serif',
       fontSize: `${size}px`,
@@ -464,14 +504,7 @@ export class AuctionScene extends Phaser.Scene {
     });
   }
 
-  private centerLabel(
-    x: number,
-    y: number,
-    text: string,
-    size: number,
-    color: string,
-    style: 'normal' | 'bold' = 'normal',
-  ): Phaser.GameObjects.Text {
+  private centerLabel(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
     return this.label(x, y, text, size, color, style).setOrigin(0.5);
   }
 
@@ -485,15 +518,41 @@ export class AuctionScene extends Phaser.Scene {
     }
   }
 
-  private money(value: number): string {
-    const formatted = new Intl.NumberFormat(this.locale === 'ru' ? 'ru-RU' : 'en-US', {
-      maximumFractionDigits: 0,
-    }).format(value);
-    return `${formatted} ₽`;
+  private conditionLabel(condition: number): string {
+    if (condition < 0.55) return t(this.locale, 'conditionPoor');
+    if (condition < 0.7) return t(this.locale, 'conditionFair');
+    if (condition < 0.86) return t(this.locale, 'conditionGood');
+    return t(this.locale, 'conditionExcellent');
   }
 
-  private roundToTen(value: number): number {
-    return Math.max(10, Math.round(value / 10) * 10);
+  private restorationGradeLabel(grade: RestorationGrade): string {
+    switch (grade) {
+      case 'perfect': return t(this.locale, 'restorationPerfect');
+      case 'good': return t(this.locale, 'restorationGood');
+      case 'rough': return t(this.locale, 'restorationRough');
+    }
+  }
+
+  private conditionColor(condition: number): number {
+    if (condition < 0.55) return 0xff8d85;
+    if (condition < 0.7) return 0xe9b949;
+    if (condition < 0.86) return 0x63d28d;
+    return 0x61a8ff;
+  }
+
+  private targetHalfWidth(rarity: Rarity): number {
+    switch (rarity) {
+      case 'common': return 0.14;
+      case 'uncommon': return 0.12;
+      case 'rare': return 0.105;
+      case 'epic': return 0.09;
+      case 'legendary': return 0.075;
+    }
+  }
+
+  private money(value: number): string {
+    const formatted = new Intl.NumberFormat(this.locale === 'ru' ? 'ru-RU' : 'en-US', { maximumFractionDigits: 0 }).format(value);
+    return `${formatted} ₽`;
   }
 
   private roundToBid(value: number): number {

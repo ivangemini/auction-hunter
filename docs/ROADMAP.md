@@ -12,8 +12,8 @@
 - [ ] Device/browser QA.
 
 ## P1 — Retention-ready MVP
-- [ ] Restoration mini-game.
-- [ ] Item condition and restoration value uplift.
+- [x] Restoration mini-game.
+- [x] Item condition and restoration value uplift.
 - [ ] Collection book and set completion rewards.
 - [ ] Reputation XP and three auction tiers.
 - [ ] Daily special auction.
