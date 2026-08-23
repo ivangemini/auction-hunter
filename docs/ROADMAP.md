@@ -16,7 +16,7 @@
 - [x] Item condition and restoration value uplift.
 - [x] Collection book and set completion rewards.
 - [x] Reputation XP and three auction tiers.
-- [ ] Daily special auction.
+- [x] Daily special auction.
 - [ ] First-session onboarding and 30-minute progression curve.
 - [ ] Event analytics schema.
 - [ ] Yandex cloud save.
