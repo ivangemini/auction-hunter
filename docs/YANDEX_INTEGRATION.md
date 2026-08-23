@@ -7,8 +7,9 @@ All direct Yandex Games SDK calls belong under `src/platform/`. Game/domain/data
 The game must support local development when the Yandex SDK is unavailable. Production initialization should:
 1. initialize the SDK;
 2. expose locale/platform information through adapters;
-3. boot the playable game;
-4. call `LoadingAPI.ready()` only when the initial playable state is ready for interaction.
+3. reconcile local/cloud save when Player data is available;
+4. boot the playable game;
+5. call `LoadingAPI.ready()` only when the initial playable state is ready for interaction.
 
 Do not signal ready simply because JavaScript loaded.
 
@@ -18,27 +19,28 @@ Preserve a relative Vite base path so the built archive can run from Yandex host
 ## Focus and lifecycle
 Platform overlays, ads and browser focus changes must not corrupt active auction state. Gameplay should be paused/gated where needed and restored idempotently.
 
-## Future ads
-Rewarded flow must distinguish:
-- opened;
-- completed/reward confirmed;
+## Rewarded ads
+`src/platform/yandex.ts` owns `ysdk.adv.showRewardedVideo()` calls.
+
+The rewarded adapter distinguishes:
+- rewarded;
 - closed without reward;
+- unavailable;
 - error.
 
-Grant the reward exactly once and only after confirmed completion.
+Grant the reward exactly once and only after the Yandex `onRewarded` callback confirms the impression. The first placement is the completed-lot summary; it is optional, names the exact cash reward before the call, and never blocks `Next auction`.
 
-Interstitials must appear only at natural breaks and never while the player is actively bidding/revealing/restoring.
+If a future rewarded placement is called while gameplay is marked active, the adapter stops gameplay markup around the ad and restores the prior state after closure. Product policy still prefers placements at natural breaks.
 
-## Future cloud saves
-Before enabling cloud synchronization, define:
-- explicit save schema version;
-- migration path;
-- timestamps/version counters as needed;
-- deterministic local/cloud conflict resolution;
-- offline behavior;
-- failure fallback.
+See `docs/MONETIZATION.md` for reward formula and placement rules.
 
-Never blindly overwrite progress based only on callback arrival order.
+## Interstitials
+Interstitials are not implemented yet. They may appear only at natural breaks and never while the player is actively bidding, revealing or restoring.
+
+## Cloud saves
+Cloud synchronization is local-first and implemented through `src/platform/cloudSave.ts` plus the save/store boundary. The Yandex Player copy mirrors the normalized save and startup reconciliation chooses the newer/stronger progression state according to `docs/CLOUD_SAVE.md`.
+
+Never blindly overwrite progress based only on callback arrival order. Failed cloud operations must not roll back local progress.
 
 ## Future purchases/leaderboards
 Keep payments and leaderboard calls behind adapters and validate callback/idempotency behavior. Product decisions for IAP must be documented before implementation.
