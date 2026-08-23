@@ -3,8 +3,10 @@
 ## Purpose
 Restoration inserts a short skill beat between appraisal and sale. It turns item condition into a visible value lever without blocking players who prefer the faster reveal → sell loop.
 
+The economy/formula source of truth is `src/domain/restoration.ts`. Phaser owns only the interaction/timing layer.
+
 ## Condition
-Each generated find receives a condition score between 42% and 92%. Condition modifies the item's market appraisal; otherwise identical finds can therefore have meaningfully different values.
+Each generated find receives a condition score between 42% and 92%. Condition modifies the item's market appraisal; otherwise identical finds can therefore have meaningfully different values. The generation ranges live in `src/data/balance.ts`.
 
 Condition bands:
 - Poor: below 55%
@@ -26,3 +28,5 @@ Restoration never decreases value in v0.1. This is intentional for the first ret
 
 ## Economy
 Condition uses a multiplier of `0.4 + condition × 0.7`. At 100% the item is worth 1.10× its condition-neutral market basis; lower-condition finds are discounted. Restoration recalculates the appraisal by the ratio between the old and new condition multipliers.
+
+Economy-affecting changes require corresponding domain unit-test updates.
