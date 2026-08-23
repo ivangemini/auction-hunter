@@ -22,7 +22,7 @@
 - [x] Yandex cloud save.
 
 ## P2 — Monetization and release
-- [ ] Rewarded ad placements based on optional value.
+- [x] Rewarded ad placements based on optional value.
 - [ ] Interstitial policy at natural breaks.
 - [ ] Sound/focus/ad pause handling.
 - [ ] Store/IAP design if metrics justify it.
