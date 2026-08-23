@@ -58,6 +58,14 @@ export class GameStore {
     trackEvent('item_dispositioned', { disposition: 'keep', itemId });
   }
 
+  grantBonusCash(amount: number): void {
+    const reward = Number.isFinite(amount) ? Math.max(0, Math.round(amount)) : 0;
+    if (reward <= 0) return;
+    this.sync();
+    this.state.cash += reward;
+    this.persist();
+  }
+
   claimSetReward(setId: string, reward: number, requiredItemIds: readonly string[]): boolean {
     this.sync();
     if (this.state.claimedSetRewards.includes(setId)) return false;

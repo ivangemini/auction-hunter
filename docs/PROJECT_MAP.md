@@ -17,13 +17,14 @@ Fast navigation map for humans and coding agents.
 - `ARCHITECTURE.md`, `ENGINEERING.md`, `DECISIONS.md` — technical contracts/workflow.
 - `CONTENT_MODEL.md`, `ECONOMY_AND_RETENTION.md` — content/economy rules.
 - `RESTORATION.md`, `COLLECTIONS.md`, `TIERS.md`, `DAILY_SPECIAL.md`, `FIRST_SESSION.md` — shipped gameplay-system contracts.
+- `MONETIZATION.md` — rewarded/interstitial placement and tuning policy.
 - `CLOUD_SAVE.md`, `YANDEX_INTEGRATION.md` — persistence/platform contracts.
 - `ANALYTICS.md` — versioned telemetry contract.
 - `ART_DIRECTION.md`, `QA.md` — visual and browser/device quality contracts.
 
 ## Source
 ### `src/main.ts`
-Startup orchestration: analytics/platform/cloud synchronization, then Phaser boot.
+Startup orchestration: analytics/platform lifecycle/cloud synchronization, then Phaser boot.
 
 ### `src/analytics.ts`
 Versioned gameplay analytics boundary.
@@ -32,6 +33,7 @@ Versioned gameplay analytics boundary.
 Pure platform-agnostic rules and types.
 - `auction.ts` — lot generation, appraisal, NPC budgets and bid eligibility.
 - `restoration.ts` — condition/restoration value formulas.
+- `monetization.ts` — pure rewarded-value and interstitial-cadence rules.
 - `*.test.ts` — deterministic Vitest tests.
 
 ### `src/data/`
@@ -42,12 +44,14 @@ Static content and tuning inputs.
 - `tiers.ts` — reputation/auction tiers.
 - `daily.ts` — daily-special selection/config.
 - `progression.ts` — onboarding/first-session progression data.
+- `monetization.ts` — ad reward/cadence tuning.
 
 ### `src/game/`
 Phaser runtime and local game state.
 - `config.ts` — Phaser configuration.
+- `lifecycle.ts` — binds platform pause state to Phaser loop/audio suspension.
 - `art.ts` — asset preload/texture resolution.
-- `scenes/AuctionScene.ts` — auction presentation/orchestration.
+- `scenes/AuctionScene.ts` — auction presentation/orchestration and ad-placement calls.
 - `scenes/CollectionScene.ts` — collection book.
 - `scenes/OnboardingScene.ts` — first-session onboarding.
 - `store.ts` — gameplay-facing state mutations.
@@ -57,7 +61,9 @@ Phaser runtime and local game state.
 
 ### `src/platform/`
 External platform adapters.
-- `yandex.ts` — Yandex SDK/Player lifecycle.
+- `yandex.ts` — Yandex SDK/Player access and gameplay markup.
+- `ads.ts` — rewarded/fullscreen ad callback normalization.
+- `lifecycle.ts` — Yandex/browser pause state coordination.
 - `cloudSave.ts` — Yandex Player-data synchronization/reconciliation.
 
 ### `src/i18n.ts`
@@ -67,14 +73,15 @@ RU/EN localization foundation.
 Runtime artwork for lots/items.
 
 ## Tests
-- `src/domain/*.test.ts` — fast domain unit tests.
+- `src/domain/*.test.ts` — fast domain unit tests, including monetization policy.
 - `tests/browser.spec.ts` — browser/runtime and responsive regression coverage.
 - `tests/restoration.spec.ts`, `collections.spec.ts`, `tiers.spec.ts`, `daily.spec.ts`, `progression.spec.ts`, `analytics.spec.ts`, `cloud-save.spec.ts` — system/regression coverage.
 
 ## Where to make common changes
 - Add content: `src/data/` + content docs if schema changes.
 - Tune economy/NPC ranges: `src/data/balance.ts`.
-- Change auction/restoration formulas: `src/domain/` + unit tests.
+- Tune ad reward/cadence: `src/data/monetization.ts` + `docs/MONETIZATION.md`.
+- Change auction/restoration/monetization formulas: `src/domain/` + unit tests.
 - Change collection/tier/daily/progression definitions: matching `src/data/*` file + matching doc/test.
 - Change presentation: `src/game/scenes/`; do not duplicate domain formulas.
 - Change local save schema: `src/game/save.ts` + migration/compatibility tests.

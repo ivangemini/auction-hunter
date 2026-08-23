@@ -29,13 +29,13 @@ Do not change reserve prices, value ranges, NPC bid factors, rarity rates or pro
 5. update this document if the economy model itself changes.
 
 ## Monetization guardrails
-Rewarded ads may offer optional value such as:
-- extra pre-auction information;
-- optional expert appraisal assistance;
-- post-lot convenience/value boosts;
-- other benefits that do not make the unpaid loop deliberately bad.
+Rewarded ads may offer optional value such as extra information, expert assistance or post-lot bonuses, but the free loop must remain complete and non-frustrating.
 
-Interstitials belong only at natural breaks. Never interrupt a bid, reveal interaction, restoration mini-game or transactional decision.
+The launch rewarded placement is deliberately bounded: the completed-round cash bonus is 25% of that round's sales, with a 150 ₽ floor and 600 ₽ cap. This gives low-bankroll players meaningful recovery value without allowing high-tier jackpots to scale ad rewards without limit.
+
+Interstitials belong only at natural breaks. The launch client requests one after auction #2 and then every 3 auctions, only when the player chooses to continue to the next auction. Yandex frequency controls may reduce actual impressions further.
+
+Never interrupt a bid, reveal interaction, restoration mini-game or transactional decision. Do not increase ad cadence or reward size based on revenue alone; use retention and economy telemetry.
 
 ## Metrics to design for
 When analytics exist, evaluate at least:

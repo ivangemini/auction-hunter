@@ -83,6 +83,31 @@ export interface AnalyticsEventMap {
     kept: number;
     daily: boolean;
   };
+  rewarded_ad_requested: {
+    placement: 'round_summary';
+    reward: number;
+  };
+  rewarded_ad_rewarded: {
+    placement: 'round_summary';
+    reward: number;
+  };
+  rewarded_ad_closed: {
+    placement: 'round_summary';
+    reward: number;
+    rewarded: boolean;
+    wasShown: boolean;
+    outcome: 'rewarded' | 'closed' | 'unavailable' | 'error';
+  };
+  interstitial_ad_requested: {
+    placement: 'between_auctions';
+    auctionNumber: number;
+  };
+  interstitial_ad_closed: {
+    placement: 'between_auctions';
+    auctionNumber: number;
+    wasShown: boolean;
+    outcome: 'closed' | 'unavailable' | 'error';
+  };
 }
 
 export type AnalyticsEventName = keyof AnalyticsEventMap;

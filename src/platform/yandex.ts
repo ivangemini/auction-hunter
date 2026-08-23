@@ -9,23 +9,44 @@ interface GameplayApi {
   stop(): void;
 }
 
+interface FullscreenAdCallbacks {
+  onOpen?: () => void;
+  onClose?: (wasShown: boolean) => void;
+  onError?: (error: object) => void;
+}
+
+interface RewardedAdCallbacks {
+  onOpen?: () => void;
+  onRewarded?: () => void;
+  onClose?: (wasShown: boolean) => void;
+  onError?: (error: object) => void;
+}
+
+interface AdvertisingApi {
+  showFullscreenAdv(options?: { callbacks?: FullscreenAdCallbacks }): void;
+  showRewardedVideo(options?: { callbacks?: RewardedAdCallbacks }): void;
+}
+
 export interface YandexPlayer {
   getData(keys?: string[]): Promise<Record<string, unknown>>;
   setData(data: Record<string, unknown>, flush?: boolean): Promise<void>;
   isAuthorized?(): boolean;
 }
 
-interface YandexSdk {
+export interface YandexSdk {
   features?: {
     LoadingAPI?: LoadingApi;
     GameplayAPI?: GameplayApi;
   };
+  adv?: AdvertisingApi;
   environment?: {
     i18n?: {
       lang?: string;
     };
   };
   getPlayer?(): Promise<YandexPlayer>;
+  on?(event: 'game_api_pause' | 'game_api_resume', callback: () => void): void;
+  off?(event: 'game_api_pause' | 'game_api_resume', callback: () => void): void;
 }
 
 interface YaGamesGlobal {
@@ -54,6 +75,10 @@ export async function initYandexSdk(): Promise<void> {
   } catch (error) {
     console.error('[Yandex] SDK initialization failed.', error);
   }
+}
+
+export function getYandexSdk(): YandexSdk | null {
+  return sdk;
 }
 
 export async function getYandexPlayer(): Promise<YandexPlayer | null> {

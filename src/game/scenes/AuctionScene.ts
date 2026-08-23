@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
+import { trackEvent } from '../../analytics';
 import { BIDDER_PROFILES, ITEM_CONDITION_RANGE, MARKET_FACTOR_RANGE } from '../../data/balance';
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
 import { uniqueCollectionCount } from '../../data/collections';
 import { getDailySpecial, localDayKey, type DailySpecialDefinition } from '../../data/daily';
+import { MONETIZATION_POLICY } from '../../data/monetization';
 import { AUCTION_TIERS, getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../../data/tiers';
 import {
   chooseRandom,
@@ -12,9 +14,11 @@ import {
   nextBid,
 } from '../../domain/auction';
 import type { AuctionOpponent } from '../../domain/auction';
+import { rewardedSummaryBonus, shouldRequestInterstitial } from '../../domain/monetization';
 import { applyRestoration } from '../../domain/restoration';
 import type { Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
 import { t } from '../../i18n';
+import { isAdvertisingAvailable, showInterstitialAd, showRewardedAd } from '../../platform/ads';
 import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platform/yandex';
 import { preloadArt, resolveItemTexture, resolveLotTexture } from '../art';
 import { GameStore } from '../store';
@@ -50,6 +54,9 @@ export class AuctionScene extends Phaser.Scene {
   private roundSales = 0;
   private roundKept = 0;
   private roundReputationGain = 0;
+  private roundRewardClaimed = false;
+  private rewardedAdPending = false;
+  private transitionAdPending = false;
   private notice = '';
   private restorationTargetCenter = 0.5;
   private restorationTargetHalfWidth = 0.1;
@@ -121,6 +128,9 @@ export class AuctionScene extends Phaser.Scene {
     this.roundSales = 0;
     this.roundKept = 0;
     this.roundReputationGain = 0;
+    this.roundRewardClaimed = false;
+    this.rewardedAdPending = false;
+    this.transitionAdPending = false;
     this.notice = '';
   }
 
@@ -321,8 +331,10 @@ export class AuctionScene extends Phaser.Scene {
     this.centerLabel(640, 265, t(this.locale, 'lost'), 40, '#f7f8fa', 'bold');
     this.centerLabel(640, 330, `${t(this.locale, 'currentBid')}: ${this.money(this.currentBid)}`, 22, '#aeb5c0');
     button(this, 640, 465, t(this.locale, 'nextAuction'), () => {
-      this.prepareNextLot();
-      this.renderLobby();
+      this.continueAfterNaturalBreak(() => {
+        this.prepareNextLot();
+        this.renderLobby();
+      });
     }, { width: 280, height: 64 });
   }
 
@@ -492,7 +504,7 @@ export class AuctionScene extends Phaser.Scene {
   private sellCurrentItem(): void {
     const item = this.items[this.revealIndex];
     if (!item) return;
-    this.store.sellItem(item.appraisedValue);
+    this.store.sellItem(item.appraisedValue, item.definition.id);
     this.roundSales += item.appraisedValue;
     this.advanceReveal();
   }
@@ -515,20 +527,102 @@ export class AuctionScene extends Phaser.Scene {
     setGameplayActive(false);
     this.resetCanvas();
     this.renderHeader();
-    this.panel(235, 155, 810, 470);
-    this.centerLabel(640, 220, t(this.locale, 'roundDone'), 40, '#f7f8fa', 'bold');
-    this.summaryRow(320, 300, t(this.locale, 'paid'), -this.roundCost);
-    this.summaryRow(320, 352, t(this.locale, 'sales'), this.roundSales);
-    this.summaryRow(320, 404, t(this.locale, 'kept'), this.roundKept, false);
-    this.summaryRow(320, 456, t(this.locale, 'liquidResult'), this.roundSales - this.roundCost);
-    button(this, 640, 555, t(this.locale, 'nextAuction'), () => {
-      if (this.dailySpecial) {
-        this.dailySpecial = null;
-        this.currentTierId = highestUnlockedAuctionTier(this.store.snapshot.reputationXp).id;
-      }
-      this.prepareNextLot();
-      this.renderLobby();
-    }, { width: 290, height: 64 });
+    this.panel(235, 140, 810, 510);
+    this.centerLabel(640, 195, t(this.locale, 'roundDone'), 38, '#f7f8fa', 'bold');
+    this.summaryRow(320, 270, t(this.locale, 'paid'), -this.roundCost);
+    this.summaryRow(320, 315, t(this.locale, 'sales'), this.roundSales);
+    this.summaryRow(320, 360, t(this.locale, 'kept'), this.roundKept, false);
+    this.summaryRow(320, 405, t(this.locale, 'liquidResult'), this.roundSales - this.roundCost);
+
+    const reward = rewardedSummaryBonus(this.roundSales, MONETIZATION_POLICY.rewardedSummary);
+    if (this.roundRewardClaimed) {
+      this.centerLabel(640, 495, t(this.locale, 'adRewardClaimed', { amount: this.money(reward) }), 15, '#63d28d', 'bold');
+    } else if (isAdvertisingAvailable('rewarded')) {
+      button(
+        this,
+        640,
+        495,
+        this.rewardedAdPending ? t(this.locale, 'adLoading') : t(this.locale, 'watchAdReward', { amount: this.money(reward) }),
+        () => this.claimRoundRewardedBonus(),
+        {
+          width: 330,
+          height: 50,
+          background: 0xc4773a,
+          disabled: this.rewardedAdPending,
+        },
+      );
+    } else {
+      this.centerLabel(640, 495, t(this.locale, 'adUnavailable'), 14, '#737b88');
+    }
+
+    button(this, 640, 585, t(this.locale, 'nextAuction'), () => {
+      this.continueAfterNaturalBreak(() => {
+        if (this.dailySpecial) {
+          this.dailySpecial = null;
+          this.currentTierId = highestUnlockedAuctionTier(this.store.snapshot.reputationXp).id;
+        }
+        this.prepareNextLot();
+        this.renderLobby();
+      });
+    }, { width: 290, height: 60, disabled: this.transitionAdPending });
+  }
+
+  private claimRoundRewardedBonus(): void {
+    if (this.roundRewardClaimed || this.rewardedAdPending) return;
+
+    const reward = rewardedSummaryBonus(this.roundSales, MONETIZATION_POLICY.rewardedSummary);
+    this.rewardedAdPending = true;
+    this.renderRoundSummary();
+    trackEvent('rewarded_ad_requested', { placement: 'round_summary', reward });
+
+    void showRewardedAd(() => {
+      if (this.roundRewardClaimed) return;
+      this.store.grantBonusCash(reward);
+      this.roundRewardClaimed = true;
+      trackEvent('rewarded_ad_rewarded', { placement: 'round_summary', reward });
+    }).then((result) => {
+      this.rewardedAdPending = false;
+      trackEvent('rewarded_ad_closed', {
+        placement: 'round_summary',
+        reward,
+        rewarded: result.rewarded,
+        wasShown: result.wasShown,
+        outcome: result.status,
+      });
+      this.time.delayedCall(0, () => this.renderRoundSummary());
+    });
+  }
+
+  private continueAfterNaturalBreak(onContinue: () => void): void {
+    if (this.transitionAdPending) return;
+    this.transitionAdPending = true;
+
+    const auctionNumber = this.store.snapshot.auctionsPlayed;
+    const shouldShow = isAdvertisingAvailable('interstitial')
+      && shouldRequestInterstitial(auctionNumber, MONETIZATION_POLICY.interstitial);
+
+    const finish = (): void => {
+      this.time.delayedCall(0, () => {
+        this.transitionAdPending = false;
+        onContinue();
+      });
+    };
+
+    if (!shouldShow) {
+      finish();
+      return;
+    }
+
+    trackEvent('interstitial_ad_requested', { placement: 'between_auctions', auctionNumber });
+    void showInterstitialAd().then((result) => {
+      trackEvent('interstitial_ad_closed', {
+        placement: 'between_auctions',
+        auctionNumber,
+        wasShown: result.wasShown,
+        outcome: result.status,
+      });
+      finish();
+    });
   }
 
   private summaryRow(x: number, y: number, label: string, value: number, money = true): void {
