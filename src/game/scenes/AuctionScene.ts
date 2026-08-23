@@ -1,23 +1,26 @@
 import Phaser from 'phaser';
+import { BIDDER_PROFILES, ITEM_CONDITION_RANGE, MARKET_FACTOR_RANGE } from '../../data/balance';
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
 import { uniqueCollectionCount } from '../../data/collections';
 import { getDailySpecial, localDayKey, type DailySpecialDefinition } from '../../data/daily';
 import { AUCTION_TIERS, getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../../data/tiers';
-import type { ItemDefinition, Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
+import {
+  chooseRandom,
+  createAuctionOpponents,
+  createLotItems,
+  eligibleOpponents,
+  nextBid,
+} from '../../domain/auction';
+import type { AuctionOpponent } from '../../domain/auction';
+import { applyRestoration } from '../../domain/restoration';
+import type { Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
 import { t } from '../../i18n';
 import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platform/yandex';
 import { preloadArt, resolveItemTexture, resolveLotTexture } from '../art';
-import { applyRestoration, estimateItemValue } from '../restoration';
 import { GameStore } from '../store';
 import { button } from '../ui';
 
 type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
-
-interface Opponent {
-  id: string;
-  name: string;
-  maxBid: number;
-}
 
 const WIDTH = 1280;
 const HEIGHT = 720;
@@ -35,7 +38,7 @@ export class AuctionScene extends Phaser.Scene {
   private locale: Locale = 'en';
   private lot!: LotTemplate;
   private items: RevealedItem[] = [];
-  private opponents: Opponent[] = [];
+  private opponents: AuctionOpponent[] = [];
   private currentTierId: AuctionTierId = 'garage';
   private dailySpecial: DailySpecialDefinition | null = null;
   private currentBid = 0;
@@ -95,14 +98,20 @@ export class AuctionScene extends Phaser.Scene {
       const tierLots = tier.lotIds
         .map((lotId) => LOTS.find((candidate) => candidate.id === lotId))
         .filter((candidate): candidate is LotTemplate => Boolean(candidate));
-      lot = tierLots[Math.floor(Math.random() * tierLots.length)];
+      lot = chooseRandom(tierLots);
     }
 
     if (!lot) throw new Error(`No lot templates configured for tier ${tier.id}`);
 
     this.lot = lot;
-    this.items = this.createLotItems(lot, valueMultiplier);
-    this.opponents = this.createOpponents();
+    this.items = createLotItems(
+      lot,
+      ITEM_BY_ID,
+      ITEM_CONDITION_RANGE,
+      MARKET_FACTOR_RANGE,
+      valueMultiplier,
+    );
+    this.opponents = createAuctionOpponents(lot, this.items, BIDDER_PROFILES);
     this.currentBid = lot.reservePrice;
     this.currentLeader = this.opponents[0]?.id ?? '';
     this.awaitingNpc = false;
@@ -113,46 +122,6 @@ export class AuctionScene extends Phaser.Scene {
     this.roundKept = 0;
     this.roundReputationGain = 0;
     this.notice = '';
-  }
-
-  private createLotItems(lot: LotTemplate, valueMultiplier = 1): RevealedItem[] {
-    const pool = [...lot.itemPool];
-    const selected: ItemDefinition[] = [];
-
-    while (selected.length < lot.itemCount && pool.length > 0) {
-      const index = Math.floor(Math.random() * pool.length);
-      const [id] = pool.splice(index, 1);
-      if (!id) continue;
-      const item = ITEM_BY_ID.get(id);
-      if (item) selected.push(item);
-    }
-
-    return selected.map((definition) => {
-      const condition = Phaser.Math.FloatBetween(0.42, 0.92);
-      const marketFactor = Phaser.Math.FloatBetween(0.9, 1.15) * valueMultiplier;
-      return {
-        definition,
-        condition,
-        restored: false,
-        appraisedValue: estimateItemValue(definition.baseValue, condition, marketFactor),
-      };
-    });
-  }
-
-  private createOpponents(): Opponent[] {
-    const hiddenValue = this.items.reduce((sum, item) => sum + item.appraisedValue, 0);
-    const names = this.locale === 'ru' ? ['Виктор', 'Мира', 'Антон'] : ['Victor', 'Mira', 'Anton'];
-    const factors = [
-      Phaser.Math.FloatBetween(0.26, 0.38),
-      Phaser.Math.FloatBetween(0.34, 0.48),
-      Phaser.Math.FloatBetween(0.42, 0.58),
-    ];
-
-    return names.map((name, index) => ({
-      id: `npc-${index}`,
-      name,
-      maxBid: Math.max(this.lot.reservePrice, this.roundToBid(hiddenValue * (factors[index] ?? 0.35))),
-    }));
   }
 
   private renderLobby(): void {
@@ -280,13 +249,13 @@ export class AuctionScene extends Phaser.Scene {
 
     const leaderName = this.currentLeader === 'player'
       ? t(this.locale, 'you')
-      : this.opponents.find((opponent) => opponent.id === this.currentLeader)?.name ?? t(this.locale, 'npc');
+      : this.opponents.find((opponent) => opponent.id === this.currentLeader)?.name[this.locale] ?? t(this.locale, 'npc');
 
     this.label(105, 402, `${t(this.locale, 'leader')}: ${leaderName}`, 21, this.currentLeader === 'player' ? '#63d28d' : '#d7dbe2', 'bold');
     if (this.notice) this.label(105, 452, this.notice, 17, '#ff8d85');
 
-    const nextBid = this.currentBid + this.lot.bidIncrement;
-    const canBid = this.store.canAfford(nextBid) && !this.awaitingNpc;
+    const requiredBid = nextBid(this.currentBid, this.lot);
+    const canBid = this.store.canAfford(requiredBid) && !this.awaitingNpc;
     button(this, 250, 555, `${t(this.locale, 'bid')} +${this.money(this.lot.bidIncrement)}`, () => this.placePlayerBid(), {
       width: 280,
       height: 64,
@@ -303,21 +272,21 @@ export class AuctionScene extends Phaser.Scene {
     this.label(900, 282, this.locale === 'ru' ? 'Участники' : 'Bidders', 19, '#e9b949', 'bold');
     this.opponents.forEach((opponent, index) => {
       const active = opponent.id === this.currentLeader;
-      this.label(900, 338 + index * 66, opponent.name, 21, active ? '#f7f8fa' : '#aeb5c0', active ? 'bold' : 'normal');
+      this.label(900, 338 + index * 66, opponent.name[this.locale], 21, active ? '#f7f8fa' : '#aeb5c0', active ? 'bold' : 'normal');
       this.label(1115, 340 + index * 66, active ? '●' : '○', 18, active ? '#e9b949' : '#555c68');
     });
   }
 
   private placePlayerBid(): void {
     if (this.awaitingNpc) return;
-    const nextBid = this.currentBid + this.lot.bidIncrement;
-    if (!this.store.canAfford(nextBid)) {
+    const requiredBid = nextBid(this.currentBid, this.lot);
+    if (!this.store.canAfford(requiredBid)) {
       this.notice = t(this.locale, 'notEnoughCash');
       this.renderBidding();
       return;
     }
 
-    this.currentBid = nextBid;
+    this.currentBid = requiredBid;
     this.currentLeader = 'player';
     this.awaitingNpc = true;
     this.notice = '';
@@ -326,20 +295,19 @@ export class AuctionScene extends Phaser.Scene {
   }
 
   private npcRespond(): void {
-    const nextBid = this.currentBid + this.lot.bidIncrement;
-    const eligible = this.opponents.filter((opponent) => opponent.maxBid >= nextBid);
+    const eligible = eligibleOpponents(this.opponents, this.currentBid, this.lot);
     if (eligible.length === 0) {
       this.time.delayedCall(450, () => this.finalizeWin());
       return;
     }
 
-    const opponent = eligible[Math.floor(Math.random() * eligible.length)];
+    const opponent = chooseRandom(eligible);
     if (!opponent) {
       this.finalizeWin();
       return;
     }
 
-    this.currentBid = nextBid;
+    this.currentBid = nextBid(this.currentBid, this.lot);
     this.currentLeader = opponent.id;
     this.awaitingNpc = false;
     this.renderBidding();
@@ -673,10 +641,6 @@ export class AuctionScene extends Phaser.Scene {
   private money(value: number): string {
     const formatted = new Intl.NumberFormat(this.locale === 'ru' ? 'ru-RU' : 'en-US', { maximumFractionDigits: 0 }).format(value);
     return `${formatted} ₽`;
-  }
-
-  private roundToBid(value: number): number {
-    return Math.max(this.lot.reservePrice, Math.round(value / this.lot.bidIncrement) * this.lot.bidIncrement);
   }
 
   private hexColor(value: number): string {
