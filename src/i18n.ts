@@ -37,6 +37,9 @@ const COPY = {
     visibleClues: 'Что видно до торгов',
     startAuction: 'Войти в торги',
     currentBid: 'Текущая ставка',
+    bidIncrement: 'Шаг ставки',
+    itemsInside: 'Предметов внутри',
+    bidders: 'Участники',
     leader: 'Лидер',
     you: 'Вы',
     bid: 'Ставка',
@@ -46,9 +49,11 @@ const COPY = {
     won: 'Лот ваш!',
     lost: 'Вы вышли из торгов',
     paid: 'Цена покупки',
+    winRevealHint: 'Теперь узнаем, стоило ли оно того.',
     openLot: 'Открыть лот',
     nextAuction: 'Следующий аукцион',
     reveal: 'Открыть предмет',
+    sealedFind: 'Запечатанная находка',
     itemOf: 'Предмет {current} из {total}',
     unknownValue: 'Стоимость пока неизвестна',
     appraise: 'Оценить',
@@ -118,6 +123,9 @@ const COPY = {
     visibleClues: 'Visible before bidding',
     startAuction: 'Enter auction',
     currentBid: 'Current bid',
+    bidIncrement: 'Bid increment',
+    itemsInside: 'Items inside',
+    bidders: 'Bidders',
     leader: 'Leader',
     you: 'You',
     bid: 'Bid',
@@ -127,9 +135,11 @@ const COPY = {
     won: 'You won the lot!',
     lost: 'You left the auction',
     paid: 'Purchase price',
+    winRevealHint: 'Now we find out whether it was worth it.',
     openLot: 'Open lot',
     nextAuction: 'Next auction',
     reveal: 'Reveal item',
+    sealedFind: 'Sealed find',
     itemOf: 'Item {current} of {total}',
     unknownValue: 'Value is still unknown',
     appraise: 'Appraise',
@@ -166,9 +176,14 @@ const COPY = {
 } as const;
 
 export type CopyKey = keyof (typeof COPY)['en'];
+export const COPY_KEYS = Object.keys(COPY.en) as CopyKey[];
+
+export function rawCopy(locale: Locale, key: CopyKey): string {
+  return COPY[locale][key];
+}
 
 export function t(locale: Locale, key: CopyKey, vars: Record<string, string | number> = {}): string {
-  let value: string = COPY[locale][key];
+  let value: string = rawCopy(locale, key);
   for (const [name, replacement] of Object.entries(vars)) {
     value = value.replace(`{${name}}`, String(replacement));
   }
