@@ -18,7 +18,7 @@
 - [x] Reputation XP and three auction tiers.
 - [x] Daily special auction.
 - [x] First-session onboarding and 30-minute progression curve.
-- [ ] Event analytics schema.
+- [x] Event analytics schema.
 - [ ] Yandex cloud save.
 
 ## P2 — Monetization and release

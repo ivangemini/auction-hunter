@@ -1,3 +1,4 @@
+import { trackEvent } from '../analytics';
 import type { PlayerSave } from '../domain/types';
 
 const STORAGE_KEY = 'auction-hunter.save.v1';
@@ -70,6 +71,7 @@ export class GameStore {
     this.sync();
     this.state.auctionsPlayed += 1;
     this.persist();
+    trackEvent('auction_started', { auctionNumber: this.state.auctionsPlayed });
   }
 
   buyLot(price: number, reputationXp = 0, completedDailyDay?: string): void {
@@ -80,19 +82,31 @@ export class GameStore {
     this.state.reputationXp += cleanNonNegativeNumber(reputationXp);
     if (completedDailyDay) this.state.lastDailyCompletedDay = completedDailyDay;
     this.persist();
+
+    trackEvent('auction_won', {
+      finalBid: price,
+      reputationGain: reputationXp,
+      auctionsWon: this.state.auctionsWon,
+      daily: Boolean(completedDailyDay),
+    });
+    if (completedDailyDay) {
+      trackEvent('daily_special_completed', { dayKey: completedDailyDay, reputationGain: reputationXp });
+    }
   }
 
-  sellItem(value: number): void {
+  sellItem(value: number, itemId?: string): void {
     this.sync();
     this.state.cash += value;
     this.state.lifetimeSales += value;
     this.persist();
+    trackEvent('item_dispositioned', { disposition: 'sell', itemId, value });
   }
 
   keepItem(itemId: string): void {
     this.sync();
     this.state.collection.push(itemId);
     this.persist();
+    trackEvent('item_dispositioned', { disposition: 'keep', itemId });
   }
 
   claimSetReward(setId: string, reward: number, requiredItemIds: readonly string[]): boolean {
@@ -105,13 +119,16 @@ export class GameStore {
     this.state.cash += reward;
     this.state.claimedSetRewards.push(setId);
     this.persist();
+    trackEvent('collection_set_reward_claimed', { setId, reward });
     return true;
   }
 
   completeOnboarding(): void {
     this.sync();
+    if (this.state.onboardingComplete) return;
     this.state.onboardingComplete = true;
     this.persist();
+    trackEvent('onboarding_completed', {});
   }
 
   private sync(): void {

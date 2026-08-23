@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import './styles.css';
+import { trackEvent } from './analytics';
 import { gameConfig } from './game/config';
-import { initYandexSdk } from './platform/yandex';
+import { getPlatformLocale, initYandexSdk } from './platform/yandex';
 
 function installBrowserGuards(): void {
   document.getElementById('game')?.addEventListener('contextmenu', (event) => {
@@ -12,6 +13,7 @@ function installBrowserGuards(): void {
 async function bootstrap(): Promise<void> {
   installBrowserGuards();
   await initYandexSdk();
+  trackEvent('session_started', { locale: getPlatformLocale() });
   new Phaser.Game(gameConfig);
 }
 
