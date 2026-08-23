@@ -7,6 +7,7 @@ const DEFAULT_SAVE: PlayerSave = {
   cash: 2500,
   collection: [],
   claimedSetRewards: [],
+  reputationXp: 0,
   auctionsWon: 0,
   auctionsPlayed: 0,
   lifetimeSales: 0,
@@ -14,6 +15,10 @@ const DEFAULT_SAVE: PlayerSave = {
 
 function cleanStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
+}
+
+function cleanNonNegativeNumber(value: unknown, fallback = 0): number {
+  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : fallback;
 }
 
 function freshDefaultSave(): PlayerSave {
@@ -33,6 +38,7 @@ function loadSave(): PlayerSave {
       ...parsed,
       collection: cleanStringArray(parsed.collection),
       claimedSetRewards: cleanStringArray(parsed.claimedSetRewards),
+      reputationXp: cleanNonNegativeNumber(parsed.reputationXp),
     };
   } catch {
     return freshDefaultSave();
@@ -58,11 +64,12 @@ export class GameStore {
     this.persist();
   }
 
-  buyLot(price: number): void {
+  buyLot(price: number, reputationXp = 0): void {
     this.sync();
     if (this.state.cash < price) throw new Error('Insufficient cash');
     this.state.cash -= price;
     this.state.auctionsWon += 1;
+    this.state.reputationXp += cleanNonNegativeNumber(reputationXp);
     this.persist();
   }
 

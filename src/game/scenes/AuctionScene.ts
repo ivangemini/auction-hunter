@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
 import { uniqueCollectionCount } from '../../data/collections';
+import { AUCTION_TIERS, getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../../data/tiers';
 import type { ItemDefinition, Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
 import { t } from '../../i18n';
 import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platform/yandex';
@@ -34,6 +35,7 @@ export class AuctionScene extends Phaser.Scene {
   private lot!: LotTemplate;
   private items: RevealedItem[] = [];
   private opponents: Opponent[] = [];
+  private currentTierId: AuctionTierId = 'garage';
   private currentBid = 0;
   private currentLeader = '';
   private awaitingNpc = false;
@@ -56,6 +58,7 @@ export class AuctionScene extends Phaser.Scene {
 
   create(): void {
     this.locale = getPlatformLocale();
+    this.currentTierId = highestUnlockedAuctionTier(this.store.snapshot.reputationXp).id;
     this.prepareNextLot();
     this.renderLobby();
     markGameReady();
@@ -64,8 +67,18 @@ export class AuctionScene extends Phaser.Scene {
   }
 
   private prepareNextLot(): void {
-    const lot = LOTS[Math.floor(Math.random() * LOTS.length)];
-    if (!lot) throw new Error('No lot templates configured');
+    const reputationXp = this.store.snapshot.reputationXp;
+    let tier = getAuctionTier(this.currentTierId);
+    if (reputationXp < tier.minReputationXp) {
+      tier = highestUnlockedAuctionTier(reputationXp);
+      this.currentTierId = tier.id;
+    }
+
+    const tierLots = tier.lotIds
+      .map((lotId) => LOTS.find((candidate) => candidate.id === lotId))
+      .filter((candidate): candidate is LotTemplate => Boolean(candidate));
+    const lot = tierLots[Math.floor(Math.random() * tierLots.length)];
+    if (!lot) throw new Error(`No lot templates configured for tier ${tier.id}`);
 
     this.lot = lot;
     this.items = this.createLotItems(lot);
@@ -124,26 +137,27 @@ export class AuctionScene extends Phaser.Scene {
   private renderLobby(): void {
     this.resetCanvas();
     this.renderHeader();
+    this.renderTierTabs();
 
-    this.panel(70, 150, 760, 500);
-    this.label(105, 178, t(this.locale, 'lot').toUpperCase(), 14, '#8b93a1');
-    this.label(105, 207, this.lot.name[this.locale], 34, '#f7f8fa', 'bold');
-    this.label(105, 252, `${t(this.locale, 'location')}: ${this.lot.location[this.locale]}`, 17, '#aeb5c0');
-    this.renderLotArtwork(285, 405, 360, 205);
+    this.panel(70, 190, 760, 460);
+    this.label(105, 214, t(this.locale, 'lot').toUpperCase(), 14, '#8b93a1');
+    this.label(105, 242, this.lot.name[this.locale], 32, '#f7f8fa', 'bold');
+    this.label(105, 284, `${t(this.locale, 'location')}: ${this.lot.location[this.locale]}`, 16, '#aeb5c0');
+    this.renderLotArtwork(285, 438, 360, 205);
 
-    this.label(500, 316, t(this.locale, 'visibleClues'), 18, '#e9b949', 'bold');
+    this.label(500, 326, t(this.locale, 'visibleClues'), 18, '#e9b949', 'bold');
     this.lot.clues.forEach((clue, index) => {
-      this.label(500, 358 + index * 62, `• ${clue[this.locale]}`, 18, '#d7dbe2').setWordWrapWidth(285);
+      this.label(500, 368 + index * 62, `• ${clue[this.locale]}`, 18, '#d7dbe2').setWordWrapWidth(285);
     });
 
-    this.panel(865, 150, 345, 500, 0x171a20);
-    this.label(900, 188, t(this.locale, 'currentBid'), 15, '#8b93a1');
-    this.label(900, 218, this.money(this.lot.reservePrice), 38, '#f7f8fa', 'bold');
-    this.divider(900, 278, 275);
-    this.label(900, 305, this.locale === 'ru' ? 'Шаг ставки' : 'Bid increment', 15, '#8b93a1');
-    this.label(900, 335, `+${this.money(this.lot.bidIncrement)}`, 27, '#d7dbe2', 'bold');
-    this.label(900, 410, this.locale === 'ru' ? 'Предметов внутри' : 'Items inside', 15, '#8b93a1');
-    this.label(900, 440, String(this.lot.itemCount), 27, '#f7f8fa', 'bold');
+    this.panel(865, 190, 345, 460, 0x171a20);
+    this.label(900, 228, t(this.locale, 'currentBid'), 15, '#8b93a1');
+    this.label(900, 258, this.money(this.lot.reservePrice), 36, '#f7f8fa', 'bold');
+    this.divider(900, 310, 275);
+    this.label(900, 332, this.locale === 'ru' ? 'Шаг ставки' : 'Bid increment', 15, '#8b93a1');
+    this.label(900, 360, `+${this.money(this.lot.bidIncrement)}`, 25, '#d7dbe2', 'bold');
+    this.label(900, 413, this.locale === 'ru' ? 'Предметов внутри' : 'Items inside', 15, '#8b93a1');
+    this.label(900, 441, String(this.lot.itemCount), 25, '#f7f8fa', 'bold');
 
     button(this, 1038, 510, t(this.locale, 'collectionBook'), () => this.scene.start('collection'), {
       width: 270,
@@ -151,6 +165,37 @@ export class AuctionScene extends Phaser.Scene {
       background: 0x61a8ff,
     });
     button(this, 1038, 585, t(this.locale, 'startAuction'), () => this.startAuction(), { width: 270, height: 58 });
+  }
+
+  private renderTierTabs(): void {
+    const reputationXp = this.store.snapshot.reputationXp;
+
+    AUCTION_TIERS.forEach((tier, index) => {
+      const x = 250 + index * 390;
+      const unlocked = reputationXp >= tier.minReputationXp;
+      const selected = tier.id === this.currentTierId;
+      const fill = selected ? tier.accent : 0x171a20;
+      const fillAlpha = selected ? 0.16 : 1;
+      const borderAlpha = selected ? 0.75 : unlocked ? 0.18 : 0.07;
+      const border = selected ? tier.accent : 0xffffff;
+
+      const rect = this.add.rectangle(x, 151, 340, 48, fill, fillAlpha).setStrokeStyle(1, border, borderAlpha);
+      const text = unlocked
+        ? tier.name[this.locale]
+        : `${tier.name[this.locale]} · ${t(this.locale, 'lockedAtReputation', { xp: tier.minReputationXp })}`;
+      this.centerLabel(x, 151, text, 14, selected ? this.hexColor(tier.accent) : unlocked ? '#d7dbe2' : '#666e79', selected ? 'bold' : 'normal');
+
+      if (unlocked && !selected) {
+        rect.setInteractive({ useHandCursor: true });
+        rect.on('pointerover', () => rect.setStrokeStyle(1, tier.accent, 0.6));
+        rect.on('pointerout', () => rect.setStrokeStyle(1, 0xffffff, 0.18));
+        rect.on('pointerup', () => {
+          this.currentTierId = tier.id;
+          this.prepareNextLot();
+          this.renderLobby();
+        });
+      }
+    });
   }
 
   private startAuction(): void {
@@ -257,24 +302,27 @@ export class AuctionScene extends Phaser.Scene {
   private finalizeWin(): void {
     this.awaitingNpc = false;
     this.roundCost = this.currentBid;
-    this.store.buyLot(this.currentBid);
+    const tier = getAuctionTier(this.currentTierId);
+    this.store.buyLot(this.currentBid, tier.winXp);
     this.renderWin();
   }
 
   private renderWin(): void {
+    const tier = getAuctionTier(this.currentTierId);
     this.resetCanvas();
     this.renderHeader();
     this.panel(240, 155, 800, 450);
     this.renderLotArtwork(640, 285, 330, 165);
     this.centerLabel(640, 190, t(this.locale, 'won'), 42, '#e9b949', 'bold');
     this.centerLabel(640, 395, this.lot.name[this.locale], 26, '#f7f8fa', 'bold');
-    this.centerLabel(640, 435, `${t(this.locale, 'paid')}: ${this.money(this.roundCost)}`, 21, '#aeb5c0');
-    this.centerLabel(640, 474, this.locale === 'ru' ? 'Теперь узнаем, стоило ли оно того.' : 'Now we find out whether it was worth it.', 18, '#d7dbe2');
-    button(this, 640, 545, t(this.locale, 'openLot'), () => {
+    this.centerLabel(640, 430, `${t(this.locale, 'paid')}: ${this.money(this.roundCost)}`, 20, '#aeb5c0');
+    this.centerLabel(640, 466, t(this.locale, 'reputationGain', { xp: tier.winXp }), 18, '#61a8ff', 'bold');
+    this.centerLabel(640, 497, this.locale === 'ru' ? 'Теперь узнаем, стоило ли оно того.' : 'Now we find out whether it was worth it.', 17, '#d7dbe2');
+    button(this, 640, 560, t(this.locale, 'openLot'), () => {
       this.revealIndex = 0;
       this.revealStage = 'closed';
       this.renderReveal();
-    }, { width: 280, height: 64 });
+    }, { width: 280, height: 58 });
   }
 
   private renderReveal(): void {
@@ -460,9 +508,9 @@ export class AuctionScene extends Phaser.Scene {
     this.label(70, 42, t(this.locale, 'title'), 28, '#f7f8fa', 'bold');
     this.label(70, 80, t(this.locale, 'subtitle'), 15, '#737b88');
     const save = this.store.snapshot;
-    this.stat(790, t(this.locale, 'cash'), this.money(save.cash));
-    this.stat(970, t(this.locale, 'collection'), String(uniqueCollectionCount(save.collection)));
-    this.stat(1135, t(this.locale, 'wins'), String(save.auctionsWon));
+    this.stat(760, t(this.locale, 'cash'), this.money(save.cash));
+    this.stat(930, t(this.locale, 'collection'), String(uniqueCollectionCount(save.collection)));
+    this.stat(1080, t(this.locale, 'reputation'), `${Math.floor(save.reputationXp)} REP`);
   }
 
   private stat(x: number, label: string, value: string): void {
