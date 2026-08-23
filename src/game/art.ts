@@ -19,12 +19,16 @@ const LOT_IDS = ['garage-17', 'estate-42', 'collector-8'] as const;
 
 export function preloadArt(scene: Phaser.Scene): void {
   for (const id of ITEM_IDS) {
-    scene.load.svg(itemTextureKey(id), `assets/items/${id}.svg`);
+    const key = itemTextureKey(id);
+    if (!scene.textures.exists(key)) scene.load.svg(key, `assets/items/${id}.svg`);
   }
-  scene.load.svg(itemTextureKey('fallback'), 'assets/items/fallback.svg');
+
+  const fallbackKey = itemTextureKey('fallback');
+  if (!scene.textures.exists(fallbackKey)) scene.load.svg(fallbackKey, 'assets/items/fallback.svg');
 
   for (const id of LOT_IDS) {
-    scene.load.svg(lotTextureKey(id), `assets/lots/${id}.svg`);
+    const key = lotTextureKey(id);
+    if (!scene.textures.exists(key)) scene.load.svg(key, `assets/lots/${id}.svg`);
   }
 }
 

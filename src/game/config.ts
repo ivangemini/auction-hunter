@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { AuctionScene } from './scenes/AuctionScene';
 import { CollectionScene } from './scenes/CollectionScene';
+import { OnboardingScene } from './scenes/OnboardingScene';
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -8,7 +9,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   width: 1280,
   height: 720,
   backgroundColor: '#101216',
-  scene: [AuctionScene, CollectionScene],
+  scene: [OnboardingScene, AuctionScene, CollectionScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,

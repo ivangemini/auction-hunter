@@ -9,6 +9,7 @@ const DEFAULT_SAVE: PlayerSave = {
   claimedSetRewards: [],
   reputationXp: 0,
   lastDailyCompletedDay: null,
+  onboardingComplete: false,
   auctionsWon: 0,
   auctionsPlayed: 0,
   lifetimeSales: 0,
@@ -45,6 +46,7 @@ function loadSave(): PlayerSave {
       claimedSetRewards: cleanStringArray(parsed.claimedSetRewards),
       reputationXp: cleanNonNegativeNumber(parsed.reputationXp),
       lastDailyCompletedDay: cleanNullableString(parsed.lastDailyCompletedDay),
+      onboardingComplete: parsed.onboardingComplete === true,
     };
   } catch {
     return freshDefaultSave();
@@ -104,6 +106,12 @@ export class GameStore {
     this.state.claimedSetRewards.push(setId);
     this.persist();
     return true;
+  }
+
+  completeOnboarding(): void {
+    this.sync();
+    this.state.onboardingComplete = true;
+    this.persist();
   }
 
   private sync(): void {

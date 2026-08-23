@@ -17,7 +17,7 @@
 - [x] Collection book and set completion rewards.
 - [x] Reputation XP and three auction tiers.
 - [x] Daily special auction.
-- [ ] First-session onboarding and 30-minute progression curve.
+- [x] First-session onboarding and 30-minute progression curve.
 - [ ] Event analytics schema.
 - [ ] Yandex cloud save.
 
