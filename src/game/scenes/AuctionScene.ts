@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
 import type { ItemDefinition, Locale, LotTemplate, Rarity, RevealedItem } from '../../domain/types';
-import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platform/yandex';
 import { t } from '../../i18n';
+import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platform/yandex';
+import { preloadArt, resolveItemTexture, resolveLotTexture } from '../art';
 import { GameStore } from '../store';
 import { button } from '../ui';
 
@@ -43,6 +44,10 @@ export class AuctionScene extends Phaser.Scene {
 
   constructor() {
     super('auction');
+  }
+
+  preload(): void {
+    preloadArt(this);
   }
 
   create(): void {
@@ -95,7 +100,11 @@ export class AuctionScene extends Phaser.Scene {
     const names = this.locale === 'ru'
       ? ['Виктор', 'Мира', 'Антон']
       : ['Victor', 'Mira', 'Anton'];
-    const factors = [Phaser.Math.FloatBetween(0.26, 0.38), Phaser.Math.FloatBetween(0.34, 0.48), Phaser.Math.FloatBetween(0.42, 0.58)];
+    const factors = [
+      Phaser.Math.FloatBetween(0.26, 0.38),
+      Phaser.Math.FloatBetween(0.34, 0.48),
+      Phaser.Math.FloatBetween(0.42, 0.58),
+    ];
 
     return names.map((name, index) => ({
       id: `npc-${index}`,
@@ -109,20 +118,26 @@ export class AuctionScene extends Phaser.Scene {
     this.renderHeader();
 
     this.panel(70, 150, 760, 500);
-    this.label(105, 180, t(this.locale, 'lot').toUpperCase(), 16, '#8b93a1');
-    this.label(105, 212, this.lot.name[this.locale], 36, '#f7f8fa', 'bold');
-    this.label(105, 262, `${t(this.locale, 'location')}: ${this.lot.location[this.locale]}`, 18, '#aeb5c0');
+    this.label(105, 178, t(this.locale, 'lot').toUpperCase(), 14, '#8b93a1');
+    this.label(105, 207, this.lot.name[this.locale], 34, '#f7f8fa', 'bold');
+    this.label(105, 252, `${t(this.locale, 'location')}: ${this.lot.location[this.locale]}`, 17, '#aeb5c0');
 
-    this.label(105, 325, t(this.locale, 'visibleClues'), 20, '#e9b949', 'bold');
+    this.renderLotArtwork(285, 405, 360, 205);
+
+    this.label(500, 316, t(this.locale, 'visibleClues'), 18, '#e9b949', 'bold');
     this.lot.clues.forEach((clue, index) => {
-      this.label(120, 368 + index * 45, `• ${clue[this.locale]}`, 20, '#d7dbe2');
+      this.label(500, 358 + index * 62, `• ${clue[this.locale]}`, 18, '#d7dbe2')
+        .setWordWrapWidth(285);
     });
 
     this.panel(865, 150, 345, 500, 0x171a20);
-    this.label(900, 190, t(this.locale, 'currentBid'), 17, '#8b93a1');
-    this.label(900, 222, this.money(this.lot.reservePrice), 38, '#f7f8fa', 'bold');
-    this.label(900, 295, this.locale === 'ru' ? 'Шаг ставки' : 'Bid increment', 17, '#8b93a1');
-    this.label(900, 327, `+${this.money(this.lot.bidIncrement)}`, 26, '#d7dbe2', 'bold');
+    this.label(900, 188, t(this.locale, 'currentBid'), 15, '#8b93a1');
+    this.label(900, 218, this.money(this.lot.reservePrice), 38, '#f7f8fa', 'bold');
+    this.divider(900, 278, 275);
+    this.label(900, 305, this.locale === 'ru' ? 'Шаг ставки' : 'Bid increment', 15, '#8b93a1');
+    this.label(900, 335, `+${this.money(this.lot.bidIncrement)}`, 27, '#d7dbe2', 'bold');
+    this.label(900, 410, this.locale === 'ru' ? 'Предметов внутри' : 'Items inside', 15, '#8b93a1');
+    this.label(900, 440, String(this.lot.itemCount), 27, '#f7f8fa', 'bold');
 
     button(this, 1038, 565, t(this.locale, 'startAuction'), () => this.startAuction(), {
       width: 270,
@@ -144,43 +159,53 @@ export class AuctionScene extends Phaser.Scene {
     this.renderHeader();
 
     this.label(80, 160, this.lot.name[this.locale], 28, '#f7f8fa', 'bold');
-    this.label(80, 204, this.lot.location[this.locale], 17, '#8b93a1');
+    this.label(80, 202, this.lot.location[this.locale], 16, '#8b93a1');
 
-    this.panel(70, 255, 760, 350);
-    this.label(105, 292, t(this.locale, 'currentBid'), 18, '#8b93a1');
-    this.label(105, 328, this.money(this.currentBid), 54, '#f7f8fa', 'bold');
+    this.panel(70, 245, 760, 370);
+    this.renderLotArtwork(645, 342, 300, 150);
+    this.add.rectangle(495, 267, 1, 326, 0xffffff, 0.08).setOrigin(0);
+
+    this.label(105, 285, t(this.locale, 'currentBid'), 17, '#8b93a1');
+    this.label(105, 321, this.money(this.currentBid), 52, '#f7f8fa', 'bold');
 
     const leaderName = this.currentLeader === 'player'
       ? t(this.locale, 'you')
       : this.opponents.find((opponent) => opponent.id === this.currentLeader)?.name ?? t(this.locale, 'npc');
 
-    this.label(105, 405, `${t(this.locale, 'leader')}: ${leaderName}`, 22, this.currentLeader === 'player' ? '#63d28d' : '#d7dbe2', 'bold');
+    this.label(
+      105,
+      402,
+      `${t(this.locale, 'leader')}: ${leaderName}`,
+      21,
+      this.currentLeader === 'player' ? '#63d28d' : '#d7dbe2',
+      'bold',
+    );
 
     if (this.notice) {
-      this.label(105, 458, this.notice, 18, '#ff8d85');
+      this.label(105, 452, this.notice, 17, '#ff8d85');
     }
 
     const nextBid = this.currentBid + this.lot.bidIncrement;
     const canBid = this.store.canAfford(nextBid) && !this.awaitingNpc;
 
-    button(this, 250, 545, `${t(this.locale, 'bid')} +${this.money(this.lot.bidIncrement)}`, () => this.placePlayerBid(), {
+    button(this, 250, 555, `${t(this.locale, 'bid')} +${this.money(this.lot.bidIncrement)}`, () => this.placePlayerBid(), {
       width: 280,
       height: 64,
       disabled: !canBid,
     });
-    button(this, 560, 545, t(this.locale, 'pass'), () => this.passAuction(), {
+    button(this, 560, 555, t(this.locale, 'pass'), () => this.passAuction(), {
       width: 220,
       height: 64,
       background: 0x2c313a,
       disabled: this.awaitingNpc,
     });
 
-    this.panel(865, 255, 345, 350, 0x171a20);
-    this.label(900, 290, this.locale === 'ru' ? 'Участники' : 'Bidders', 20, '#e9b949', 'bold');
+    this.panel(865, 245, 345, 370, 0x171a20);
+    this.label(900, 282, this.locale === 'ru' ? 'Участники' : 'Bidders', 19, '#e9b949', 'bold');
     this.opponents.forEach((opponent, index) => {
       const active = opponent.id === this.currentLeader;
-      this.label(900, 340 + index * 62, opponent.name, 21, active ? '#f7f8fa' : '#aeb5c0', active ? 'bold' : 'normal');
-      this.label(1080, 342 + index * 62, active ? '●' : '○', 19, active ? '#e9b949' : '#555c68');
+      this.label(900, 338 + index * 66, opponent.name, 21, active ? '#f7f8fa' : '#aeb5c0', active ? 'bold' : 'normal');
+      this.label(1115, 340 + index * 66, active ? '●' : '○', 18, active ? '#e9b949' : '#555c68');
     });
   }
 
@@ -247,13 +272,20 @@ export class AuctionScene extends Phaser.Scene {
   private renderWin(): void {
     this.resetCanvas();
     this.renderHeader();
-    this.panel(240, 165, 800, 430);
-    this.centerLabel(640, 240, t(this.locale, 'won'), 46, '#e9b949', 'bold');
-    this.centerLabel(640, 310, this.lot.name[this.locale], 28, '#f7f8fa', 'bold');
-    this.centerLabel(640, 360, `${t(this.locale, 'paid')}: ${this.money(this.roundCost)}`, 22, '#aeb5c0');
-    this.centerLabel(640, 405, this.locale === 'ru' ? 'Теперь узнаем, стоило ли оно того.' : 'Now we find out whether it was worth it.', 19, '#d7dbe2');
+    this.panel(240, 155, 800, 450);
+    this.renderLotArtwork(640, 285, 330, 165);
+    this.centerLabel(640, 190, t(this.locale, 'won'), 42, '#e9b949', 'bold');
+    this.centerLabel(640, 395, this.lot.name[this.locale], 26, '#f7f8fa', 'bold');
+    this.centerLabel(640, 435, `${t(this.locale, 'paid')}: ${this.money(this.roundCost)}`, 21, '#aeb5c0');
+    this.centerLabel(
+      640,
+      474,
+      this.locale === 'ru' ? 'Теперь узнаем, стоило ли оно того.' : 'Now we find out whether it was worth it.',
+      18,
+      '#d7dbe2',
+    );
 
-    button(this, 640, 510, t(this.locale, 'openLot'), () => {
+    button(this, 640, 545, t(this.locale, 'openLot'), () => {
       this.revealIndex = 0;
       this.revealStage = 'closed';
       this.renderReveal();
@@ -274,15 +306,21 @@ export class AuctionScene extends Phaser.Scene {
 
     this.resetCanvas();
     this.renderHeader();
-    this.centerLabel(640, 145, t(this.locale, 'itemOf', { current: this.revealIndex + 1, total: this.items.length }), 18, '#8b93a1');
+    this.centerLabel(
+      640,
+      142,
+      t(this.locale, 'itemOf', { current: this.revealIndex + 1, total: this.items.length }),
+      17,
+      '#8b93a1',
+    );
 
-    this.panel(275, 185, 730, 420);
+    this.panel(245, 165, 790, 465);
 
     if (this.revealStage === 'closed') {
-      this.add.rectangle(640, 335, 250, 160, 0x2a2f38).setStrokeStyle(3, 0x555c68, 1);
-      this.centerLabel(640, 325, '?', 72, '#8b93a1', 'bold');
-      this.centerLabel(640, 405, this.locale === 'ru' ? 'Запечатанная находка' : 'Sealed find', 20, '#aeb5c0');
-      button(this, 640, 535, t(this.locale, 'reveal'), () => {
+      this.add.rectangle(640, 350, 340, 250, 0xe9b949, 0.04).setStrokeStyle(1, 0xe9b949, 0.18);
+      this.add.image(640, 340, resolveItemTexture(this, 'fallback')).setDisplaySize(300, 210);
+      this.centerLabel(640, 458, this.locale === 'ru' ? 'Запечатанная находка' : 'Sealed find', 19, '#aeb5c0');
+      button(this, 640, 555, t(this.locale, 'reveal'), () => {
         this.revealStage = 'revealed';
         this.renderReveal();
       }, { width: 270, height: 62 });
@@ -290,30 +328,31 @@ export class AuctionScene extends Phaser.Scene {
     }
 
     const color = RARITY_COLORS[item.definition.rarity];
-    this.add.rectangle(640, 290, 300, 120, color, 0.12).setStrokeStyle(3, color, 0.85);
-    this.centerLabel(640, 275, item.definition.name[this.locale], 26, '#f7f8fa', 'bold');
-    this.centerLabel(640, 320, this.rarityLabel(item.definition.rarity), 17, this.hexColor(color), 'bold');
+    this.add.rectangle(640, 324, 390, 270, color, 0.07).setStrokeStyle(2, color, 0.5);
+    this.add.image(640, 313, resolveItemTexture(this, item.definition.id)).setDisplaySize(330, 232);
+    this.centerLabel(640, 442, item.definition.name[this.locale], 25, '#f7f8fa', 'bold');
+    this.centerLabel(640, 476, this.rarityLabel(item.definition.rarity), 16, this.hexColor(color), 'bold');
 
     if (this.revealStage === 'revealed') {
-      this.centerLabel(640, 405, t(this.locale, 'unknownValue'), 20, '#aeb5c0');
-      button(this, 640, 515, t(this.locale, 'appraise'), () => {
+      this.centerLabel(640, 516, t(this.locale, 'unknownValue'), 18, '#aeb5c0');
+      button(this, 640, 570, t(this.locale, 'appraise'), () => {
         this.revealStage = 'appraised';
         this.renderReveal();
-      }, { width: 250, height: 62 });
+      }, { width: 250, height: 58 });
       return;
     }
 
-    this.centerLabel(640, 390, t(this.locale, 'estimatedValue'), 17, '#8b93a1');
-    this.centerLabel(640, 430, this.money(item.appraisedValue), 36, '#63d28d', 'bold');
+    this.centerLabel(640, 514, t(this.locale, 'estimatedValue'), 15, '#8b93a1');
+    this.centerLabel(640, 546, this.money(item.appraisedValue), 32, '#63d28d', 'bold');
 
-    button(this, 505, 535, t(this.locale, 'sell'), () => this.sellCurrentItem(), {
-      width: 230,
-      height: 62,
+    button(this, 500, 595, t(this.locale, 'sell'), () => this.sellCurrentItem(), {
+      width: 220,
+      height: 56,
     });
-    button(this, 775, 535, t(this.locale, 'keep'), () => this.keepCurrentItem(), {
-      width: 230,
-      height: 62,
-      background: 0x61a8ff,
+    button(this, 780, 595, t(this.locale, 'keep'), () => this.keepCurrentItem(), {
+      width: 220,
+      height: 56,
+      background: 0x3f73b8,
     });
   }
 
@@ -381,9 +420,21 @@ export class AuctionScene extends Phaser.Scene {
     this.label(x, 67, value, 20, '#f7f8fa', 'bold');
   }
 
+  private renderLotArtwork(x: number, y: number, width: number, height: number): void {
+    const texture = resolveLotTexture(this, this.lot.id);
+    if (!texture) {
+      this.add.rectangle(x, y, width, height, 0x20242b).setStrokeStyle(1, 0xffffff, 0.08);
+      return;
+    }
+
+    this.add.image(x, y, texture).setDisplaySize(width, height);
+    this.add.rectangle(x, y, width, height, 0x000000, 0).setStrokeStyle(1, 0xffffff, 0.12);
+  }
+
   private resetCanvas(): void {
     this.children.removeAll(true);
     this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x101216);
+    this.add.rectangle(1050, HEIGHT / 2, 460, HEIGHT, 0xe9b949, 0.018);
     this.add.rectangle(WIDTH / 2, 116, WIDTH - 120, 1, 0x2b3038);
   }
 
@@ -393,7 +444,18 @@ export class AuctionScene extends Phaser.Scene {
       .setStrokeStyle(1, 0xffffff, 0.08);
   }
 
-  private label(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
+  private divider(x: number, y: number, width: number): void {
+    this.add.rectangle(x, y, width, 1, 0xffffff, 0.08).setOrigin(0);
+  }
+
+  private label(
+    x: number,
+    y: number,
+    text: string,
+    size: number,
+    color: string,
+    style: 'normal' | 'bold' = 'normal',
+  ): Phaser.GameObjects.Text {
     return this.add.text(x, y, text, {
       fontFamily: 'Arial, sans-serif',
       fontSize: `${size}px`,
@@ -402,7 +464,14 @@ export class AuctionScene extends Phaser.Scene {
     });
   }
 
-  private centerLabel(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
+  private centerLabel(
+    x: number,
+    y: number,
+    text: string,
+    size: number,
+    color: string,
+    style: 'normal' | 'bold' = 'normal',
+  ): Phaser.GameObjects.Text {
     return this.label(x, y, text, size, color, style).setOrigin(0.5);
   }
 
@@ -417,7 +486,9 @@ export class AuctionScene extends Phaser.Scene {
   }
 
   private money(value: number): string {
-    const formatted = new Intl.NumberFormat(this.locale === 'ru' ? 'ru-RU' : 'en-US', { maximumFractionDigits: 0 }).format(value);
+    const formatted = new Intl.NumberFormat(this.locale === 'ru' ? 'ru-RU' : 'en-US', {
+      maximumFractionDigits: 0,
+    }).format(value);
     return `${formatted} ₽`;
   }
 
