@@ -30,7 +30,7 @@ Fast navigation map for humans and coding agents.
 Startup orchestration: analytics/platform lifecycle/cloud synchronization, then Phaser boot.
 
 ### `src/analytics.ts`
-Versioned gameplay analytics boundary.
+Versioned gameplay analytics boundary. `src/analytics.test.ts` validates the envelope/session contract without a browser.
 
 ### `src/domain/`
 Pure platform-agnostic rules and types.
@@ -48,6 +48,7 @@ Static content and tuning inputs.
 - `daily.ts` — daily-special selection/config.
 - `progression.ts` — onboarding/first-session progression data.
 - `monetization.ts` — ad reward/cadence tuning.
+- `*.test.ts` — fast rules/content checks, including cross-reference integrity for stable IDs.
 
 ### `src/game/`
 Phaser runtime and local game state.
@@ -68,6 +69,7 @@ External platform adapters.
 - `ads.ts` — rewarded/fullscreen ad callback normalization.
 - `lifecycle.ts` — Yandex/browser pause state coordination.
 - `cloudSave.ts` — Yandex Player-data synchronization/reconciliation.
+- `cloudSave.test.ts` — fast startup conflict/migration rules.
 
 ### `src/i18n.ts`
 RU/EN localization source of truth. Gameplay UI copy must come from here or localized content definitions rather than inline locale branches. The table is exported so parity tests can validate the complete contract.
@@ -76,13 +78,13 @@ RU/EN localization source of truth. Gameplay UI copy must come from here or loca
 Runtime artwork for lots/items.
 
 ## Tests
-- `src/domain/*.test.ts` — fast domain unit tests, including monetization policy.
+- `src/**/*.test.ts` — all fast Vitest unit/contract/content tests.
 - `src/i18n.test.ts` — RU/EN key, non-empty value and interpolation-placeholder parity.
-- `tests/browser.spec.ts` — browser/runtime and responsive regression coverage.
-- `tests/restoration.spec.ts`, `collections.spec.ts`, `tiers.spec.ts`, `daily.spec.ts`, `progression.spec.ts`, `analytics.spec.ts`, `cloud-save.spec.ts` — Playwright system/regression coverage.
+- `src/data/contentIntegrity.test.ts` — unique stable IDs plus valid lot/tier/collection references.
+- `tests/browser.spec.ts` — Playwright browser/runtime and responsive regression coverage; browser-only by design.
 
 ## Where to make common changes
-- Add content: `src/data/` + content docs if schema changes.
+- Add content: `src/data/` + content docs if schema changes; content integrity tests must stay green.
 - Tune economy/NPC ranges: `src/data/balance.ts`.
 - Tune ad reward/cadence: `src/data/monetization.ts` + `docs/MONETIZATION.md`.
 - Change auction/restoration/monetization formulas: `src/domain/` + unit tests.
