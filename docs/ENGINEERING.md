@@ -11,7 +11,7 @@ npm run build
 npm run qa:browser
 ```
 
-CI validates TypeScript, pure domain unit tests, the production build and Chromium browser QA on pushes/PRs to `main`.
+CI validates TypeScript, unit tests, the production build and Chromium browser QA on pushes/PRs to `main`.
 
 ## Definition of done for functional changes
 - Requested behavior is implemented.
@@ -33,7 +33,9 @@ For visual or interaction changes, follow `docs/QA.md` and inspect at minimum:
 - page blur/focus around active gameplay.
 
 ## Testing strategy
-Vitest is the fast unit-test runner. Pure domain rules must be testable without Phaser, DOM or a browser. Playwright protects browser/runtime integration and responsive behavior.
+Vitest is the fast unit-test runner. `vitest.config.ts` deliberately limits discovery to `src/**/*.test.ts`; Playwright owns `tests/*.spec.ts`. Do not broaden Vitest discovery to `*.spec.ts`, because those files use the Playwright runner and browser fixtures.
+
+Pure domain rules must be testable without Phaser, DOM or a browser. Playwright protects browser/runtime integration and responsive behavior.
 
 Current priority order:
 1. auction generation, valuation and bid eligibility;
@@ -44,6 +46,13 @@ Current priority order:
 6. progression unlock conditions.
 
 Random domain rules must accept an injected random source so tests can reproduce exact outcomes.
+
+## Localization contract
+RU and EN are the baseline locales.
+- UI copy belongs in `src/i18n.ts`; scenes should request it through `t()` rather than embedding bilingual ternaries.
+- Localized content definitions use `LocalizedText` in `src/data/`.
+- `src/i18n.test.ts` verifies every copy key is non-empty in both locales and that interpolation placeholders match.
+- Locale-specific number formatting is presentation logic and may select `ru-RU` / `en-US` directly.
 
 ## Dependency policy
 Add a dependency only when it materially reduces complexity or provides a platform capability we should not maintain ourselves. Avoid libraries for trivial helpers.
