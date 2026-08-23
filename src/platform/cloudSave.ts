@@ -75,7 +75,7 @@ export async function flushCloudSave(flush = true): Promise<void> {
   try {
     await uploadSave(save, flush);
   } catch (error) {
-    if (!pendingSave || pendingSave.updatedAt < save.updatedAt) pendingSave = save;
+    requeueFailedSave(save);
     console.warn('[CloudSave] Upload failed; progress remains queued locally.', error);
   }
 }
@@ -88,6 +88,11 @@ export function pickStartupSave(local: PlayerSave, cloud: PlayerSave | null): St
   return progressScore(cloud) > progressScore(local)
     ? { source: 'cloud', save: cloud }
     : { source: 'local', save: local };
+}
+
+function requeueFailedSave(save: PlayerSave): void {
+  const queuedSave = pendingSave;
+  if (!queuedSave || queuedSave.updatedAt < save.updatedAt) pendingSave = save;
 }
 
 function parseCloudSave(value: unknown): PlayerSave | null {
