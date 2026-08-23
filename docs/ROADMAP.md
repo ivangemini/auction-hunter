@@ -26,6 +26,6 @@
 - [x] Interstitial policy at natural breaks.
 - [x] Sound/focus/ad pause handling.
 - [ ] Store/IAP design if metrics justify it.
-- [ ] Full RU/EN localization.
+- [x] Full RU/EN localization.
 - [ ] Yandex moderation checklist and archive build.
 - [ ] Retention/economy tuning from real telemetry.
