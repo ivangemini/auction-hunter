@@ -33,19 +33,21 @@ For visual or interaction changes, follow `docs/QA.md` and inspect at minimum:
 - page blur/focus around active gameplay.
 
 ## Testing strategy
-Vitest is the fast unit-test runner. `vitest.config.ts` deliberately limits discovery to `src/**/*.test.ts`. Playwright owns `tests/*.spec.ts`; do not broaden Vitest discovery to those files because they depend on Playwright fixtures and browser execution.
+Vitest is the fast unit/contract runner. `vitest.config.ts` deliberately limits discovery to `src/**/*.test.ts`. Pure rules and data contracts belong there even if they live outside `src/domain/`.
 
-Pure domain rules must be testable without Phaser, DOM or a browser. Playwright protects browser/runtime integration and responsive behavior.
+Playwright owns `tests/*.spec.ts` and is reserved for checks that actually require a browser/runtime. Do not place pure data/domain tests under `tests/` merely to reuse Playwright assertions.
 
-`src/i18n.test.ts` is a unit-level contract test: RU and EN must expose the same non-empty copy keys and identical interpolation placeholders.
+The fast suite currently covers:
+- auction generation, valuation, NPC budgets and bid eligibility;
+- restoration/economy formulas;
+- monetization reward/cadence rules;
+- collection, tier, daily and first-session progression rules;
+- cloud-save startup reconciliation and v1 normalization;
+- analytics envelope sequencing;
+- RU/EN key and interpolation-placeholder parity;
+- catalog/tier/collection stable-ID and cross-reference integrity.
 
-Current priority order:
-1. auction generation, valuation and bid eligibility;
-2. restoration/economy formulas;
-3. save migration and serialization;
-4. reward granting and ad callback idempotency;
-5. catalog ID/schema validation;
-6. progression unlock conditions.
+Browser QA protects boot/runtime integration, responsive canvas bounds and context-menu suppression. Yandex draft/device QA remains a manual release gate.
 
 Random domain rules must accept an injected random source so tests can reproduce exact outcomes.
 
