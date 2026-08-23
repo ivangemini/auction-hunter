@@ -1,4 +1,4 @@
-import { trackEvent } from '../analytics';
+import { trackEvent, type RewardedAdPlacement } from '../analytics';
 import type { PlayerSave } from '../domain/types';
 import { scheduleCloudSave } from '../platform/cloudSave';
 import { loadLocalSave, writeLocalSave } from './save';
@@ -69,6 +69,17 @@ export class GameStore {
     this.state.claimedSetRewards.push(setId);
     this.persist();
     trackEvent('collection_set_reward_claimed', { setId, reward });
+    return true;
+  }
+
+  grantRewardedCash(amount: number, placement: RewardedAdPlacement): boolean {
+    this.sync();
+    const reward = Math.max(0, Math.round(amount));
+    if (reward === 0) return false;
+
+    this.state.cash += reward;
+    this.persist();
+    trackEvent('rewarded_cash_granted', { placement, amount: reward });
     return true;
   }
 
