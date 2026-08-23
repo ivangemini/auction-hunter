@@ -11,7 +11,7 @@ npm run build
 npm run qa:browser
 ```
 
-CI validates TypeScript, pure domain unit tests, the production build and Chromium browser QA on pushes/PRs to `main`.
+CI validates TypeScript, unit tests, the production build and Chromium browser QA on pushes/PRs to `main`.
 
 ## Definition of done for functional changes
 - Requested behavior is implemented.
@@ -33,7 +33,11 @@ For visual or interaction changes, follow `docs/QA.md` and inspect at minimum:
 - page blur/focus around active gameplay.
 
 ## Testing strategy
-Vitest is the fast unit-test runner. Pure domain rules must be testable without Phaser, DOM or a browser. Playwright protects browser/runtime integration and responsive behavior.
+Vitest is the fast unit-test runner. `vitest.config.ts` deliberately limits discovery to `src/**/*.test.ts`. Playwright owns `tests/*.spec.ts`; do not broaden Vitest discovery to those files because they depend on Playwright fixtures and browser execution.
+
+Pure domain rules must be testable without Phaser, DOM or a browser. Playwright protects browser/runtime integration and responsive behavior.
+
+`src/i18n.test.ts` is a unit-level contract test: RU and EN must expose the same non-empty copy keys and identical interpolation placeholders.
 
 Current priority order:
 1. auction generation, valuation and bid eligibility;

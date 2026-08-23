@@ -63,7 +63,8 @@ describe('auction domain', () => {
 
     expect(generated.map((item) => item.definition.id)).toEqual(['item-a', 'item-b']);
     expect(generated.map((item) => item.appraisedValue)).toEqual([60, 120]);
-    expect(generated.map((item) => item.condition)).toEqual([0.42, 0.92]);
+    expect(generated[0]!.condition).toBeCloseTo(0.42, 12);
+    expect(generated[1]!.condition).toBeCloseTo(0.92, 12);
     expect(generated.every((item) => item.restored === false)).toBe(true);
     expect(new Set(generated.map((item) => item.definition.id)).size).toBe(generated.length);
     expect(totalAppraisedValue(generated)).toBe(180);

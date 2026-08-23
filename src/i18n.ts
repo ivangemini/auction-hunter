@@ -1,6 +1,6 @@
 import type { Locale } from './domain/types';
 
-const COPY = {
+export const COPY = {
   ru: {
     title: 'AUCTION HUNTER',
     subtitle: 'Найди ценность там, где другие видят хлам',
