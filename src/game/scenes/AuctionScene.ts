@@ -155,9 +155,9 @@ export class AuctionScene extends Phaser.Scene {
     this.label(900, 222, t(this.locale, 'currentBid'), 15, '#8b93a1');
     this.label(900, 250, this.money(this.lot.reservePrice), 34, '#f7f8fa', 'bold');
     this.divider(900, 300, 275);
-    this.label(900, 318, this.locale === 'ru' ? 'Шаг ставки' : 'Bid increment', 14, '#8b93a1');
+    this.label(900, 318, t(this.locale, 'bidIncrement'), 14, '#8b93a1');
     this.label(900, 345, `+${this.money(this.lot.bidIncrement)}`, 23, '#d7dbe2', 'bold');
-    this.label(900, 390, this.locale === 'ru' ? 'Предметов внутри' : 'Items inside', 14, '#8b93a1');
+    this.label(900, 390, t(this.locale, 'itemsInside'), 14, '#8b93a1');
     this.label(900, 416, String(this.lot.itemCount), 23, '#f7f8fa', 'bold');
 
     button(this, 1038, 476, t(this.locale, 'collectionBook'), () => this.scene.start('collection'), {
@@ -279,7 +279,7 @@ export class AuctionScene extends Phaser.Scene {
     });
 
     this.panel(865, 245, 345, 370, 0x171a20);
-    this.label(900, 282, this.locale === 'ru' ? 'Участники' : 'Bidders', 19, '#e9b949', 'bold');
+    this.label(900, 282, t(this.locale, 'bidders'), 19, '#e9b949', 'bold');
     this.opponents.forEach((opponent, index) => {
       const active = opponent.id === this.currentLeader;
       this.label(900, 338 + index * 66, opponent.name[this.locale], 21, active ? '#f7f8fa' : '#aeb5c0', active ? 'bold' : 'normal');
@@ -359,7 +359,7 @@ export class AuctionScene extends Phaser.Scene {
     this.centerLabel(640, 395, this.lot.name[this.locale], 26, '#f7f8fa', 'bold');
     this.centerLabel(640, 430, `${t(this.locale, 'paid')}: ${this.money(this.roundCost)}`, 20, '#aeb5c0');
     this.centerLabel(640, 466, t(this.locale, 'reputationGain', { xp: this.roundReputationGain }), 18, '#61a8ff', 'bold');
-    this.centerLabel(640, 497, this.locale === 'ru' ? 'Теперь узнаем, стоило ли оно того.' : 'Now we find out whether it was worth it.', 17, '#d7dbe2');
+    this.centerLabel(640, 497, t(this.locale, 'winRevealHint'), 17, '#d7dbe2');
     button(this, 640, 560, t(this.locale, 'openLot'), () => {
       this.revealIndex = 0;
       this.revealStage = 'closed';
@@ -387,7 +387,7 @@ export class AuctionScene extends Phaser.Scene {
     if (this.revealStage === 'closed') {
       this.add.rectangle(640, 350, 340, 250, 0xe9b949, 0.04).setStrokeStyle(1, 0xe9b949, 0.18);
       this.add.image(640, 340, resolveItemTexture(this, 'fallback')).setDisplaySize(300, 210);
-      this.centerLabel(640, 458, this.locale === 'ru' ? 'Запечатанная находка' : 'Sealed find', 19, '#aeb5c0');
+      this.centerLabel(640, 458, t(this.locale, 'sealedFind'), 19, '#aeb5c0');
       button(this, 640, 555, t(this.locale, 'reveal'), () => {
         this.revealStage = 'revealed';
         this.renderReveal();
