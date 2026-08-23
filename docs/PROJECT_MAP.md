@@ -8,8 +8,9 @@ Fast navigation map for humans and coding agents.
 - `package.json` — scripts/dependencies.
 - `index.html` — browser shell and Yandex SDK script entry.
 - `vite.config.ts` — build/relative hosting configuration.
+- `vitest.config.ts` — unit-test discovery; only `src/**/*.test.ts` belongs to Vitest.
 - `tsconfig.json` — TypeScript contract.
-- `playwright.config.ts` — browser QA configuration.
+- `playwright.config.ts` — browser/system QA configuration for `tests/*.spec.ts`.
 - `.github/workflows/ci.yml` — CI gates.
 
 ## Documentation
@@ -38,10 +39,10 @@ Pure platform-agnostic rules and types.
 
 ### `src/data/`
 Static content and tuning inputs.
-- `catalog.ts` — items/lots.
-- `balance.ts` — appraisal and bidder tuning.
-- `collections.ts` — collection definitions/helpers.
-- `tiers.ts` — reputation/auction tiers.
+- `catalog.ts` — items/lots; user-facing names, locations and clues use `LocalizedText`.
+- `balance.ts` — appraisal/bidder tuning; bidder names are localized.
+- `collections.ts` — collection definitions/helpers with localized set names.
+- `tiers.ts` — reputation/auction tiers with localized tier names.
 - `daily.ts` — daily-special selection/config.
 - `progression.ts` — onboarding/first-session progression data.
 - `monetization.ts` — ad reward/cadence tuning.
@@ -51,7 +52,7 @@ Phaser runtime and local game state.
 - `config.ts` — Phaser configuration.
 - `lifecycle.ts` — binds platform pause state to Phaser loop/audio suspension.
 - `art.ts` — asset preload/texture resolution.
-- `scenes/AuctionScene.ts` — auction presentation/orchestration and ad-placement calls.
+- `scenes/AuctionScene.ts` — auction presentation/orchestration and ad-placement calls; user-facing copy comes from i18n/localized data.
 - `scenes/CollectionScene.ts` — collection book.
 - `scenes/OnboardingScene.ts` — first-session onboarding.
 - `store.ts` — gameplay-facing state mutations.
@@ -67,15 +68,16 @@ External platform adapters.
 - `cloudSave.ts` — Yandex Player-data synchronization/reconciliation.
 
 ### `src/i18n.ts`
-RU/EN localization foundation.
+RU/EN UI-copy source of truth. `CopyKey`, `COPY_KEYS`, `rawCopy()` and `t()` provide the typed runtime/test boundary.
 
 ### `public/assets/`
 Runtime artwork for lots/items.
 
 ## Tests
-- `src/domain/*.test.ts` — fast domain unit tests, including monetization policy.
+- `src/domain/*.test.ts` — fast pure-domain unit tests, including monetization policy.
+- `src/i18n.test.ts` — RU/EN presence and interpolation-placeholder parity.
 - `tests/browser.spec.ts` — browser/runtime and responsive regression coverage.
-- `tests/restoration.spec.ts`, `collections.spec.ts`, `tiers.spec.ts`, `daily.spec.ts`, `progression.spec.ts`, `analytics.spec.ts`, `cloud-save.spec.ts` — system/regression coverage.
+- `tests/restoration.spec.ts`, `collections.spec.ts`, `tiers.spec.ts`, `daily.spec.ts`, `progression.spec.ts`, `analytics.spec.ts`, `cloud-save.spec.ts` — Playwright/system regression coverage.
 
 ## Where to make common changes
 - Add content: `src/data/` + content docs if schema changes.
@@ -83,10 +85,10 @@ Runtime artwork for lots/items.
 - Tune ad reward/cadence: `src/data/monetization.ts` + `docs/MONETIZATION.md`.
 - Change auction/restoration/monetization formulas: `src/domain/` + unit tests.
 - Change collection/tier/daily/progression definitions: matching `src/data/*` file + matching doc/test.
-- Change presentation: `src/game/scenes/`; do not duplicate domain formulas.
+- Change presentation: `src/game/scenes/`; do not duplicate domain formulas or inline localized copy.
 - Change local save schema: `src/game/save.ts` + migration/compatibility tests.
 - Change cloud sync/Yandex behavior: `src/platform/` + platform docs/tests.
 - Change analytics semantics: `src/analytics.ts` + `docs/ANALYTICS.md`.
-- Change localized copy: `src/i18n.ts`.
+- Change localized UI copy: `src/i18n.ts`; keep RU/EN placeholders aligned.
 - Change product scope: `docs/GAME_DESIGN.md` + `docs/ROADMAP.md`.
 - Change architecture: `docs/ARCHITECTURE.md` + `docs/DECISIONS.md`.
