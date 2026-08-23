@@ -8,94 +8,90 @@ The architecture should let us iterate on retention, economy and content rapidly
 ```text
 Browser / Yandex Games
         |
-   platform adapters
+ platform adapters + cloud sync
         |
- game runtime / scenes
+ game runtime / scenes / store
         |
  domain rules + data
 ```
 
-The domain/data side must remain usable without a running Phaser scene or Yandex SDK.
+Pure domain/data rules must remain usable without a running Phaser scene or Yandex SDK.
 
 ## Current modules
 
-### Domain
-`src/domain/`
-- shared game types;
-- `auction.ts` — lot generation, appraisal inputs, bid increments, NPC budgets and bid eligibility;
-- `restoration.ts` — condition/value multiplier and restoration outcomes;
-- deterministic Vitest coverage next to the rules;
-- no Phaser, DOM, storage or Yandex imports.
+### Domain — `src/domain/`
+- `types.ts` — shared model contracts.
+- `auction.ts` — lot generation, appraisal inputs, bid increments, NPC budgets and bid eligibility.
+- `restoration.ts` — condition/value multipliers and restoration outcomes.
+- `*.test.ts` — deterministic Vitest coverage for economy-critical rules.
+- No Phaser, DOM, storage or Yandex imports.
 
-### Data
-`src/data/`
-- item definitions;
-- lot templates;
-- `balance.ts` for condition/market ranges and bidder profiles;
-- no runtime player state.
+Randomness in domain rules is injected so tests can reproduce exact outcomes.
 
-### Game
-`src/game/`
-- scene lifecycle;
-- visual rendering and art loading;
-- input and timing;
-- orchestration between data/domain/store/platform adapters.
+### Data — `src/data/`
+Static content and tuning only; no runtime player state.
+- `catalog.ts` — item and lot definitions.
+- `balance.ts` — condition/market ranges and bidder profiles.
+- `collections.ts` — collection metadata/helpers.
+- `tiers.ts` — reputation and auction-tier definitions.
+- `daily.ts` — deterministic daily-special definitions.
+- `progression.ts` — first-session/progression configuration.
 
-`AuctionScene` owns presentation and transitions. It delegates balance-critical auction/restoration calculations to domain modules.
+### Game — `src/game/`
+- `scenes/AuctionScene.ts` — presentation, input and transition orchestration; delegates economy calculations to domain modules.
+- `scenes/CollectionScene.ts` — collection-book presentation.
+- `scenes/OnboardingScene.ts` — first-session onboarding.
+- `store.ts` — gameplay-facing state mutation/persistence boundary.
+- `save.ts` — versioned save normalization/serialization helpers.
+- `art.ts`, `ui.ts`, `config.ts` — rendering/runtime infrastructure.
+- `restoration.ts` — compatibility re-export; formula source of truth is `src/domain/restoration.ts`.
 
-`src/game/restoration.ts` is a compatibility re-export only; the source of truth is `src/domain/restoration.ts`.
+Scenes must not duplicate balance-critical formulas or call Yandex APIs directly.
 
-### Persistence
-`src/game/store.ts` is the current persistence boundary. This is deliberately simple for the vertical slice. Before the save shape becomes complex, introduce:
-- an explicit schema version;
-- migration functions;
-- separation between serialization and gameplay APIs;
-- cloud/local reconciliation rules.
+### Persistence and cloud synchronization
+The game is local-first.
+- Local mutations are persisted immediately through the store/save boundary.
+- `src/game/save.ts` owns normalized save shape handling.
+- `src/platform/cloudSave.ts` mirrors/reconciles the normalized save with Yandex Player data.
+- Startup synchronization occurs before gameplay scenes are created.
+- Cloud failures must not roll back newer local progress.
 
-### Platform
-`src/platform/`
-- SDK initialization;
-- locale/platform signals;
-- future ads, cloud save, leaderboard and payments adapters.
+See `docs/CLOUD_SAVE.md` for conflict and write policy.
 
-No other layer should call Yandex APIs directly.
+### Platform — `src/platform/`
+- `yandex.ts` — SDK initialization, Player access and platform lifecycle helpers.
+- `cloudSave.ts` — Yandex Player-data synchronization.
+- Future ads, payments and leaderboard adapters also belong here.
 
-### Localization
-`src/i18n.ts` is the baseline locale boundary. As copy grows, split dictionaries/modules without changing the principle that gameplay code requests localized copy rather than embedding duplicated languages.
+No other layer should call Yandex Games APIs directly.
+
+### Analytics — `src/analytics.ts`
+Owns the versioned gameplay event schema/dispatch boundary. Event semantics are defined in `docs/ANALYTICS.md`; UI implementation details should not leak into stable event names.
+
+### Localization — `src/i18n.ts`
+RU and EN are the baseline locales. Gameplay code requests localized copy instead of embedding parallel language strings throughout scenes.
 
 ## Dependency rules
 Allowed direction:
 - game -> domain
 - game -> data
 - game -> platform adapters
-- game -> persistence abstraction
+- game -> save/store abstractions
 - data -> domain types/contracts
 - domain -> domain
 - platform -> browser/Yandex SDK
+- startup -> analytics/platform/game bootstrap
 
 Avoid:
-- domain -> Phaser
-- domain -> platform
-- domain -> game
-- domain -> data tuning tables
-- data -> game scene
-- data -> storage
-- scene -> raw Yandex SDK
-- scene -> direct localStorage
+- domain -> Phaser/DOM/platform/game/data tuning tables
+- data -> game scene/storage
+- scene -> raw Yandex SDK/direct localStorage
+- platform -> Phaser scene logic
 
 ## Evolution triggers
-Create a dedicated module when any of these becomes true:
-- a rule is used by more than one scene;
-- a formula meaningfully affects economy/retention;
-- behavior needs isolated tests;
-- a scene is becoming hard to review safely;
-- a platform integration needs lifecycle/error handling.
+Create/extract a dedicated module when a rule is reused, materially affects economy/retention, needs isolated tests, makes a scene hard to review, or requires platform lifecycle/error handling.
 
-Likely future modules:
-- `domain/progression.ts`
-- `analytics/`
-- `save/` with migrations and cloud reconciliation
-- `game/ui/` design system/components
+Likely future modules include `domain/progression.ts`, dedicated ad/payment adapters and a larger `game/ui/` design system as scope warrants.
 
 ## Performance posture
-This is a browser game. Prefer low allocation in hot paths, compressed assets, bounded particle/object counts and lazy loading for large content packs. Do not optimize speculative code at the expense of clarity, but treat mobile memory/startup time as product metrics.
+This is a browser game. Prefer compressed assets, bounded object/particle counts, lazy loading for larger content packs and clear low-allocation hot paths. Treat startup time and mobile memory as product metrics without speculative micro-optimization.

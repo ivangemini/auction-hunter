@@ -1,76 +1,85 @@
 # Project map
 
-This is the fast navigation map for humans and coding agents.
+Fast navigation map for humans and coding agents.
 
 ## Root
 - `AGENTS.md` — canonical agent policy.
 - `README.md` — project entry point and commands.
-- `package.json` — scripts and runtime/dev dependencies.
+- `package.json` — scripts/dependencies.
 - `index.html` — browser shell and Yandex SDK script entry.
-- `vite.config.ts` — build/hosting configuration. Keep the relative base path compatible with Yandex archive hosting.
-- `tsconfig.json` — TypeScript compiler contract.
+- `vite.config.ts` — build/relative hosting configuration.
+- `tsconfig.json` — TypeScript contract.
 - `playwright.config.ts` — browser QA configuration.
-- `.github/workflows/ci.yml` — CI quality gates.
+- `.github/workflows/ci.yml` — CI gates.
 
 ## Documentation
-- `docs/GAME_DESIGN.md` — product thesis, core loop, retention layers and MVP intent.
-- `docs/ROADMAP.md` — implementation sequence/status.
-- `docs/ARCHITECTURE.md` — module boundaries and dependency direction.
-- `docs/ENGINEERING.md` — development/validation workflow.
-- `docs/CONTENT_MODEL.md` — catalog and stable-ID conventions.
-- `docs/ECONOMY_AND_RETENTION.md` — economy/retention design guardrails.
-- `docs/RESTORATION.md` — restoration loop and value rules.
-- `docs/ART_DIRECTION.md` — visual language and asset direction.
-- `docs/QA.md` — browser/device QA matrix and regression expectations.
-- `docs/YANDEX_INTEGRATION.md` — Yandex platform contract.
-- `docs/ANALYTICS.md` — telemetry event contract and naming.
-- `docs/DECISIONS.md` — durable architecture/product decisions.
+- `GAME_DESIGN.md`, `ROADMAP.md` — product intent and delivery status.
+- `ARCHITECTURE.md`, `ENGINEERING.md`, `DECISIONS.md` — technical contracts/workflow.
+- `CONTENT_MODEL.md`, `ECONOMY_AND_RETENTION.md` — content/economy rules.
+- `RESTORATION.md`, `COLLECTIONS.md`, `TIERS.md`, `DAILY_SPECIAL.md`, `FIRST_SESSION.md` — shipped gameplay-system contracts.
+- `CLOUD_SAVE.md`, `YANDEX_INTEGRATION.md` — persistence/platform contracts.
+- `ANALYTICS.md` — versioned telemetry contract.
+- `ART_DIRECTION.md`, `QA.md` — visual and browser/device quality contracts.
 
 ## Source
 ### `src/main.ts`
-Application entry point. Boots Phaser using the game configuration.
+Startup orchestration: analytics/platform/cloud synchronization, then Phaser boot.
+
+### `src/analytics.ts`
+Versioned gameplay analytics boundary.
 
 ### `src/domain/`
-Platform-agnostic types and pure rules.
-- `auction.ts` — lot generation, condition/market-value generation, bidder budgets and bid eligibility.
-- `restoration.ts` — restoration/condition value formulas.
-- `*.test.ts` — deterministic Vitest coverage for economy-critical rules.
+Pure platform-agnostic rules and types.
+- `auction.ts` — lot generation, appraisal, NPC budgets and bid eligibility.
+- `restoration.ts` — condition/restoration value formulas.
+- `*.test.ts` — deterministic Vitest tests.
 
 ### `src/data/`
 Static content and tuning inputs.
-- `catalog.ts` — item and lot definitions.
-- `balance.ts` — condition/market ranges and bidder profiles.
+- `catalog.ts` — items/lots.
+- `balance.ts` — appraisal and bidder tuning.
+- `collections.ts` — collection definitions/helpers.
+- `tiers.ts` — reputation/auction tiers.
+- `daily.ts` — daily-special selection/config.
+- `progression.ts` — onboarding/first-session progression data.
 
 ### `src/game/`
-Phaser runtime and presentation.
+Phaser runtime and local game state.
 - `config.ts` — Phaser configuration.
 - `art.ts` — asset preload/texture resolution.
-- `scenes/` — presentation/orchestration, not balance formulas.
-- `store.ts` — current player-state persistence boundary.
+- `scenes/AuctionScene.ts` — auction presentation/orchestration.
+- `scenes/CollectionScene.ts` — collection book.
+- `scenes/OnboardingScene.ts` — first-session onboarding.
+- `store.ts` — gameplay-facing state mutations.
+- `save.ts` — versioned local save normalization/serialization.
 - `ui.ts` — shared Phaser UI helpers.
-- `restoration.ts` — compatibility re-export; domain implementation lives under `src/domain/`.
+- `restoration.ts` — compatibility re-export to domain formulas.
 
 ### `src/platform/`
-External platform adapters. `yandex.ts` owns Yandex Games SDK integration and local fallback behavior.
+External platform adapters.
+- `yandex.ts` — Yandex SDK/Player lifecycle.
+- `cloudSave.ts` — Yandex Player-data synchronization/reconciliation.
 
 ### `src/i18n.ts`
-Current RU/EN localization foundation.
+RU/EN localization foundation.
 
-### `src/styles.css`
-Browser shell/global CSS. Phaser canvas UI primarily lives in the game layer.
+### `public/assets/`
+Runtime artwork for lots/items.
 
 ## Tests
-- `src/domain/*.test.ts` — fast deterministic unit tests for pure game rules.
-- `tests/browser.spec.ts` — Playwright browser/runtime regression coverage.
-- `tests/restoration.spec.ts` — existing restoration regression coverage through the compatibility boundary.
+- `src/domain/*.test.ts` — fast domain unit tests.
+- `tests/browser.spec.ts` — browser/runtime and responsive regression coverage.
+- `tests/restoration.spec.ts`, `collections.spec.ts`, `tiers.spec.ts`, `daily.spec.ts`, `progression.spec.ts`, `analytics.spec.ts`, `cloud-save.spec.ts` — system/regression coverage.
 
 ## Where to make common changes
-- Add an item/lot: `src/data/`, then update content docs if the schema changes.
-- Tune condition/market/NPC ranges: `src/data/balance.ts`.
-- Change auction/restoration formulas: `src/domain/` with unit tests.
-- Change auction presentation: `src/game/scenes/` without duplicating domain formulas.
-- Change save behavior: `src/game/store.ts` today; introduce migrations before breaking persisted fields.
-- Add Yandex feature: `src/platform/` first, expose a narrow adapter to the game.
-- Add localized UI copy: localization layer, not duplicated scene literals.
+- Add content: `src/data/` + content docs if schema changes.
+- Tune economy/NPC ranges: `src/data/balance.ts`.
+- Change auction/restoration formulas: `src/domain/` + unit tests.
+- Change collection/tier/daily/progression definitions: matching `src/data/*` file + matching doc/test.
+- Change presentation: `src/game/scenes/`; do not duplicate domain formulas.
+- Change local save schema: `src/game/save.ts` + migration/compatibility tests.
+- Change cloud sync/Yandex behavior: `src/platform/` + platform docs/tests.
+- Change analytics semantics: `src/analytics.ts` + `docs/ANALYTICS.md`.
+- Change localized copy: `src/i18n.ts`.
 - Change product scope: `docs/GAME_DESIGN.md` + `docs/ROADMAP.md`.
 - Change architecture: `docs/ARCHITECTURE.md` + `docs/DECISIONS.md`.

@@ -13,7 +13,7 @@ Build a browser-first auction, appraisal, restoration and collection game for Ya
 5. `docs/ARCHITECTURE.md`
 6. The nearest nested `AGENTS.md` for the files you will edit.
 
-For economy, content, analytics or platform work also read the matching document in `docs/`.
+For economy, content, save/cloud, analytics or platform work also read the matching source-of-truth document under `docs/`.
 
 ## Product priorities
 In order:
@@ -27,44 +27,46 @@ In order:
 
 ## Non-negotiable engineering rules
 - Keep game/business rules out of Phaser rendering code when practical.
-- `src/data` owns static content definitions; scenes must not hardcode item prices, rarity tables or lot economy values.
-- `src/domain` owns pure auction, valuation, restoration and future progression rules.
+- `src/data` owns static content definitions/tuning; scenes must not hardcode item prices, rarity tables or economy ranges.
+- `src/domain` owns pure auction, valuation, restoration and future reusable progression rules.
 - Randomness in domain rules must be injectable so tests are deterministic.
 - `src/platform` is the only place allowed to call Yandex Games APIs directly.
-- Persisted state must be accessed through the store/save layer, not ad-hoc `localStorage` calls.
-- Treat persisted identifiers as public schema: do not rename or reuse item IDs without a migration plan.
+- Persisted state must go through store/save boundaries; never add ad-hoc `localStorage` writes.
+- Preserve the local-first/cloud-sync contract in `docs/CLOUD_SAVE.md`; cloud failure must not destroy newer local progress.
+- Treat persisted/content identifiers as public schema: do not rename/reuse IDs without migration/alias planning.
 - RU and EN are baseline locales. User-facing strings must not be scattered through gameplay logic.
 - Preserve relative Vite base-path behavior so ZIP/archive hosting works on Yandex Games.
 - Preserve correct Yandex `LoadingAPI.ready()` semantics: signal ready only after the game can be interacted with.
 - Ads must never interrupt active input or create an accidental loss/failure state.
-- Do not add new dependencies when a small local module is sufficient. Explain non-trivial dependency additions in the commit/PR.
+- Do not add new dependencies when a small local module is sufficient. Explain non-trivial additions.
 - Do not perform broad refactors unrelated to the requested task.
 
 ## Architecture boundaries
 - `src/domain/`: platform-agnostic types and pure game rules.
-- `src/data/`: catalog, lot templates and static balancing/content inputs.
-- `src/game/`: Phaser scenes, presentation and runtime orchestration.
-- `src/platform/`: Yandex/browser integration boundaries.
+- `src/data/`: catalog, collection/tier/daily/progression definitions and balance inputs.
+- `src/game/`: Phaser scenes, presentation, local store/save and runtime orchestration.
+- `src/platform/`: Yandex/browser integrations including cloud synchronization.
+- `src/analytics.ts`: versioned gameplay analytics boundary.
 - `src/i18n.ts`: localization foundation.
 
-Dependency direction should generally flow from presentation/platform adapters toward domain/data, not the reverse. See `docs/ARCHITECTURE.md`.
+Dependency direction should follow `docs/ARCHITECTURE.md`.
 
 ## Change protocol
 Before editing:
-- Inspect the current implementation and relevant docs.
-- Identify whether the change affects save schema, economy, analytics contracts, Yandex behavior or localization.
+- Inspect current implementation and relevant docs.
+- Identify save-schema, economy, analytics, Yandex, localization and existing-player implications.
 
 While editing:
 - Prefer the smallest coherent change.
-- Extract rules from scenes when they become independently testable domain logic.
-- Keep data additions data-driven and deterministic in shape.
-- Update documentation in the same change when a contract or architectural decision changes.
+- Extract independently testable rules from scenes into domain modules.
+- Keep content/tuning data-driven and deterministic in shape.
+- Update source-of-truth docs in the same change when a contract changes.
 
 After editing:
 - Run the quality gates below.
 - Check mobile-sized layout for UI changes.
-- Verify no user-facing text bypassed localization.
-- For save/economy changes, explicitly reason about existing players.
+- Verify user-facing copy follows localization conventions.
+- Explicitly reason about existing players for save/economy changes.
 
 ## Quality gates
 Required for functional changes:
@@ -89,20 +91,16 @@ Do not claim a gate passed unless it was actually executed successfully. If exec
 - Keep commits scoped and descriptive.
 - Do not commit generated `dist/`, secrets, local caches or editor state.
 - Avoid drive-by formatting of unrelated files.
-- If a task changes product behavior, update `docs/GAME_DESIGN.md` or `docs/DECISIONS.md` as appropriate.
+- If product behavior changes, update the corresponding product/system doc and `ROADMAP.md` where relevant.
 
 ## Current core loop
-Auction -> inspect clues -> bid/pass -> win lot -> reveal -> appraise -> optionally restore -> sell/keep -> bankroll/collection growth -> next auction.
+Onboarding -> choose tier/daily lot -> inspect -> bid/pass -> reveal -> appraise -> optionally restore -> sell/keep -> collection/reputation/bankroll growth -> next auction.
 
 ## Source-of-truth docs
-- Product: `docs/GAME_DESIGN.md`
-- Delivery sequence: `docs/ROADMAP.md`
-- File ownership: `docs/PROJECT_MAP.md`
-- Technical structure: `docs/ARCHITECTURE.md`
-- Engineering workflow: `docs/ENGINEERING.md`
-- Content IDs/data: `docs/CONTENT_MODEL.md`
-- Economy/retention: `docs/ECONOMY_AND_RETENTION.md`
-- Restoration: `docs/RESTORATION.md`
-- Yandex contract: `docs/YANDEX_INTEGRATION.md`
-- Analytics contract: `docs/ANALYTICS.md`
-- Architectural decisions: `docs/DECISIONS.md`
+- Product/delivery: `docs/GAME_DESIGN.md`, `docs/ROADMAP.md`
+- Architecture/workflow: `docs/ARCHITECTURE.md`, `docs/ENGINEERING.md`, `docs/DECISIONS.md`
+- Content/economy: `docs/CONTENT_MODEL.md`, `docs/ECONOMY_AND_RETENTION.md`
+- Gameplay systems: `docs/RESTORATION.md`, `docs/COLLECTIONS.md`, `docs/TIERS.md`, `docs/DAILY_SPECIAL.md`, `docs/FIRST_SESSION.md`
+- Save/platform: `docs/CLOUD_SAVE.md`, `docs/YANDEX_INTEGRATION.md`
+- Analytics: `docs/ANALYTICS.md`
+- Visual/QA: `docs/ART_DIRECTION.md`, `docs/QA.md`
