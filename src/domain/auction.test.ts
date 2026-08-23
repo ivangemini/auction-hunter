@@ -57,6 +57,7 @@ describe('auction domain', () => {
       itemById,
       { min: 0.42, max: 0.92 },
       { min: 0.9, max: 1.15 },
+      1,
       sequence([0, 0, 0, 0, 1, 1]),
     );
 
@@ -66,6 +67,14 @@ describe('auction domain', () => {
     expect(generated.every((item) => item.restored === false)).toBe(true);
     expect(new Set(generated.map((item) => item.definition.id)).size).toBe(generated.length);
     expect(totalAppraisedValue(generated)).toBe(180);
+  });
+
+  it('applies daily/special value multipliers after market-factor sampling', () => {
+    const itemById = new Map(items.map((item) => [item.id, item]));
+    const singleLot = { ...lot, itemCount: 1, itemPool: ['item-a'] };
+    const normal = createLotItems(singleLot, itemById, { min: 0.5, max: 0.5 }, { min: 1, max: 1 }, 1, () => 0);
+    const boosted = createLotItems(singleLot, itemById, { min: 0.5, max: 0.5 }, { min: 1, max: 1 }, 1.5, () => 0);
+    expect(boosted[0]!.appraisedValue).toBeGreaterThan(normal[0]!.appraisedValue);
   });
 
   it('derives NPC budgets from hidden lot value and filters who can answer the next bid', () => {

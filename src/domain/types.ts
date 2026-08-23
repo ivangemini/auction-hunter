@@ -41,6 +41,7 @@ export interface PlayerSave {
   cash: number;
   collection: string[];
   claimedSetRewards: string[];
+  reputationXp: number;
   auctionsWon: number;
   auctionsPlayed: number;
   lifetimeSales: number;

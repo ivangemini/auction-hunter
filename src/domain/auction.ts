@@ -48,6 +48,7 @@ export function createLotItems(
   itemById: ReadonlyMap<string, ItemDefinition>,
   conditionRange: NumericRange,
   marketFactorRange: NumericRange,
+  valueMultiplier = 1,
   random: RandomSource = DEFAULT_RANDOM,
 ): RevealedItem[] {
   const pool = [...lot.itemPool];
@@ -66,7 +67,7 @@ export function createLotItems(
 
   return selected.map((definition) => {
     const condition = randomBetween(conditionRange, random);
-    const marketFactor = randomBetween(marketFactorRange, random);
+    const marketFactor = randomBetween(marketFactorRange, random) * valueMultiplier;
 
     return {
       definition,

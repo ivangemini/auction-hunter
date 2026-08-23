@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { BIDDER_PROFILES, ITEM_CONDITION_RANGE, MARKET_FACTOR_RANGE } from '../../data/balance';
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
 import { uniqueCollectionCount } from '../../data/collections';
+import { getDailySpecial, localDayKey, type DailySpecialDefinition } from '../../data/daily';
+import { AUCTION_TIERS, getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../../data/tiers';
 import {
   chooseRandom,
   createAuctionOpponents,
@@ -37,6 +39,8 @@ export class AuctionScene extends Phaser.Scene {
   private lot!: LotTemplate;
   private items: RevealedItem[] = [];
   private opponents: AuctionOpponent[] = [];
+  private currentTierId: AuctionTierId = 'garage';
+  private dailySpecial: DailySpecialDefinition | null = null;
   private currentBid = 0;
   private currentLeader = '';
   private awaitingNpc = false;
@@ -45,6 +49,7 @@ export class AuctionScene extends Phaser.Scene {
   private roundCost = 0;
   private roundSales = 0;
   private roundKept = 0;
+  private roundReputationGain = 0;
   private notice = '';
   private restorationTargetCenter = 0.5;
   private restorationTargetHalfWidth = 0.1;
@@ -59,6 +64,8 @@ export class AuctionScene extends Phaser.Scene {
 
   create(): void {
     this.locale = getPlatformLocale();
+    this.dailySpecial = null;
+    this.currentTierId = highestUnlockedAuctionTier(this.store.snapshot.reputationXp).id;
     this.prepareNextLot();
     this.renderLobby();
     markGameReady();
@@ -67,11 +74,43 @@ export class AuctionScene extends Phaser.Scene {
   }
 
   private prepareNextLot(): void {
-    const lot = chooseRandom(LOTS);
-    if (!lot) throw new Error('No lot templates configured');
+    const save = this.store.snapshot;
+    const today = localDayKey();
+    if (this.dailySpecial && (this.dailySpecial.dayKey !== today || save.lastDailyCompletedDay === today)) {
+      this.dailySpecial = null;
+    }
+
+    let tier = getAuctionTier(this.currentTierId);
+    let lot: LotTemplate | undefined;
+    let valueMultiplier = 1;
+
+    if (this.dailySpecial) {
+      tier = getAuctionTier(this.dailySpecial.tierId);
+      this.currentTierId = tier.id;
+      lot = LOTS.find((candidate) => candidate.id === this.dailySpecial?.lotId);
+      valueMultiplier = this.dailySpecial.valueMultiplier;
+    } else {
+      if (save.reputationXp < tier.minReputationXp) {
+        tier = highestUnlockedAuctionTier(save.reputationXp);
+        this.currentTierId = tier.id;
+      }
+
+      const tierLots = tier.lotIds
+        .map((lotId) => LOTS.find((candidate) => candidate.id === lotId))
+        .filter((candidate): candidate is LotTemplate => Boolean(candidate));
+      lot = chooseRandom(tierLots);
+    }
+
+    if (!lot) throw new Error(`No lot templates configured for tier ${tier.id}`);
 
     this.lot = lot;
-    this.items = createLotItems(lot, ITEM_BY_ID, ITEM_CONDITION_RANGE, MARKET_FACTOR_RANGE);
+    this.items = createLotItems(
+      lot,
+      ITEM_BY_ID,
+      ITEM_CONDITION_RANGE,
+      MARKET_FACTOR_RANGE,
+      valueMultiplier,
+    );
     this.opponents = createAuctionOpponents(lot, this.items, BIDDER_PROFILES);
     this.currentBid = lot.reservePrice;
     this.currentLeader = this.opponents[0]?.id ?? '';
@@ -81,39 +120,110 @@ export class AuctionScene extends Phaser.Scene {
     this.roundCost = 0;
     this.roundSales = 0;
     this.roundKept = 0;
+    this.roundReputationGain = 0;
     this.notice = '';
   }
 
   private renderLobby(): void {
     this.resetCanvas();
     this.renderHeader();
+    this.renderTierTabs();
 
-    this.panel(70, 150, 760, 500);
-    this.label(105, 178, t(this.locale, 'lot').toUpperCase(), 14, '#8b93a1');
-    this.label(105, 207, this.lot.name[this.locale], 34, '#f7f8fa', 'bold');
-    this.label(105, 252, `${t(this.locale, 'location')}: ${this.lot.location[this.locale]}`, 17, '#aeb5c0');
-    this.renderLotArtwork(285, 405, 360, 205);
+    this.panel(70, 190, 760, 460);
+    const lotEyebrow = this.dailySpecial ? t(this.locale, 'dailySpecial').toUpperCase() : t(this.locale, 'lot').toUpperCase();
+    this.label(105, 214, lotEyebrow, 14, this.dailySpecial ? '#e9b949' : '#8b93a1', this.dailySpecial ? 'bold' : 'normal');
+    this.label(105, 242, this.lot.name[this.locale], 32, '#f7f8fa', 'bold');
+    this.label(105, 284, `${t(this.locale, 'location')}: ${this.lot.location[this.locale]}`, 16, '#aeb5c0');
+    this.renderLotArtwork(285, 438, 360, 205);
 
-    this.label(500, 316, t(this.locale, 'visibleClues'), 18, '#e9b949', 'bold');
+    this.label(500, 326, t(this.locale, 'visibleClues'), 18, '#e9b949', 'bold');
     this.lot.clues.forEach((clue, index) => {
-      this.label(500, 358 + index * 62, `• ${clue[this.locale]}`, 18, '#d7dbe2').setWordWrapWidth(285);
+      this.label(500, 368 + index * 62, `• ${clue[this.locale]}`, 18, '#d7dbe2').setWordWrapWidth(285);
     });
 
-    this.panel(865, 150, 345, 500, 0x171a20);
-    this.label(900, 188, t(this.locale, 'currentBid'), 15, '#8b93a1');
-    this.label(900, 218, this.money(this.lot.reservePrice), 38, '#f7f8fa', 'bold');
-    this.divider(900, 278, 275);
-    this.label(900, 305, this.locale === 'ru' ? 'Шаг ставки' : 'Bid increment', 15, '#8b93a1');
-    this.label(900, 335, `+${this.money(this.lot.bidIncrement)}`, 27, '#d7dbe2', 'bold');
-    this.label(900, 410, this.locale === 'ru' ? 'Предметов внутри' : 'Items inside', 15, '#8b93a1');
-    this.label(900, 440, String(this.lot.itemCount), 27, '#f7f8fa', 'bold');
+    this.panel(865, 190, 345, 460, 0x171a20);
+    this.label(900, 222, t(this.locale, 'currentBid'), 15, '#8b93a1');
+    this.label(900, 250, this.money(this.lot.reservePrice), 34, '#f7f8fa', 'bold');
+    this.divider(900, 300, 275);
+    this.label(900, 318, this.locale === 'ru' ? 'Шаг ставки' : 'Bid increment', 14, '#8b93a1');
+    this.label(900, 345, `+${this.money(this.lot.bidIncrement)}`, 23, '#d7dbe2', 'bold');
+    this.label(900, 390, this.locale === 'ru' ? 'Предметов внутри' : 'Items inside', 14, '#8b93a1');
+    this.label(900, 416, String(this.lot.itemCount), 23, '#f7f8fa', 'bold');
 
-    button(this, 1038, 510, t(this.locale, 'collectionBook'), () => this.scene.start('collection'), {
+    button(this, 1038, 476, t(this.locale, 'collectionBook'), () => this.scene.start('collection'), {
       width: 270,
-      height: 50,
+      height: 42,
       background: 0x61a8ff,
     });
-    button(this, 1038, 585, t(this.locale, 'startAuction'), () => this.startAuction(), { width: 270, height: 58 });
+    this.renderDailyControl();
+    button(this, 1038, 605, this.dailySpecial ? t(this.locale, 'startDailyAuction') : t(this.locale, 'startAuction'), () => this.startAuction(), {
+      width: 270,
+      height: 50,
+    });
+  }
+
+  private renderTierTabs(): void {
+    const reputationXp = this.store.snapshot.reputationXp;
+
+    AUCTION_TIERS.forEach((tier, index) => {
+      const x = 250 + index * 390;
+      const unlocked = reputationXp >= tier.minReputationXp;
+      const selected = tier.id === this.currentTierId;
+      const fill = selected ? tier.accent : 0x171a20;
+      const fillAlpha = selected ? 0.16 : 1;
+      const borderAlpha = selected ? 0.75 : unlocked ? 0.18 : 0.07;
+      const border = selected ? tier.accent : 0xffffff;
+
+      const rect = this.add.rectangle(x, 151, 340, 48, fill, fillAlpha).setStrokeStyle(1, border, borderAlpha);
+      const text = unlocked
+        ? tier.name[this.locale]
+        : `${tier.name[this.locale]} · ${t(this.locale, 'lockedAtReputation', { xp: tier.minReputationXp })}`;
+      this.centerLabel(x, 151, text, 14, selected ? this.hexColor(tier.accent) : unlocked ? '#d7dbe2' : '#666e79', selected ? 'bold' : 'normal');
+
+      if (unlocked && (!selected || this.dailySpecial)) {
+        rect.setInteractive({ useHandCursor: true });
+        rect.on('pointerover', () => rect.setStrokeStyle(1, tier.accent, 0.6));
+        rect.on('pointerout', () => rect.setStrokeStyle(1, selected ? tier.accent : 0xffffff, selected ? 0.75 : 0.18));
+        rect.on('pointerup', () => {
+          this.dailySpecial = null;
+          this.currentTierId = tier.id;
+          this.prepareNextLot();
+          this.renderLobby();
+        });
+      }
+    });
+  }
+
+  private renderDailyControl(): void {
+    const today = localDayKey();
+    const completed = this.store.snapshot.lastDailyCompletedDay === today;
+
+    if (completed) {
+      this.centerLabel(1038, 540, t(this.locale, 'dailyComplete'), 13, '#63d28d', 'bold');
+      return;
+    }
+
+    if (this.dailySpecial?.dayKey === today) {
+      this.centerLabel(1038, 540, t(this.locale, 'dailyActive'), 13, '#e9b949', 'bold');
+      return;
+    }
+
+    button(this, 1038, 540, t(this.locale, 'dailySpecial'), () => this.activateDailySpecial(), {
+      width: 270,
+      height: 42,
+      background: 0xc4773a,
+    });
+  }
+
+  private activateDailySpecial(): void {
+    const today = localDayKey();
+    const save = this.store.snapshot;
+    if (save.lastDailyCompletedDay === today) return;
+
+    this.dailySpecial = getDailySpecial(today, save.reputationXp);
+    this.currentTierId = this.dailySpecial.tierId;
+    this.prepareNextLot();
+    this.renderLobby();
   }
 
   private startAuction(): void {
@@ -219,7 +329,12 @@ export class AuctionScene extends Phaser.Scene {
   private finalizeWin(): void {
     this.awaitingNpc = false;
     this.roundCost = this.currentBid;
-    this.store.buyLot(this.currentBid);
+    const tier = getAuctionTier(this.currentTierId);
+    const completedDailyDay = this.dailySpecial?.dayKey;
+    this.roundReputationGain = this.dailySpecial
+      ? Math.round(tier.winXp * this.dailySpecial.reputationMultiplier)
+      : tier.winXp;
+    this.store.buyLot(this.currentBid, this.roundReputationGain, completedDailyDay);
     this.renderWin();
   }
 
@@ -230,13 +345,14 @@ export class AuctionScene extends Phaser.Scene {
     this.renderLotArtwork(640, 285, 330, 165);
     this.centerLabel(640, 190, t(this.locale, 'won'), 42, '#e9b949', 'bold');
     this.centerLabel(640, 395, this.lot.name[this.locale], 26, '#f7f8fa', 'bold');
-    this.centerLabel(640, 435, `${t(this.locale, 'paid')}: ${this.money(this.roundCost)}`, 21, '#aeb5c0');
-    this.centerLabel(640, 474, this.locale === 'ru' ? 'Теперь узнаем, стоило ли оно того.' : 'Now we find out whether it was worth it.', 18, '#d7dbe2');
-    button(this, 640, 545, t(this.locale, 'openLot'), () => {
+    this.centerLabel(640, 430, `${t(this.locale, 'paid')}: ${this.money(this.roundCost)}`, 20, '#aeb5c0');
+    this.centerLabel(640, 466, t(this.locale, 'reputationGain', { xp: this.roundReputationGain }), 18, '#61a8ff', 'bold');
+    this.centerLabel(640, 497, this.locale === 'ru' ? 'Теперь узнаем, стоило ли оно того.' : 'Now we find out whether it was worth it.', 17, '#d7dbe2');
+    button(this, 640, 560, t(this.locale, 'openLot'), () => {
       this.revealIndex = 0;
       this.revealStage = 'closed';
       this.renderReveal();
-    }, { width: 280, height: 64 });
+    }, { width: 280, height: 58 });
   }
 
   private renderReveal(): void {
@@ -406,6 +522,10 @@ export class AuctionScene extends Phaser.Scene {
     this.summaryRow(320, 404, t(this.locale, 'kept'), this.roundKept, false);
     this.summaryRow(320, 456, t(this.locale, 'liquidResult'), this.roundSales - this.roundCost);
     button(this, 640, 555, t(this.locale, 'nextAuction'), () => {
+      if (this.dailySpecial) {
+        this.dailySpecial = null;
+        this.currentTierId = highestUnlockedAuctionTier(this.store.snapshot.reputationXp).id;
+      }
       this.prepareNextLot();
       this.renderLobby();
     }, { width: 290, height: 64 });
@@ -422,9 +542,9 @@ export class AuctionScene extends Phaser.Scene {
     this.label(70, 42, t(this.locale, 'title'), 28, '#f7f8fa', 'bold');
     this.label(70, 80, t(this.locale, 'subtitle'), 15, '#737b88');
     const save = this.store.snapshot;
-    this.stat(790, t(this.locale, 'cash'), this.money(save.cash));
-    this.stat(970, t(this.locale, 'collection'), String(uniqueCollectionCount(save.collection)));
-    this.stat(1135, t(this.locale, 'wins'), String(save.auctionsWon));
+    this.stat(760, t(this.locale, 'cash'), this.money(save.cash));
+    this.stat(930, t(this.locale, 'collection'), String(uniqueCollectionCount(save.collection)));
+    this.stat(1080, t(this.locale, 'reputation'), `${Math.floor(save.reputationXp)} REP`);
   }
 
   private stat(x: number, label: string, value: string): void {
