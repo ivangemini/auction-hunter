@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { trackEvent } from '../../analytics';
 import { BIDDER_PROFILES, ITEM_CONDITION_RANGE, MARKET_FACTOR_RANGE } from '../../data/balance';
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
 import { uniqueCollectionCount } from '../../data/collections';
@@ -12,10 +13,11 @@ import {
   nextBid,
 } from '../../domain/auction';
 import type { AuctionOpponent } from '../../domain/auction';
+import { calculateRoundRewardedBonus } from '../../domain/rewardedAds';
 import { applyRestoration } from '../../domain/restoration';
 import type { Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
 import { t } from '../../i18n';
-import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platform/yandex';
+import { getPlatformLocale, markGameReady, setGameplayActive, showRewardedAd } from '../../platform/yandex';
 import { preloadArt, resolveItemTexture, resolveLotTexture } from '../art';
 import { GameStore } from '../store';
 import { button } from '../ui';
@@ -50,6 +52,9 @@ export class AuctionScene extends Phaser.Scene {
   private roundSales = 0;
   private roundKept = 0;
   private roundReputationGain = 0;
+  private roundRewardedBonusClaimed = false;
+  private rewardedAdPending = false;
+  private rewardedAdMessage = '';
   private notice = '';
   private restorationTargetCenter = 0.5;
   private restorationTargetHalfWidth = 0.1;
@@ -121,6 +126,9 @@ export class AuctionScene extends Phaser.Scene {
     this.roundSales = 0;
     this.roundKept = 0;
     this.roundReputationGain = 0;
+    this.roundRewardedBonusClaimed = false;
+    this.rewardedAdPending = false;
+    this.rewardedAdMessage = '';
     this.notice = '';
   }
 
@@ -515,20 +523,75 @@ export class AuctionScene extends Phaser.Scene {
     setGameplayActive(false);
     this.resetCanvas();
     this.renderHeader();
-    this.panel(235, 155, 810, 470);
-    this.centerLabel(640, 220, t(this.locale, 'roundDone'), 40, '#f7f8fa', 'bold');
-    this.summaryRow(320, 300, t(this.locale, 'paid'), -this.roundCost);
-    this.summaryRow(320, 352, t(this.locale, 'sales'), this.roundSales);
-    this.summaryRow(320, 404, t(this.locale, 'kept'), this.roundKept, false);
-    this.summaryRow(320, 456, t(this.locale, 'liquidResult'), this.roundSales - this.roundCost);
-    button(this, 640, 555, t(this.locale, 'nextAuction'), () => {
+
+    const rewardedBonus = calculateRoundRewardedBonus(this.roundCost);
+    const rewardedButtonText = this.roundRewardedBonusClaimed
+      ? t(this.locale, 'rewardedAdClaimed', { amount: this.money(rewardedBonus) })
+      : this.rewardedAdPending
+        ? t(this.locale, 'rewardedAdPending')
+        : t(this.locale, 'rewardedAdWatch', { amount: this.money(rewardedBonus) });
+
+    this.panel(235, 125, 810, 535);
+    this.centerLabel(640, 178, t(this.locale, 'roundDone'), 38, '#f7f8fa', 'bold');
+    this.summaryRow(320, 238, t(this.locale, 'paid'), -this.roundCost);
+    this.summaryRow(320, 286, t(this.locale, 'sales'), this.roundSales);
+    this.summaryRow(320, 334, t(this.locale, 'kept'), this.roundKept, false);
+    this.summaryRow(320, 382, t(this.locale, 'liquidResult'), this.roundSales - this.roundCost);
+    this.centerLabel(640, 438, t(this.locale, 'rewardedBonus'), 14, '#8b93a1');
+
+    if (this.rewardedAdMessage) {
+      this.centerLabel(640, 466, this.rewardedAdMessage, 14, this.roundRewardedBonusClaimed ? '#63d28d' : '#ff8d85', 'bold');
+    }
+
+    button(this, 640, 515, rewardedButtonText, () => this.claimRoundRewardedBonus(), {
+      width: 330,
+      height: 50,
+      background: 0xc4773a,
+      disabled: this.roundRewardedBonusClaimed || this.rewardedAdPending,
+    });
+
+    button(this, 640, 592, t(this.locale, 'nextAuction'), () => {
       if (this.dailySpecial) {
         this.dailySpecial = null;
         this.currentTierId = highestUnlockedAuctionTier(this.store.snapshot.reputationXp).id;
       }
       this.prepareNextLot();
       this.renderLobby();
-    }, { width: 290, height: 64 });
+    }, { width: 290, height: 54 });
+  }
+
+  private claimRoundRewardedBonus(): void {
+    if (this.roundRewardedBonusClaimed || this.rewardedAdPending) return;
+
+    const reward = calculateRoundRewardedBonus(this.roundCost);
+    this.rewardedAdPending = true;
+    this.rewardedAdMessage = '';
+    trackEvent('rewarded_ad_requested', {
+      placement: 'round_summary_cash',
+      reward,
+      finalBid: this.roundCost,
+    });
+    this.renderRoundSummary();
+
+    void showRewardedAd(() => {
+      if (this.roundRewardedBonusClaimed) return;
+      if (!this.store.grantRewardedCash(reward, 'round_summary_cash')) return;
+      this.roundRewardedBonusClaimed = true;
+      this.rewardedAdMessage = t(this.locale, 'rewardedAdClaimed', { amount: this.money(reward) });
+    }).then((result) => {
+      this.rewardedAdPending = false;
+      trackEvent('rewarded_ad_result', {
+        placement: 'round_summary_cash',
+        reward,
+        result,
+      });
+
+      if (!this.roundRewardedBonusClaimed && (result === 'unavailable' || result === 'error')) {
+        this.rewardedAdMessage = t(this.locale, 'rewardedAdUnavailable');
+      }
+
+      this.renderRoundSummary();
+    });
   }
 
   private summaryRow(x: number, y: number, label: string, value: number, money = true): void {
