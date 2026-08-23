@@ -8,7 +8,7 @@
 - [x] Sequential item reveal.
 - [x] Appraise + sell/keep decision.
 - [x] Local bankroll and collection persistence.
-- [ ] Real art direction and first asset pack.
+- [x] Real art direction and first asset pack.
 - [ ] Device/browser QA.
 
 ## P1 — Retention-ready MVP
