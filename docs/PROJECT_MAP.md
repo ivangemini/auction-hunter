@@ -10,7 +10,8 @@ Fast navigation map for humans and coding agents.
 - `vite.config.ts` — build/relative hosting configuration.
 - `tsconfig.json` — TypeScript contract.
 - `playwright.config.ts` — browser QA configuration.
-- `.github/workflows/ci.yml` — CI gates.
+- `.github/workflows/ci.yml` — continuous quality gates.
+- `.github/workflows/yandex-release.yml` — manual validated Yandex ZIP artifact build.
 
 ## Documentation
 - `GAME_DESIGN.md`, `ROADMAP.md` — product intent and delivery status.
@@ -18,9 +19,10 @@ Fast navigation map for humans and coding agents.
 - `CONTENT_MODEL.md`, `ECONOMY_AND_RETENTION.md` — content/economy rules.
 - `RESTORATION.md`, `COLLECTIONS.md`, `TIERS.md`, `DAILY_SPECIAL.md`, `FIRST_SESSION.md` — shipped gameplay-system contracts.
 - `MONETIZATION.md` — rewarded/interstitial placement and tuning policy.
+- `IAP_GATE.md` — telemetry gate before purchase design.
 - `CLOUD_SAVE.md`, `YANDEX_INTEGRATION.md` — persistence/platform contracts.
 - `ANALYTICS.md` — versioned telemetry contract.
-- `ART_DIRECTION.md`, `QA.md` — visual and browser/device quality contracts.
+- `ART_DIRECTION.md`, `QA.md`, `MODERATION.md` — visual, QA and release contracts.
 
 ## Source
 ### `src/main.ts`
@@ -49,7 +51,7 @@ Static content and tuning inputs.
 ### `src/game/`
 Phaser runtime and local game state.
 - `config.ts` — Phaser configuration.
-- `lifecycle.ts` — binds platform pause state to Phaser loop/audio suspension.
+- `lifecycle.ts` — binds platform pause state to Phaser/game audio suspension.
 - `art.ts` — asset preload/texture resolution.
 - `scenes/AuctionScene.ts` — auction presentation/orchestration and ad-placement calls.
 - `scenes/CollectionScene.ts` — collection book.
@@ -67,7 +69,7 @@ External platform adapters.
 - `cloudSave.ts` — Yandex Player-data synchronization/reconciliation.
 
 ### `src/i18n.ts`
-RU/EN localization foundation.
+RU/EN localization source of truth. Gameplay UI copy must come from here or localized content definitions rather than inline locale branches.
 
 ### `public/assets/`
 Runtime artwork for lots/items.

@@ -9,7 +9,7 @@
 - [x] Appraise + sell/keep decision.
 - [x] Local bankroll and collection persistence.
 - [x] Real art direction and first asset pack.
-- [ ] Device/browser QA.
+- [ ] Device/browser QA — automated gates are present; final Yandex draft + real-device pass remains manual.
 
 ## P1 — Retention-ready MVP
 - [x] Restoration mini-game.
@@ -25,7 +25,7 @@
 - [x] Rewarded ad placements based on optional value.
 - [x] Interstitial policy at natural breaks.
 - [x] Sound/focus/ad pause handling.
-- [ ] Store/IAP design if metrics justify it.
-- [ ] Full RU/EN localization.
-- [ ] Yandex moderation checklist and archive build.
-- [ ] Retention/economy tuning from real telemetry.
+- [ ] Store/IAP design if metrics justify it — intentionally gated on post-release telemetry; see `IAP_GATE.md`.
+- [x] Full RU/EN localization.
+- [x] Yandex moderation checklist and archive build pipeline.
+- [ ] Retention/economy tuning from real telemetry — requires released traffic.
