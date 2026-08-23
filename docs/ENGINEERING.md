@@ -6,40 +6,44 @@
 npm install
 npm run dev
 npm run typecheck
+npm test
 npm run build
+npm run qa:browser
 ```
 
-CI currently validates TypeScript and production build on pushes/PRs to `main`.
+CI validates TypeScript, pure domain unit tests, the production build and Chromium browser QA on pushes/PRs to `main`.
 
 ## Definition of done for functional changes
 - Requested behavior is implemented.
 - TypeScript gate passes.
+- Unit tests pass.
 - Production build passes.
+- Relevant browser QA passes for UI/runtime changes.
 - No unrelated behavior was changed.
 - User-facing text follows localization conventions.
 - Save/economy implications were checked when relevant.
 - Relevant docs are updated when a contract changed.
 
 ## Browser/game QA
-For visual or interaction changes, inspect at minimum:
+For visual or interaction changes, follow `docs/QA.md` and inspect at minimum:
 - desktop pointer interaction;
 - mobile-sized touch layout;
 - resize/orientation behavior where applicable;
 - repeated clicks/taps on transactional actions;
 - page blur/focus around active gameplay.
 
-Before release, expand to a browser/device matrix and document exact supported targets.
-
 ## Testing strategy
-The vertical slice currently relies on typecheck/build gates. As domain logic grows, prioritize tests for:
-1. save migration and serialization;
-2. auction/bid state transitions;
-3. valuation/economy formulas;
+Vitest is the fast unit-test runner. Pure domain rules must be testable without Phaser, DOM or a browser. Playwright protects browser/runtime integration and responsive behavior.
+
+Current priority order:
+1. auction generation, valuation and bid eligibility;
+2. restoration/economy formulas;
+3. save migration and serialization;
 4. reward granting and ad callback idempotency;
 5. catalog ID/schema validation;
 6. progression unlock conditions.
 
-Prefer pure functions for rules so these tests do not need Phaser.
+Random domain rules must accept an injected random source so tests can reproduce exact outcomes.
 
 ## Dependency policy
 Add a dependency only when it materially reduces complexity or provides a platform capability we should not maintain ourselves. Avoid libraries for trivial helpers.

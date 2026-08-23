@@ -18,6 +18,8 @@
 ## Validation
 
 - [ ] `npm run typecheck`
+- [ ] `npm test`
 - [ ] `npm run build`
+- [ ] `npm run qa:browser` when UI/runtime changed
 - [ ] Relevant manual/browser checks completed
 - [ ] Docs updated if a contract changed

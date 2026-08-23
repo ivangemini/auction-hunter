@@ -28,6 +28,8 @@ In order:
 ## Non-negotiable engineering rules
 - Keep game/business rules out of Phaser rendering code when practical.
 - `src/data` owns static content definitions; scenes must not hardcode item prices, rarity tables or lot economy values.
+- `src/domain` owns pure auction, valuation, restoration and future progression rules.
+- Randomness in domain rules must be injectable so tests are deterministic.
 - `src/platform` is the only place allowed to call Yandex Games APIs directly.
 - Persisted state must be accessed through the store/save layer, not ad-hoc `localStorage` calls.
 - Treat persisted identifiers as public schema: do not rename or reuse item IDs without a migration plan.
@@ -39,7 +41,7 @@ In order:
 - Do not perform broad refactors unrelated to the requested task.
 
 ## Architecture boundaries
-- `src/domain/`: platform-agnostic types and game rules.
+- `src/domain/`: platform-agnostic types and pure game rules.
 - `src/data/`: catalog, lot templates and static balancing/content inputs.
 - `src/game/`: Phaser scenes, presentation and runtime orchestration.
 - `src/platform/`: Yandex/browser integration boundaries.
@@ -69,10 +71,17 @@ Required for functional changes:
 
 ```bash
 npm run typecheck
+npm test
 npm run build
 ```
 
-When tests/lint scripts are introduced, they become required gates and must be documented here and in `docs/ENGINEERING.md`.
+For browser/UI changes also run:
+
+```bash
+npm run qa:browser
+```
+
+CI runs unit and browser gates on pushes/PRs to `main`.
 
 Do not claim a gate passed unless it was actually executed successfully. If execution is unavailable, state that clearly.
 
@@ -83,7 +92,7 @@ Do not claim a gate passed unless it was actually executed successfully. If exec
 - If a task changes product behavior, update `docs/GAME_DESIGN.md` or `docs/DECISIONS.md` as appropriate.
 
 ## Current core loop
-Auction -> inspect clues -> bid/pass -> win lot -> reveal -> appraise -> sell/keep -> bankroll/collection growth -> next auction.
+Auction -> inspect clues -> bid/pass -> win lot -> reveal -> appraise -> optionally restore -> sell/keep -> bankroll/collection growth -> next auction.
 
 ## Source-of-truth docs
 - Product: `docs/GAME_DESIGN.md`
@@ -93,6 +102,7 @@ Auction -> inspect clues -> bid/pass -> win lot -> reveal -> appraise -> sell/ke
 - Engineering workflow: `docs/ENGINEERING.md`
 - Content IDs/data: `docs/CONTENT_MODEL.md`
 - Economy/retention: `docs/ECONOMY_AND_RETENTION.md`
+- Restoration: `docs/RESTORATION.md`
 - Yandex contract: `docs/YANDEX_INTEGRATION.md`
 - Analytics contract: `docs/ANALYTICS.md`
 - Architectural decisions: `docs/DECISIONS.md`
