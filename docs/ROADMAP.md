@@ -14,7 +14,7 @@
 ## P1 — Retention-ready MVP
 - [x] Restoration mini-game.
 - [x] Item condition and restoration value uplift.
-- [ ] Collection book and set completion rewards.
+- [x] Collection book and set completion rewards.
 - [ ] Reputation XP and three auction tiers.
 - [ ] Daily special auction.
 - [ ] First-session onboarding and 30-minute progression curve.

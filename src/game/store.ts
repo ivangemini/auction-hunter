@@ -6,26 +6,36 @@ const DEFAULT_SAVE: PlayerSave = {
   version: 1,
   cash: 2500,
   collection: [],
+  claimedSetRewards: [],
   auctionsWon: 0,
   auctionsPlayed: 0,
   lifetimeSales: 0,
 };
 
+function cleanStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
+}
+
+function freshDefaultSave(): PlayerSave {
+  return { ...DEFAULT_SAVE, collection: [], claimedSetRewards: [] };
+}
+
 function loadSave(): PlayerSave {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { ...DEFAULT_SAVE, collection: [] };
+    if (!raw) return freshDefaultSave();
 
     const parsed = JSON.parse(raw) as Partial<PlayerSave>;
-    if (parsed.version !== 1) return { ...DEFAULT_SAVE, collection: [] };
+    if (parsed.version !== 1) return freshDefaultSave();
 
     return {
       ...DEFAULT_SAVE,
       ...parsed,
-      collection: Array.isArray(parsed.collection) ? parsed.collection.filter((id): id is string => typeof id === 'string') : [],
+      collection: cleanStringArray(parsed.collection),
+      claimedSetRewards: cleanStringArray(parsed.claimedSetRewards),
     };
   } catch {
-    return { ...DEFAULT_SAVE, collection: [] };
+    return freshDefaultSave();
   }
 }
 
@@ -33,34 +43,57 @@ export class GameStore {
   private state: PlayerSave = loadSave();
 
   get snapshot(): Readonly<PlayerSave> {
+    this.sync();
     return this.state;
   }
 
   canAfford(amount: number): boolean {
+    this.sync();
     return this.state.cash >= amount;
   }
 
   recordAuctionPlayed(): void {
+    this.sync();
     this.state.auctionsPlayed += 1;
     this.persist();
   }
 
   buyLot(price: number): void {
-    if (!this.canAfford(price)) throw new Error('Insufficient cash');
+    this.sync();
+    if (this.state.cash < price) throw new Error('Insufficient cash');
     this.state.cash -= price;
     this.state.auctionsWon += 1;
     this.persist();
   }
 
   sellItem(value: number): void {
+    this.sync();
     this.state.cash += value;
     this.state.lifetimeSales += value;
     this.persist();
   }
 
   keepItem(itemId: string): void {
+    this.sync();
     this.state.collection.push(itemId);
     this.persist();
+  }
+
+  claimSetReward(setId: string, reward: number, requiredItemIds: readonly string[]): boolean {
+    this.sync();
+    if (this.state.claimedSetRewards.includes(setId)) return false;
+
+    const owned = new Set(this.state.collection);
+    if (!requiredItemIds.every((itemId) => owned.has(itemId))) return false;
+
+    this.state.cash += reward;
+    this.state.claimedSetRewards.push(setId);
+    this.persist();
+    return true;
+  }
+
+  private sync(): void {
+    this.state = loadSave();
   }
 
   private persist(): void {

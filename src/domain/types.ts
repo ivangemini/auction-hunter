@@ -40,6 +40,7 @@ export interface PlayerSave {
   version: 1;
   cash: number;
   collection: string[];
+  claimedSetRewards: string[];
   auctionsWon: number;
   auctionsPlayed: number;
   lifetimeSales: number;

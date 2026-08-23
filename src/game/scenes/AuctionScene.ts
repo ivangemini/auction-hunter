@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
+import { uniqueCollectionCount } from '../../data/collections';
 import type { ItemDefinition, Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
 import { t } from '../../i18n';
 import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platform/yandex';
@@ -144,7 +145,12 @@ export class AuctionScene extends Phaser.Scene {
     this.label(900, 410, this.locale === 'ru' ? 'Предметов внутри' : 'Items inside', 15, '#8b93a1');
     this.label(900, 440, String(this.lot.itemCount), 27, '#f7f8fa', 'bold');
 
-    button(this, 1038, 565, t(this.locale, 'startAuction'), () => this.startAuction(), { width: 270, height: 64 });
+    button(this, 1038, 510, t(this.locale, 'collectionBook'), () => this.scene.start('collection'), {
+      width: 270,
+      height: 50,
+      background: 0x61a8ff,
+    });
+    button(this, 1038, 585, t(this.locale, 'startAuction'), () => this.startAuction(), { width: 270, height: 58 });
   }
 
   private startAuction(): void {
@@ -455,7 +461,7 @@ export class AuctionScene extends Phaser.Scene {
     this.label(70, 80, t(this.locale, 'subtitle'), 15, '#737b88');
     const save = this.store.snapshot;
     this.stat(790, t(this.locale, 'cash'), this.money(save.cash));
-    this.stat(970, t(this.locale, 'collection'), String(save.collection.length));
+    this.stat(970, t(this.locale, 'collection'), String(uniqueCollectionCount(save.collection)));
     this.stat(1135, t(this.locale, 'wins'), String(save.auctionsWon));
   }
 
