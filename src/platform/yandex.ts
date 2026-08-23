@@ -9,6 +9,19 @@ interface GameplayApi {
   stop(): void;
 }
 
+interface RewardedVideoCallbacks {
+  onOpen?: () => void;
+  onRewarded?: () => void;
+  onClose?: (wasShown: boolean) => void;
+  onError?: (error: object) => void;
+}
+
+interface AdvApi {
+  showRewardedVideo(options?: {
+    callbacks?: RewardedVideoCallbacks;
+  }): void;
+}
+
 export interface YandexPlayer {
   getData(keys?: string[]): Promise<Record<string, unknown>>;
   setData(data: Record<string, unknown>, flush?: boolean): Promise<void>;
@@ -20,6 +33,7 @@ interface YandexSdk {
     LoadingAPI?: LoadingApi;
     GameplayAPI?: GameplayApi;
   };
+  adv?: AdvApi;
   environment?: {
     i18n?: {
       lang?: string;
@@ -37,6 +51,8 @@ declare global {
     YaGames?: YaGamesGlobal;
   }
 }
+
+export type RewardedAdResult = 'rewarded' | 'closed' | 'unavailable' | 'error';
 
 let sdk: YandexSdk | null = null;
 let cachedPlayer: YandexPlayer | null = null;
@@ -90,4 +106,46 @@ export function setGameplayActive(active: boolean): void {
   }
 
   gameplayActive = active;
+}
+
+export function showRewardedAd(onRewarded: () => void): Promise<RewardedAdResult> {
+  const showRewardedVideo = sdk?.adv?.showRewardedVideo;
+  if (!showRewardedVideo) return Promise.resolve('unavailable');
+
+  const resumeGameplayAfterAd = gameplayActive;
+  setGameplayActive(false);
+
+  return new Promise((resolve) => {
+    let rewarded = false;
+    let rewardGranted = false;
+    let settled = false;
+
+    const finish = (result: RewardedAdResult): void => {
+      if (settled) return;
+      settled = true;
+      if (resumeGameplayAfterAd) setGameplayActive(true);
+      resolve(result);
+    };
+
+    try {
+      showRewardedVideo.call(sdk?.adv, {
+        callbacks: {
+          onRewarded: () => {
+            rewarded = true;
+            if (rewardGranted) return;
+            rewardGranted = true;
+            onRewarded();
+          },
+          onClose: () => finish(rewarded ? 'rewarded' : 'closed'),
+          onError: (error) => {
+            console.warn('[Yandex] Rewarded video failed.', error);
+            finish(rewarded ? 'rewarded' : 'error');
+          },
+        },
+      });
+    } catch (error) {
+      console.warn('[Yandex] Rewarded video call failed.', error);
+      finish(rewarded ? 'rewarded' : 'error');
+    }
+  });
 }
