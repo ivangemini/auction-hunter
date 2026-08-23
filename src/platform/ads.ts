@@ -23,8 +23,10 @@ export function isAdvertisingAvailable(format: AdFormat): boolean {
 }
 
 export function showRewardedAd(onRewarded: () => void): Promise<RewardedAdResult> {
-  const show = getYandexSdk()?.adv?.showRewardedVideo;
-  if (!show) return Promise.resolve({ status: 'unavailable', wasShown: false, rewarded: false });
+  const adv = getYandexSdk()?.adv;
+  if (!adv?.showRewardedVideo) {
+    return Promise.resolve({ status: 'unavailable', wasShown: false, rewarded: false });
+  }
 
   return new Promise((resolve) => {
     let settled = false;
@@ -38,7 +40,7 @@ export function showRewardedAd(onRewarded: () => void): Promise<RewardedAdResult
     };
 
     try {
-      show({
+      adv.showRewardedVideo({
         callbacks: {
           onOpen: () => {
             wasShown = true;
@@ -65,8 +67,8 @@ export function showRewardedAd(onRewarded: () => void): Promise<RewardedAdResult
 }
 
 export function showInterstitialAd(): Promise<InterstitialAdResult> {
-  const show = getYandexSdk()?.adv?.showFullscreenAdv;
-  if (!show) return Promise.resolve({ status: 'unavailable', wasShown: false });
+  const adv = getYandexSdk()?.adv;
+  if (!adv?.showFullscreenAdv) return Promise.resolve({ status: 'unavailable', wasShown: false });
 
   return new Promise((resolve) => {
     let settled = false;
@@ -79,7 +81,7 @@ export function showInterstitialAd(): Promise<InterstitialAdResult> {
     };
 
     try {
-      show({
+      adv.showFullscreenAdv({
         callbacks: {
           onOpen: () => {
             wasShown = true;

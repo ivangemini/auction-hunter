@@ -10,11 +10,11 @@ export function installGameLifecycle(game: Phaser.Game): () => void {
 
     if (paused) {
       game.sound.pauseAll();
-      game.loop.sleep();
+      game.pause();
       return;
     }
 
-    game.loop.wake(true);
+    game.resume();
     game.sound.resumeAll();
   };
 
@@ -25,7 +25,7 @@ export function installGameLifecycle(game: Phaser.Game): () => void {
     unsubscribe();
     if (!suspended) return;
     suspended = false;
-    game.loop.wake(true);
+    game.resume();
     game.sound.resumeAll();
   };
 }
