@@ -42,6 +42,8 @@ export interface PlayerSave {
   collection: string[];
   claimedSetRewards: string[];
   reputationXp: number;
+  lastDailyCompletedDay: string | null;
+  onboardingComplete: boolean;
   auctionsWon: number;
   auctionsPlayed: number;
   lifetimeSales: number;

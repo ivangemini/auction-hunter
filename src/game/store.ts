@@ -8,6 +8,8 @@ const DEFAULT_SAVE: PlayerSave = {
   collection: [],
   claimedSetRewards: [],
   reputationXp: 0,
+  lastDailyCompletedDay: null,
+  onboardingComplete: false,
   auctionsWon: 0,
   auctionsPlayed: 0,
   lifetimeSales: 0,
@@ -19,6 +21,10 @@ function cleanStringArray(value: unknown): string[] {
 
 function cleanNonNegativeNumber(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : fallback;
+}
+
+function cleanNullableString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 function freshDefaultSave(): PlayerSave {
@@ -39,6 +45,8 @@ function loadSave(): PlayerSave {
       collection: cleanStringArray(parsed.collection),
       claimedSetRewards: cleanStringArray(parsed.claimedSetRewards),
       reputationXp: cleanNonNegativeNumber(parsed.reputationXp),
+      lastDailyCompletedDay: cleanNullableString(parsed.lastDailyCompletedDay),
+      onboardingComplete: parsed.onboardingComplete === true,
     };
   } catch {
     return freshDefaultSave();
@@ -64,12 +72,13 @@ export class GameStore {
     this.persist();
   }
 
-  buyLot(price: number, reputationXp = 0): void {
+  buyLot(price: number, reputationXp = 0, completedDailyDay?: string): void {
     this.sync();
     if (this.state.cash < price) throw new Error('Insufficient cash');
     this.state.cash -= price;
     this.state.auctionsWon += 1;
     this.state.reputationXp += cleanNonNegativeNumber(reputationXp);
+    if (completedDailyDay) this.state.lastDailyCompletedDay = completedDailyDay;
     this.persist();
   }
 
@@ -97,6 +106,12 @@ export class GameStore {
     this.state.claimedSetRewards.push(setId);
     this.persist();
     return true;
+  }
+
+  completeOnboarding(): void {
+    this.sync();
+    this.state.onboardingComplete = true;
+    this.persist();
   }
 
   private sync(): void {
