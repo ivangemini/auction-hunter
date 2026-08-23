@@ -9,9 +9,11 @@ Treat `/AGENTS.md` as the canonical instruction set for this repository. Before 
 
 Key constraints:
 - keep economy/content data-driven;
+- keep pure game rules inside `src/domain` and inject randomness there;
 - keep Yandex SDK access inside `src/platform`;
 - keep persistence behind the store/save boundary;
 - preserve RU/EN localization;
 - do not rename persisted IDs without migration planning;
-- run `npm run typecheck` and `npm run build` for functional changes;
+- run `npm run typecheck`, `npm test` and `npm run build` for functional changes;
+- run `npm run qa:browser` for browser/UI changes;
 - do not claim validation passed unless it was executed.
