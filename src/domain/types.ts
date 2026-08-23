@@ -38,6 +38,7 @@ export interface RevealedItem {
 
 export interface PlayerSave {
   version: 1;
+  updatedAt: number;
   cash: number;
   collection: string[];
   claimedSetRewards: string[];

@@ -19,7 +19,7 @@
 - [x] Daily special auction.
 - [x] First-session onboarding and 30-minute progression curve.
 - [x] Event analytics schema.
-- [ ] Yandex cloud save.
+- [x] Yandex cloud save.
 
 ## P2 — Monetization and release
 - [ ] Rewarded ad placements based on optional value.

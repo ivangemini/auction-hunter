@@ -1,61 +1,10 @@
 import { trackEvent } from '../analytics';
 import type { PlayerSave } from '../domain/types';
-
-const STORAGE_KEY = 'auction-hunter.save.v1';
-
-const DEFAULT_SAVE: PlayerSave = {
-  version: 1,
-  cash: 2500,
-  collection: [],
-  claimedSetRewards: [],
-  reputationXp: 0,
-  lastDailyCompletedDay: null,
-  onboardingComplete: false,
-  auctionsWon: 0,
-  auctionsPlayed: 0,
-  lifetimeSales: 0,
-};
-
-function cleanStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
-}
-
-function cleanNonNegativeNumber(value: unknown, fallback = 0): number {
-  return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : fallback;
-}
-
-function cleanNullableString(value: unknown): string | null {
-  return typeof value === 'string' && value.length > 0 ? value : null;
-}
-
-function freshDefaultSave(): PlayerSave {
-  return { ...DEFAULT_SAVE, collection: [], claimedSetRewards: [] };
-}
-
-function loadSave(): PlayerSave {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return freshDefaultSave();
-
-    const parsed = JSON.parse(raw) as Partial<PlayerSave>;
-    if (parsed.version !== 1) return freshDefaultSave();
-
-    return {
-      ...DEFAULT_SAVE,
-      ...parsed,
-      collection: cleanStringArray(parsed.collection),
-      claimedSetRewards: cleanStringArray(parsed.claimedSetRewards),
-      reputationXp: cleanNonNegativeNumber(parsed.reputationXp),
-      lastDailyCompletedDay: cleanNullableString(parsed.lastDailyCompletedDay),
-      onboardingComplete: parsed.onboardingComplete === true,
-    };
-  } catch {
-    return freshDefaultSave();
-  }
-}
+import { scheduleCloudSave } from '../platform/cloudSave';
+import { loadLocalSave, writeLocalSave } from './save';
 
 export class GameStore {
-  private state: PlayerSave = loadSave();
+  private state: PlayerSave = loadLocalSave();
 
   get snapshot(): Readonly<PlayerSave> {
     this.sync();
@@ -79,7 +28,7 @@ export class GameStore {
     if (this.state.cash < price) throw new Error('Insufficient cash');
     this.state.cash -= price;
     this.state.auctionsWon += 1;
-    this.state.reputationXp += cleanNonNegativeNumber(reputationXp);
+    this.state.reputationXp += Math.max(0, reputationXp);
     if (completedDailyDay) this.state.lastDailyCompletedDay = completedDailyDay;
     this.persist();
 
@@ -132,10 +81,11 @@ export class GameStore {
   }
 
   private sync(): void {
-    this.state = loadSave();
+    this.state = loadLocalSave();
   }
 
   private persist(): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state));
+    this.state = writeLocalSave(this.state, true);
+    scheduleCloudSave(this.state);
   }
 }

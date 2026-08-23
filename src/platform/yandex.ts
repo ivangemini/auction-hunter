@@ -9,6 +9,12 @@ interface GameplayApi {
   stop(): void;
 }
 
+export interface YandexPlayer {
+  getData(keys?: string[]): Promise<Record<string, unknown>>;
+  setData(data: Record<string, unknown>, flush?: boolean): Promise<void>;
+  isAuthorized?(): boolean;
+}
+
 interface YandexSdk {
   features?: {
     LoadingAPI?: LoadingApi;
@@ -19,6 +25,7 @@ interface YandexSdk {
       lang?: string;
     };
   };
+  getPlayer?(): Promise<YandexPlayer>;
 }
 
 interface YaGamesGlobal {
@@ -32,6 +39,7 @@ declare global {
 }
 
 let sdk: YandexSdk | null = null;
+let cachedPlayer: YandexPlayer | null = null;
 let readySent = false;
 let gameplayActive = false;
 
@@ -45,6 +53,19 @@ export async function initYandexSdk(): Promise<void> {
     sdk = await window.YaGames.init();
   } catch (error) {
     console.error('[Yandex] SDK initialization failed.', error);
+  }
+}
+
+export async function getYandexPlayer(): Promise<YandexPlayer | null> {
+  if (cachedPlayer) return cachedPlayer;
+  if (!sdk?.getPlayer) return null;
+
+  try {
+    cachedPlayer = await sdk.getPlayer();
+    return cachedPlayer;
+  } catch (error) {
+    console.warn('[Yandex] Player initialization failed; cloud save disabled for this session.', error);
+    return null;
   }
 }
 
