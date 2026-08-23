@@ -16,11 +16,11 @@ export class GameStore {
     return this.state.cash >= amount;
   }
 
-  recordAuctionPlayed(): void {
+  recordAuctionPlayed(): number {
     this.sync();
     this.state.auctionsPlayed += 1;
     this.persist();
-    trackEvent('auction_started', { auctionNumber: this.state.auctionsPlayed });
+    return this.state.auctionsPlayed;
   }
 
   buyLot(price: number, reputationXp = 0, completedDailyDay?: string): void {
@@ -31,16 +31,6 @@ export class GameStore {
     this.state.reputationXp += Math.max(0, reputationXp);
     if (completedDailyDay) this.state.lastDailyCompletedDay = completedDailyDay;
     this.persist();
-
-    trackEvent('auction_won', {
-      finalBid: price,
-      reputationGain: reputationXp,
-      auctionsWon: this.state.auctionsWon,
-      daily: Boolean(completedDailyDay),
-    });
-    if (completedDailyDay) {
-      trackEvent('daily_special_completed', { dayKey: completedDailyDay, reputationGain: reputationXp });
-    }
   }
 
   sellItem(value: number, itemId?: string): void {

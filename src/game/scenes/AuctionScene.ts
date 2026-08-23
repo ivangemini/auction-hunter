@@ -55,6 +55,7 @@ export class AuctionScene extends Phaser.Scene {
   private roundKept = 0;
   private roundReputationGain = 0;
   private roundRewardClaimed = false;
+  private roundTelemetrySent = false;
   private rewardedAdPending = false;
   private transitionAdPending = false;
   private notice = '';
@@ -129,6 +130,7 @@ export class AuctionScene extends Phaser.Scene {
     this.roundKept = 0;
     this.roundReputationGain = 0;
     this.roundRewardClaimed = false;
+    this.roundTelemetrySent = false;
     this.rewardedAdPending = false;
     this.transitionAdPending = false;
     this.notice = '';
@@ -195,6 +197,7 @@ export class AuctionScene extends Phaser.Scene {
         rect.on('pointerover', () => rect.setStrokeStyle(1, tier.accent, 0.6));
         rect.on('pointerout', () => rect.setStrokeStyle(1, selected ? tier.accent : 0xffffff, selected ? 0.75 : 0.18));
         rect.on('pointerup', () => {
+          trackEvent('tier_selected', { tierId: tier.id, reputationXp });
           this.dailySpecial = null;
           this.currentTierId = tier.id;
           this.prepareNextLot();
@@ -232,12 +235,24 @@ export class AuctionScene extends Phaser.Scene {
 
     this.dailySpecial = getDailySpecial(today, save.reputationXp);
     this.currentTierId = this.dailySpecial.tierId;
+    trackEvent('daily_special_activated', {
+      dayKey: this.dailySpecial.dayKey,
+      tierId: this.dailySpecial.tierId,
+      lotId: this.dailySpecial.lotId,
+    });
     this.prepareNextLot();
     this.renderLobby();
   }
 
   private startAuction(): void {
-    this.store.recordAuctionPlayed();
+    const auctionNumber = this.store.recordAuctionPlayed();
+    trackEvent('auction_started', {
+      auctionNumber,
+      lotId: this.lot.id,
+      tierId: this.currentTierId,
+      daily: Boolean(this.dailySpecial),
+      openingBid: this.lot.reservePrice,
+    });
     setGameplayActive(true);
     this.currentBid = this.lot.reservePrice;
     this.currentLeader = this.opponents[0]?.id ?? '';
@@ -300,6 +315,13 @@ export class AuctionScene extends Phaser.Scene {
     this.currentLeader = 'player';
     this.awaitingNpc = true;
     this.notice = '';
+    trackEvent('bid_placed', {
+      lotId: this.lot.id,
+      tierId: this.currentTierId,
+      bid: this.currentBid,
+      cash: this.store.snapshot.cash,
+      daily: Boolean(this.dailySpecial),
+    });
     this.renderBidding();
     this.time.delayedCall(550, () => this.npcRespond());
   }
@@ -324,6 +346,12 @@ export class AuctionScene extends Phaser.Scene {
   }
 
   private passAuction(): void {
+    trackEvent('auction_passed', {
+      lotId: this.lot.id,
+      tierId: this.currentTierId,
+      currentBid: this.currentBid,
+      daily: Boolean(this.dailySpecial),
+    });
     setGameplayActive(false);
     this.resetCanvas();
     this.renderHeader();
@@ -347,6 +375,21 @@ export class AuctionScene extends Phaser.Scene {
       ? Math.round(tier.winXp * this.dailySpecial.reputationMultiplier)
       : tier.winXp;
     this.store.buyLot(this.currentBid, this.roundReputationGain, completedDailyDay);
+    const save = this.store.snapshot;
+    trackEvent('auction_won', {
+      finalBid: this.currentBid,
+      reputationGain: this.roundReputationGain,
+      auctionsWon: save.auctionsWon,
+      lotId: this.lot.id,
+      tierId: this.currentTierId,
+      daily: Boolean(completedDailyDay),
+    });
+    if (completedDailyDay) {
+      trackEvent('daily_special_completed', {
+        dayKey: completedDailyDay,
+        reputationGain: this.roundReputationGain,
+      });
+    }
     this.renderWin();
   }
 
@@ -389,6 +432,10 @@ export class AuctionScene extends Phaser.Scene {
       this.add.image(640, 340, resolveItemTexture(this, 'fallback')).setDisplaySize(300, 210);
       this.centerLabel(640, 458, t(this.locale, 'sealedFind'), 19, '#aeb5c0');
       button(this, 640, 555, t(this.locale, 'reveal'), () => {
+        trackEvent('item_revealed', {
+          itemId: item.definition.id,
+          rarity: item.definition.rarity,
+        });
         this.revealStage = 'revealed';
         this.renderReveal();
       }, { width: 270, height: 62 });
@@ -404,6 +451,11 @@ export class AuctionScene extends Phaser.Scene {
     if (this.revealStage === 'revealed') {
       this.centerLabel(640, 510, t(this.locale, 'unknownValue'), 18, '#aeb5c0');
       button(this, 640, 568, t(this.locale, 'appraise'), () => {
+        trackEvent('item_appraised', {
+          itemId: item.definition.id,
+          value: item.appraisedValue,
+          condition: item.condition,
+        });
         this.revealStage = 'appraised';
         this.renderReveal();
       }, { width: 250, height: 58 });
@@ -492,6 +544,13 @@ export class AuctionScene extends Phaser.Scene {
       this.restorationTargetHalfWidth,
     );
 
+    trackEvent('restoration_completed', {
+      itemId: item.definition.id,
+      grade: outcome.grade,
+      conditionBefore: outcome.conditionBefore,
+      conditionAfter: outcome.conditionAfter,
+      valueGain: outcome.valueGain,
+    });
     item.condition = outcome.conditionAfter;
     item.appraisedValue = outcome.valueAfter;
     item.restored = true;
@@ -525,6 +584,18 @@ export class AuctionScene extends Phaser.Scene {
 
   private renderRoundSummary(): void {
     setGameplayActive(false);
+    if (!this.roundTelemetrySent) {
+      this.roundTelemetrySent = true;
+      trackEvent('round_completed', {
+        lotId: this.lot.id,
+        tierId: this.currentTierId,
+        cost: this.roundCost,
+        sales: this.roundSales,
+        kept: this.roundKept,
+        daily: Boolean(this.dailySpecial),
+      });
+    }
+
     this.resetCanvas();
     this.renderHeader();
     this.panel(235, 140, 810, 510);
