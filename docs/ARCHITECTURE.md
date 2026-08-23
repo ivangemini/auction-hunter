@@ -22,24 +22,28 @@ The domain/data side must remain usable without a running Phaser scene or Yandex
 ### Domain
 `src/domain/`
 - shared game types;
-- future pure auction, valuation, progression and restoration rules;
+- `auction.ts` — lot generation, appraisal inputs, bid increments, NPC budgets and bid eligibility;
+- `restoration.ts` — condition/value multiplier and restoration outcomes;
+- deterministic Vitest coverage next to the rules;
 - no Phaser, DOM, storage or Yandex imports.
 
 ### Data
 `src/data/`
 - item definitions;
 - lot templates;
-- balance/content inputs;
+- `balance.ts` for condition/market ranges and bidder profiles;
 - no runtime player state.
 
 ### Game
 `src/game/`
 - scene lifecycle;
-- visual rendering;
-- input;
+- visual rendering and art loading;
+- input and timing;
 - orchestration between data/domain/store/platform adapters.
 
-Scenes may prototype logic early, but balance-critical or reusable rules should migrate to pure modules as they stabilize.
+`AuctionScene` owns presentation and transitions. It delegates balance-critical auction/restoration calculations to domain modules.
+
+`src/game/restoration.ts` is a compatibility re-export only; the source of truth is `src/domain/restoration.ts`.
 
 ### Persistence
 `src/game/store.ts` is the current persistence boundary. This is deliberately simple for the vertical slice. Before the save shape becomes complex, introduce:
@@ -65,11 +69,15 @@ Allowed direction:
 - game -> data
 - game -> platform adapters
 - game -> persistence abstraction
+- data -> domain types/contracts
+- domain -> domain
 - platform -> browser/Yandex SDK
 
 Avoid:
 - domain -> Phaser
 - domain -> platform
+- domain -> game
+- domain -> data tuning tables
 - data -> game scene
 - data -> storage
 - scene -> raw Yandex SDK
@@ -84,9 +92,6 @@ Create a dedicated module when any of these becomes true:
 - a platform integration needs lifecycle/error handling.
 
 Likely future modules:
-- `domain/auction.ts`
-- `domain/valuation.ts`
-- `domain/restoration.ts`
 - `domain/progression.ts`
 - `analytics/`
 - `save/` with migrations and cloud reconciliation
