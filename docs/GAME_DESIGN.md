@@ -1,10 +1,10 @@
-# Auction Hunter — Game Design v0.5
+# Auction Hunter — Game Design v0.6
 
 ## Product thesis
-Auction Hunter combines uncertain-value auctions, truthful visual clues, item reveals, appraisal, selective restoration, collection and a lightweight dealer-business meta. The retention hook is curiosity plus judgment: the player compares several imperfect opportunities, then risks bankroll using partial information without ever seeing exact hidden value.
+Auction Hunter combines uncertain-value auctions, truthful visual clues, item reveals, appraisal, selective restoration, collection and a lightweight dealer-business meta. The retention hook is curiosity plus judgment: the player compares several imperfect opportunities, learns from prior outcomes, then risks bankroll using partial information without ever seeing exact hidden value.
 
 ## Core loop
-1. Compare three available lots within the selected auction tier using opening price, item count, truthful clue-backed signals and any visible rare event.
+1. Compare three available lots within the selected auction tier using opening price, item count, truthful clue-backed signals, any visible rare event and earned Dealer Memory from recent normal-auction history.
 2. Choose one lot and inspect its detailed public information.
 3. Decide how much those signals justify risking.
 4. Bid against NPC buyers or pass before overpaying.
@@ -21,6 +21,7 @@ Daily Special remains a fixed featured opportunity and intentionally bypasses th
 - Achievements reward permanent milestones.
 - The Office turns cash into Warehouse, Contracts Desk and Showroom upgrades instead of letting bankroll become meaningless.
 - Recent auction history and lifetime stats make long-run progress visible.
+- Dealer Memory turns recent personal outcomes into earned context on future lot-selection cards.
 - Paid late-game inspection creates an optional information-vs-cash decision after 220 REP.
 
 ## Player fantasy
@@ -30,6 +31,8 @@ Start as a small garage reseller and grow into a high-end auction/antique busine
 - Lot selection must expose only public information; hidden item identity, condition, market factor and NPC limits are generated only after the player commits to a choice.
 - The three normal options must be distinct within a selection screen.
 - Visible rare modifiers may influence which lot the player chooses, but they never reveal exact hidden value.
+- Dealer Memory may summarize only the player's persisted recent normal-auction history for that same lot template. Daily outcomes are excluded and current hidden item/NPC state must never influence the summary.
+- Dealer Memory counts past wins/passes as experience; its average result uses completed wins only so a pass is not falsely treated as a zero-value lot.
 - Clues must be truthful enough to reward attention.
 - Blindly winning every auction must not be the dominant strategy.
 - Keeping items must have opportunity cost without creating irreversible bankroll failure.
@@ -41,7 +44,7 @@ Start as a small garage reseller and grow into a high-end auction/antique busine
 ## Retention layers
 - Seconds: compare options / next NPC bid / reveal / restoration timing.
 - Minutes: did the chosen lot create total value and did the player overpay?
-- Session: improve lot-selection judgment, unlock another tier, complete contracts and invest in the Office.
+- Session: improve lot-selection judgment using clues plus personal Dealer Memory, unlock another tier, complete contracts and invest in the Office.
 - Days: Daily Special, Daily Contracts and set completion.
 - Long term: achievements, business upgrades, rare sets, auction history and reputation progression.
 
@@ -54,7 +57,7 @@ Rewarded ads trade optional attention for bounded bonus value. The launch summar
 - 9 lot environment illustrations: 3 visual archetypes per tier.
 - 3 auction tiers.
 - 8 collection sets covering the full catalog.
-- Three-option normal-auction selection using truthful signals and visible modifiers.
+- Three-option normal-auction selection using truthful signals, visible modifiers and recent personal Dealer Memory where available.
 - Daily Special, Daily Contracts, achievements, Office upgrades, recent history, local/cloud save, analytics and policy-compliant ads.
 
 ## Art scope note
