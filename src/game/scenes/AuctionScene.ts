@@ -17,6 +17,7 @@ import {
   opponentTell,
 } from '../../domain/auction';
 import type { AuctionOpponent, BidderTell } from '../../domain/auction';
+import { summarizeLotHistory } from '../../domain/history';
 import { inspectLot, type InspectionConditionBand, type InspectionReport } from '../../domain/inspection';
 import {
   applyLotModifier,
@@ -237,12 +238,14 @@ export class AuctionScene extends Phaser.Scene {
     });
     this.renderDailyControl(218, 1140, 180);
 
+    const history = this.store.snapshot.auctionHistory;
     const cardXs = [70, 445, 820];
     this.lotChoices.forEach((choice, index) => {
       const x = cardXs[index];
       if (x === undefined) return;
       const centerX = x + 170;
-      this.panel(x, 280, 340, 370, 0x15181e);
+      const memory = summarizeLotHistory(history, choice.lot.id);
+      this.panel(x, 280, 340, 390, 0x15181e);
       this.renderLotArtworkFor(choice.lot, centerX, 340, 300, 105);
       this.centerLabel(centerX, 407, choice.lot.name[this.locale], 20, '#f7f8fa', 'bold').setWordWrapWidth(300);
       this.centerLabel(centerX, 434, choice.lot.location[this.locale], 12, '#8b93a1');
@@ -255,19 +258,31 @@ export class AuctionScene extends Phaser.Scene {
       const eventText = choice.modifier
         ? `${t(this.locale, 'event').toUpperCase()} · ${choice.modifier.name[this.locale]}`
         : t(this.locale, 'noEvent');
-      this.label(x + 20, 516, eventText, 12, choice.modifier ? '#e9b949' : '#666e79', choice.modifier ? 'bold' : 'normal');
-      this.label(x + 20, 542, t(this.locale, 'visibleClues'), 11, '#8b93a1', 'bold');
+      this.label(x + 20, 512, eventText, 12, choice.modifier ? '#e9b949' : '#666e79', choice.modifier ? 'bold' : 'normal');
+
+      if (memory.visits > 0) {
+        const memoryText = memory.averageEstimatedResult === null
+          ? t(this.locale, 'dealerMemoryNoWins', { visits: memory.visits })
+          : t(this.locale, 'dealerMemory', {
+            wins: memory.wins,
+            visits: memory.visits,
+            result: this.signedMoney(memory.averageEstimatedResult),
+          });
+        this.label(x + 20, 535, memoryText, 10, '#61a8ff', 'bold').setWordWrapWidth(300);
+      }
+
+      this.label(x + 20, 554, t(this.locale, 'visibleClues'), 10, '#8b93a1', 'bold');
       choice.lot.clues.slice(0, 2).forEach((clue, clueIndex) => {
         this.label(
           x + 20,
-          562 + clueIndex * 21,
-          `• ${this.compactText(clue.text[this.locale], 48)}`,
-          11,
+          573 + clueIndex * 19,
+          `• ${this.compactText(clue.text[this.locale], 52)}`,
+          10,
           '#c3c8d0',
         );
       });
 
-      button(this, centerX, 625, t(this.locale, 'chooseLot'), () => this.selectLotChoice(choice, index), {
+      button(this, centerX, 638, t(this.locale, 'chooseLot'), () => this.selectLotChoice(choice, index), {
         width: 250,
         height: 42,
         hitSlop: 6,
@@ -1067,6 +1082,10 @@ export class AuctionScene extends Phaser.Scene {
       case 'epic': return 0.09;
       case 'legendary': return 0.075;
     }
+  }
+
+  private signedMoney(value: number): string {
+    return `${value > 0 ? '+' : ''}${this.money(value)}`;
   }
 
   private money(value: number): string {
