@@ -30,6 +30,7 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run qa:browser
+      - run: node scripts/render-yandex-promos.mjs
       - run: node scripts/validate-yandex-archive.mjs
       - name: Build ZIP with index.html at root
         shell: bash
@@ -40,5 +41,11 @@ jobs:
         with:
           name: auction-hunter-yandex
           path: auction-hunter-yandex.zip
+          if-no-files-found: error
+          retention-days: 14
+      - uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-yandex-promos
+          path: release/promotional/generated/*.png
           if-no-files-found: error
           retention-days: 14
