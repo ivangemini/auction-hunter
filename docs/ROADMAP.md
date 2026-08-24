@@ -54,4 +54,12 @@
 - [ ] Timed 10+ minute Yandex draft content-duration check.
 - [ ] Real Yandex draft/device QA and first telemetry-driven tuning pass.
 
+## P4 — v1.1 decision depth
+- [x] Three distinct normal-auction lot options before each auction.
+- [x] Selection cards expose opening price, item count, truthful clues and visible rare modifiers without revealing hidden value.
+- [x] Daily Special remains a fixed featured lot and bypasses normal selection after activation.
+- [x] Lot-selection funnel analytics and Metrica goal coverage.
+- [x] Browser/Yandex contract and production screenshot automation updated for selection -> lobby -> auction.
+- [ ] Tune option mix/modifier frequency from post-launch choice and retention telemetry before promoting v1.1 to a release candidate.
+
 See `V1_ROADMAP.md` for the detailed v1.0 plan and `CONTENT_DURATION.md` for moderation evidence/checks.

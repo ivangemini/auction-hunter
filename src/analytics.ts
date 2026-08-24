@@ -9,6 +9,19 @@ export interface AnalyticsEventMap {
   session_started: { locale: Locale };
   onboarding_completed: Record<string, never>;
   tier_selected: { tierId: AuctionTierId; reputationXp: number };
+  lot_options_presented: {
+    tierId: AuctionTierId;
+    lotIds: string[];
+    modifierIds: Array<string | null>;
+  };
+  lot_option_selected: {
+    tierId: AuctionTierId;
+    lotId: string;
+    optionIndex: number;
+    reservePrice: number;
+    itemCount: number;
+    modifierId?: string;
+  };
   daily_special_activated: { dayKey: string; tierId: AuctionTierId; lotId: string };
   auction_started: {
     auctionNumber: number;

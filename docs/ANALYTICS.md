@@ -40,6 +40,7 @@ Official references:
 
 ### Stable JavaScript goal IDs
 - `ah_onboarding_completed`
+- `ah_lot_option_selected`
 - `ah_auction_started`
 - `ah_advanced_inspection_used`
 - `ah_auction_won`
@@ -60,6 +61,8 @@ All other typed events are still sent through `params`; they do not need to be c
 - `session_started`
 - `onboarding_completed`
 - `tier_selected`
+- `lot_options_presented`
+- `lot_option_selected`
 - `daily_special_activated`
 - `auction_started`
 - `advanced_inspection_used`
@@ -82,9 +85,17 @@ All other typed events are still sent through `params`; they do not need to be c
 - `interstitial_ad_requested`
 - `interstitial_ad_closed`
 
+## Lot-selection telemetry
+Normal auctions now expose a choice funnel before bidding:
+- `lot_options_presented` records the tier, the three presented lot IDs and the aligned visible modifier IDs (`null` when no modifier is present);
+- `lot_option_selected` records the committed option index, lot ID, visible reserve price/item count and selected modifier.
+
+Hidden item identity, condition, market factor and NPC bidding limits are deliberately absent from these events at decision time. The selected lot is a Metrica JavaScript goal; the presentation event remains detailed `params` telemetry. Together with `auction_started`, these events separate market-choice abandonment from later auction abandonment.
+
 ## Core funnel coverage
 The playable flow emits the first-session and economy funnel needed for post-release tuning:
-- tier selection and Daily activation;
+- tier selection and three-option normal-auction presentation/choice;
+- Daily activation as a fixed featured-lot path;
 - auction start with lot/tier/opening bid/modifier context;
 - paid advanced-inspection usage;
 - each player bid and pass decision;
@@ -96,7 +107,7 @@ The playable flow emits the first-session and economy funnel needed for post-rel
 - collection-set, Daily Contract, achievement and business-upgrade progression;
 - rewarded/interstitial request and completion state.
 
-This is enough to analyze auction conversion, pass behavior, inspection usage, reveal/appraisal completion, restoration usage, disposition mix, lot-level estimated result and meta-progression behavior once remote Metrica transport is configured.
+This supports option-level selection rate, modifier preference, reserve-price sensitivity, selection-to-auction conversion, auction pass behavior, inspection usage, reveal/appraisal completion, restoration usage, disposition mix, lot-level estimated result and meta-progression behavior once remote Metrica transport is configured.
 
 ## Monetization telemetry
 Rewarded events include the summary placement and exact cash reward. The close event records whether an impression opened, whether `onRewarded` occurred and the final adapter outcome.

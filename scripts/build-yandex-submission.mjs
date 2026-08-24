@@ -22,7 +22,7 @@ const requiredSources = [
 const screenshotPaths = [];
 for (const locale of ['ru', 'en']) {
   for (const platform of ['desktop', 'mobile']) {
-    for (const file of ['01-lot-lobby.png', '02-active-bidding.png']) {
+    for (const file of ['01-lot-selection.png', '02-active-bidding.png']) {
       if (platform === 'desktop') screenshotPaths.push(path.join(screenshotRoot, locale, platform, file));
     }
     for (const file of ['01-appraised-find.png', '02-office-progression.png']) {
