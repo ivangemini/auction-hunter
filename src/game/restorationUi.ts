@@ -4,9 +4,8 @@ import {
   baseRestorationTargetHalfWidth,
   restorationTargetHalfWidth,
   type RestorationMode,
-  type RestorationOutcome,
 } from '../domain/restoration';
-import type { Locale, RevealedItem, RestorationGrade } from '../domain/types';
+import type { Locale, RevealedItem } from '../domain/types';
 import { t } from '../i18n';
 import { resolveItemTexture } from './art';
 import { enterWithStagger, MOTION, prefersReducedMotion } from './motion';
@@ -29,21 +28,10 @@ interface RestorationTimingOptions extends RestorationBaseOptions {
   onStop: (markerPosition: number, targetCenter: number) => void;
 }
 
-interface RestorationResultOptions extends RestorationBaseOptions {
-  outcome: RestorationOutcome;
-  onContinue: () => void;
-}
-
 const MODE_COLORS: Record<RestorationMode, number> = {
   safe: 0x63d28d,
   pro: 0x61a8ff,
   risky: 0xc4773a,
-};
-
-const GRADE_COLORS: Record<RestorationGrade, number> = {
-  perfect: 0xe9b949,
-  good: 0x63d28d,
-  rough: 0xc4773a,
 };
 
 export function renderRestorationModePicker(options: RestorationModePickerOptions): void {
@@ -110,11 +98,11 @@ export function renderRestorationModePicker(options: RestorationModePickerOption
     const iconPlate = scene.add.rectangle(24, 19, 34, 34, color, 0.13).setOrigin(0).setStrokeStyle(1, color, 0.45);
     const icon = centerLabel(scene, 41, 36, modeGlyph(mode), 18, hexColor(color), 'bold');
     const title = label(scene, 72, 18, modeTitle(locale, mode), 20, '#f7f3e8', 'bold');
-    const speedPips = renderSpeedPips(scene, 24, 86, mode, color);
-    const targetPreview = renderTargetPreview(scene, 24, 126, mode, color);
+    const speedPips = renderSpeedPips(scene, locale, 24, 86, mode, color);
+    const targetPreview = renderTargetPreview(scene, locale, 24, 126, mode, color);
     const description = label(scene, 24, 177, modeDescription(locale, mode), 11, '#c2c8d1').setWordWrapWidth(200);
     const divider = scene.add.rectangle(24, 284, 200, 1, 0xffffff, 0.08).setOrigin(0);
-    const rewardTitle = label(scene, 24, 304, `${t(locale, 'restorationPerfect').toUpperCase()} / ${t(locale, 'restorationGood').toUpperCase()}`, 8, '#737c88', 'bold');
+    const rewardTitle = label(scene, 24, 304, `${perfectShort(locale)} / ${goodShort(locale)}`, 9, '#858e9a', 'bold');
     const reward = label(
       scene,
       24,
@@ -197,10 +185,10 @@ export function renderRestorationTimingGame(options: RestorationTimingOptions): 
   const goodRight = Math.min(barX + barWidth, targetX + barWidth * goodHalfWidth);
   const goodWidth = Math.max(0, goodRight - goodLeft);
 
-  label(scene, barX, 352, t(locale, 'restorationGood').toUpperCase(), 8, '#aeb5c0', 'bold');
-  scene.add.rectangle(barX + 82, 358, 14, 7, 0xe9b949, 0.5).setOrigin(0.5);
-  label(scene, barX + 111, 352, t(locale, 'restorationPerfect').toUpperCase(), 8, '#aeb5c0', 'bold');
-  scene.add.rectangle(barX + 222, 358, 14, 7, 0x63d28d, 0.72).setOrigin(0.5);
+  label(scene, barX, 352, goodShort(locale), 9, '#aeb5c0', 'bold');
+  scene.add.rectangle(barX + 70, 358, 14, 7, 0xe9b949, 0.5).setOrigin(0.5);
+  label(scene, barX + 101, 352, perfectShort(locale), 9, '#aeb5c0', 'bold');
+  scene.add.rectangle(barX + 205, 358, 14, 7, 0x63d28d, 0.72).setOrigin(0.5);
 
   scene.add.rectangle(barX, barY, barWidth, 42, 0x20262e, 1).setOrigin(0, 0.5).setStrokeStyle(1, 0xffffff, 0.1);
   scene.add.rectangle(goodLeft, barY, goodWidth, 42, 0xe9b949, 0.14).setOrigin(0, 0.5).setStrokeStyle(1, 0xe9b949, 0.32);
@@ -241,76 +229,6 @@ export function renderRestorationTimingGame(options: RestorationTimingOptions): 
     hitSlop: 8,
     fontSize: 22,
   });
-}
-
-export function renderRestorationResult(options: RestorationResultOptions): void {
-  const { scene, locale, item, prepareFrame, outcome, onContinue } = options;
-  const money = options.formatMoney ?? ((value: number) => formatMoney(locale, value));
-  prepareFrame();
-  renderBackdrop(scene);
-  renderWorkbenchHeader(scene, locale, item, money, outcome.mode);
-
-  const accent = GRADE_COLORS[outcome.grade];
-  surface(scene, 96, 154, 1088, 486, accent);
-  scene.add.rectangle(118, 176, 468, 442, 0x0b0f14, 1).setOrigin(0).setStrokeStyle(1, accent, 0.24);
-  const halo = scene.add.circle(352, 362, 188, accent, 0.045).setStrokeStyle(2, accent, 0.16);
-  const image = scene.add.image(352, 352, resolveItemTexture(scene, item.definition.id)).setDisplaySize(420, 294);
-  centerLabel(scene, 352, 557, item.definition.name[locale], 20, '#f7f3e8', 'bold').setWordWrapWidth(410).setAlign('center');
-
-  label(scene, 630, 188, `${t(locale, 'restorationTitle').toUpperCase()} · ${modeTitle(locale, outcome.mode).toUpperCase()}`, 10, '#777f8b', 'bold');
-  label(scene, 630, 226, gradeTitle(locale, outcome.grade), 38, hexColor(accent), 'bold').setWordWrapWidth(500);
-  scene.add.rectangle(630, 286, 502, 1, 0xffffff, 0.08).setOrigin(0);
-
-  resultMetric(
-    scene,
-    630,
-    318,
-    t(locale, 'condition'),
-    `${Math.round(outcome.conditionBefore * 100)}% → ${Math.round(outcome.conditionAfter * 100)}%`,
-    outcome.conditionAfter > outcome.conditionBefore ? 0x63d28d : 0xaeb5c0,
-  );
-  resultMetric(
-    scene,
-    630,
-    390,
-    t(locale, 'estimatedValue'),
-    `${money(outcome.valueBefore)} → ${money(outcome.valueAfter)}`,
-    outcome.valueGain > 0 ? 0x63d28d : 0xaeb5c0,
-  );
-
-  scene.add.rectangle(630, 472, 502, 58, outcome.valueGain > 0 ? 0x173522 : 0x2b2118, 0.9)
-    .setOrigin(0)
-    .setStrokeStyle(1, outcome.valueGain > 0 ? 0x63d28d : 0xc4773a, 0.34);
-  label(
-    scene,
-    650,
-    489,
-    t(locale, 'restorationGain', { amount: money(outcome.valueGain) }),
-    17,
-    outcome.valueGain > 0 ? '#7ee0a0' : '#d8a46c',
-    'bold',
-  );
-  label(scene, 630, 544, t(locale, 'restorationSpent'), 10, '#777f8b', 'bold').setWordWrapWidth(500);
-
-  let continued = false;
-  button(scene, 882, 590, t(locale, 'onboardingNext'), () => {
-    if (continued) return;
-    continued = true;
-    onContinue();
-  }, {
-    width: 300,
-    height: 58,
-    background: accent,
-    accent,
-    fontSize: 17,
-  });
-
-  if (!prefersReducedMotion()) {
-    image.setScale(0.94).setAlpha(0.55);
-    scene.tweens.add({ targets: image, scaleX: 1, scaleY: 1, alpha: 1, y: { from: 368, to: 352 }, duration: MOTION.revealSettleMs, ease: 'Back.Out' });
-    scene.tweens.add({ targets: halo, scaleX: { from: 0.88, to: 1.05 }, scaleY: { from: 0.88, to: 1.05 }, alpha: { from: 0.025, to: 0.07 }, duration: MOTION.celebrateMs, yoyo: true, ease: 'Sine.Out' });
-    if (outcome.grade === 'perfect') renderPerfectSparks(scene, 352, 352, accent);
-  }
 }
 
 function renderBackdrop(scene: Phaser.Scene): void {
@@ -356,13 +274,14 @@ function surface(scene: Phaser.Scene, x: number, y: number, width: number, heigh
 
 function renderSpeedPips(
   scene: Phaser.Scene,
+  locale: Locale,
   x: number,
   y: number,
   mode: RestorationMode,
   color: number,
 ): Phaser.GameObjects.GameObject[] {
   const count = mode === 'safe' ? 1 : mode === 'pro' ? 2 : 3;
-  const objects: Phaser.GameObjects.GameObject[] = [label(scene, x, y, 'SPEED', 8, '#69717d', 'bold')];
+  const objects: Phaser.GameObjects.GameObject[] = [label(scene, x, y, speedLabel(locale), 8, '#69717d', 'bold')];
   for (let index = 0; index < 3; index += 1) {
     objects.push(scene.add.rectangle(x + 84 + index * 22, y + 5, 15, 6, index < count ? color : 0x303640, index < count ? 0.88 : 0.7));
   }
@@ -371,6 +290,7 @@ function renderSpeedPips(
 
 function renderTargetPreview(
   scene: Phaser.Scene,
+  locale: Locale,
   x: number,
   y: number,
   mode: RestorationMode,
@@ -379,7 +299,7 @@ function renderTargetPreview(
   const baseWidth = 180;
   const halfWidth = restorationTargetHalfWidth(0.12, mode);
   const targetWidth = Math.max(22, baseWidth * halfWidth * 2);
-  const labelText = label(scene, x, y, 'TIMING WINDOW', 8, '#69717d', 'bold');
+  const labelText = label(scene, x, y, timingWindowLabel(locale), 8, '#69717d', 'bold');
   const track = scene.add.rectangle(x, y + 27, baseWidth, 11, 0x2b3038, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.06);
   const target = scene.add.rectangle(x + baseWidth / 2, y + 32.5, targetWidth, 11, color, 0.62).setStrokeStyle(1, color, 0.8);
   return [labelText, track, target];
@@ -415,33 +335,6 @@ function installCardHover(
   hit.on('pointerout', () => settle(false));
 }
 
-function resultMetric(scene: Phaser.Scene, x: number, y: number, title: string, value: string, accent: number): void {
-  label(scene, x, y, title.toUpperCase(), 9, '#777f8b', 'bold');
-  scene.add.rectangle(x, y + 24, 502, 46, 0x151a20, 0.96).setOrigin(0).setStrokeStyle(1, accent, 0.26);
-  label(scene, x + 16, y + 34, value, 20, '#f7f3e8', 'bold');
-}
-
-function renderPerfectSparks(scene: Phaser.Scene, x: number, y: number, accent: number): void {
-  const offsets = [
-    [-155, -96], [-105, -142], [0, -158], [112, -132], [162, -70],
-    [-168, 18], [154, 34], [-118, 118], [118, 120],
-  ] as const;
-  offsets.forEach(([dx, dy], index) => {
-    const spark = scene.add.circle(x + dx, y + dy, index % 3 === 0 ? 4 : 3, accent, 0.8);
-    scene.tweens.add({
-      targets: spark,
-      y: spark.y - 18,
-      alpha: 0,
-      scaleX: 0.4,
-      scaleY: 0.4,
-      duration: 420 + index * 24,
-      delay: index * 28,
-      ease: 'Cubic.Out',
-      onComplete: () => spark.destroy(),
-    });
-  });
-}
-
 function modeGlyph(mode: RestorationMode): string {
   switch (mode) {
     case 'safe': return '◇';
@@ -474,12 +367,20 @@ function modeTradeoff(locale: Locale, mode: RestorationMode): string {
   }
 }
 
-function gradeTitle(locale: Locale, grade: RestorationGrade): string {
-  switch (grade) {
-    case 'perfect': return t(locale, 'restorationPerfect');
-    case 'good': return t(locale, 'restorationGood');
-    case 'rough': return t(locale, 'restorationRough');
-  }
+function speedLabel(locale: Locale): string {
+  return locale === 'ru' ? 'СКОРОСТЬ' : 'SPEED';
+}
+
+function timingWindowLabel(locale: Locale): string {
+  return locale === 'ru' ? 'ОКНО ТОЧНОСТИ' : 'TIMING WINDOW';
+}
+
+function perfectShort(locale: Locale): string {
+  return locale === 'ru' ? 'ИДЕАЛЬНО' : 'PERFECT';
+}
+
+function goodShort(locale: Locale): string {
+  return locale === 'ru' ? 'ХОРОШО' : 'GOOD';
 }
 
 function conditionColor(condition: number): string {
