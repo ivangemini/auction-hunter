@@ -3,6 +3,15 @@ export type Locale = 'ru' | 'en';
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type RestorationGrade = 'perfect' | 'good' | 'rough';
 export type ItemCategory = 'electronics' | 'watches' | 'toys' | 'art' | 'tools' | 'collectibles';
+export type ItemTraitId =
+  | 'signed'
+  | 'first-edition'
+  | 'original-packaging'
+  | 'limited-run'
+  | 'prototype'
+  | 'mechanical'
+  | 'period-design'
+  | 'provenance';
 export type ContractMetric = 'auctionsPlayed' | 'auctionsWon' | 'itemsSold' | 'itemsKept' | 'salesValue';
 export type AchievementMetric = 'auctionsPlayed' | 'auctionsWon' | 'uniqueCollection' | 'lifetimeSales' | 'claimedSets' | 'reputationXp' | 'highestCash';
 export type BusinessUpgradeId = 'warehouse' | 'contractsDesk' | 'showroom';
@@ -90,4 +99,6 @@ export interface PlayerSave {
   claimedAchievements: string[];
   businessUpgrades: BusinessUpgradeState;
   auctionHistory: AuctionHistoryEntry[];
+  buyerMarketDayKey: string | null;
+  claimedBuyerOfferIds: string[];
 }
