@@ -13,6 +13,8 @@ export interface CollectionProgress {
   complete: boolean;
 }
 
+export const COLLECTION_RESALE_RATE = 0.65;
+
 export const COLLECTION_SETS: CollectionSetDefinition[] = [
   {
     id: 'retro-tech',

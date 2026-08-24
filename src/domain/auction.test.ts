@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  clueCandidateIds,
   createAuctionOpponents,
   createLotItems,
   eligibleOpponents,
@@ -68,6 +69,25 @@ describe('auction domain', () => {
     expect(generated.every((item) => item.restored === false)).toBe(true);
     expect(new Set(generated.map((item) => item.definition.id)).size).toBe(generated.length);
     expect(totalAppraisedValue(generated)).toBe(180);
+  });
+
+  it('turns visible clues into guaranteed category-backed information', () => {
+    const itemById = new Map(items.map((item) => [item.id, item]));
+    const clueLot: LotTemplate = {
+      ...lot,
+      itemPool: ['item-a', 'item-b'],
+      clues: [
+        {
+          text: { ru: 'Футляр от часов', en: 'Watch case' },
+          signal: { categories: ['watches'] },
+        },
+      ],
+    };
+
+    expect(clueCandidateIds(clueLot.clues[0]!, clueLot.itemPool, itemById)).toEqual(['item-b']);
+    const generated = createLotItems(clueLot, itemById, { min: 0.5, max: 0.5 }, { min: 1, max: 1 }, 1, () => 0);
+    expect(generated[0]!.definition.id).toBe('item-b');
+    expect(generated.map((item) => item.definition.id)).toContain('item-a');
   });
 
   it('applies daily/special value multipliers after market-factor sampling', () => {

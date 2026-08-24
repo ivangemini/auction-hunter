@@ -2,25 +2,36 @@ export type Locale = 'ru' | 'en';
 
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type RestorationGrade = 'perfect' | 'good' | 'rough';
+export type ItemCategory = 'electronics' | 'watches' | 'toys' | 'art' | 'tools' | 'collectibles';
 
 export interface LocalizedText {
   ru: string;
   en: string;
 }
 
+export type LotClueSignal =
+  | { categories: ItemCategory[] }
+  | { itemIds: string[] };
+
+export interface LotClue {
+  text: LocalizedText;
+  signal: LotClueSignal;
+}
+
 export interface ItemDefinition {
   id: string;
   name: LocalizedText;
-  category: 'electronics' | 'watches' | 'toys' | 'art' | 'tools' | 'collectibles';
+  category: ItemCategory;
   rarity: Rarity;
   baseValue: number;
 }
 
 export interface LotTemplate {
   id: string;
+  artId?: string;
   name: LocalizedText;
   location: LocalizedText;
-  clues: LocalizedText[];
+  clues: LotClue[];
   reservePrice: number;
   bidIncrement: number;
   itemCount: number;

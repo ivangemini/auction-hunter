@@ -1,5 +1,5 @@
 import { estimateItemValue } from './restoration';
-import type { ItemDefinition, LocalizedText, LotTemplate, RevealedItem } from './types';
+import type { ItemDefinition, LocalizedText, LotClue, LotTemplate, RevealedItem } from './types';
 
 export type RandomSource = () => number;
 
@@ -43,6 +43,23 @@ export function nextBid(currentBid: number, lot: LotTemplate): number {
   return currentBid + lot.bidIncrement;
 }
 
+export function clueCandidateIds(
+  clue: LotClue,
+  pool: readonly string[],
+  itemById: ReadonlyMap<string, ItemDefinition>,
+): string[] {
+  const signal = clue.signal;
+  if ('itemIds' in signal) {
+    const allowed = new Set(signal.itemIds);
+    return pool.filter((id) => allowed.has(id) && itemById.has(id));
+  }
+
+  return pool.filter((id) => {
+    const item = itemById.get(id);
+    return Boolean(item && signal.categories.includes(item.category));
+  });
+}
+
 export function createLotItems(
   lot: LotTemplate,
   itemById: ReadonlyMap<string, ItemDefinition>,
@@ -51,18 +68,29 @@ export function createLotItems(
   valueMultiplier = 1,
   random: RandomSource = DEFAULT_RANDOM,
 ): RevealedItem[] {
-  const pool = [...lot.itemPool];
+  const pool = lot.itemPool.filter((id, index, values) => values.indexOf(id) === index);
   const selected: ItemDefinition[] = [];
+
+  const selectId = (id: string): void => {
+    const index = pool.indexOf(id);
+    if (index < 0) return;
+    pool.splice(index, 1);
+    const item = itemById.get(id);
+    if (item) selected.push(item);
+  };
+
+  // Every visible clue backs at least one generated find when its signal has an eligible item.
+  // The player therefore receives real information without learning the exact hidden item/value.
+  for (const clue of lot.clues) {
+    if (selected.length >= lot.itemCount) break;
+    const candidate = chooseRandom(clueCandidateIds(clue, pool, itemById), random);
+    if (candidate) selectId(candidate);
+  }
 
   while (selected.length < lot.itemCount && pool.length > 0) {
     const id = chooseRandom(pool, random);
     if (!id) break;
-
-    const index = pool.indexOf(id);
-    pool.splice(index, 1);
-
-    const item = itemById.get(id);
-    if (item) selected.push(item);
+    selectId(id);
   }
 
   return selected.map((definition) => {
