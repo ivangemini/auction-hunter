@@ -6,6 +6,7 @@ import { chromium } from '@playwright/test';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = path.join(root, 'release', 'screenshots', 'generated');
+const debugRoot = path.join(root, 'release', 'screenshots', 'debug');
 const previewUrl = 'http://127.0.0.1:4174';
 const viteCli = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
 const GAME_WIDTH = 1280;
@@ -146,6 +147,11 @@ async function eventSeen(page, eventName) {
   return page.evaluate((name) => window.__auctionHunterScreenshotEvents?.some((event) => event?.eventName === name) ?? false, eventName);
 }
 
+async function captureDiagnostic(page, name) {
+  ensureDirectory(debugRoot);
+  await page.screenshot({ path: path.join(debugRoot, `${name}.png`), type: 'png', fullPage: false });
+}
+
 async function activateUntilEvent(page, x, y, eventName, attempts = 10, waitMs = 280) {
   const touchPoints = await page.evaluate(() => navigator.maxTouchPoints);
   const modes = touchPoints > 0 ? ['mouse', 'touch'] : ['mouse'];
@@ -155,6 +161,9 @@ async function activateUntilEvent(page, x, y, eventName, attempts = 10, waitMs =
     await page.waitForTimeout(waitMs);
     if (await eventSeen(page, eventName)) return;
   }
+  const eventNames = await page.evaluate(() => (window.__auctionHunterScreenshotEvents ?? []).map((event) => event?.eventName));
+  console.error(`Screenshot interaction failed waiting for ${eventName}; observed events: ${eventNames.join(', ')}`);
+  await captureDiagnostic(page, `failed-${eventName}`);
   throw new Error(`${eventName} was not observed after ${attempts} interaction attempts`);
 }
 
@@ -175,6 +184,7 @@ async function winCurrentAuction(page) {
     await page.waitForTimeout(750);
   }
 
+  await captureDiagnostic(page, 'failed-auction-win');
   throw new Error('Unable to reach a legitimate Garage auction win while capturing screenshots');
 }
 
@@ -284,6 +294,7 @@ async function captureLocale(browser, localeCode, locale) {
     const revealSeed = { ...seedSave, cash: 500000, highestCash: 500000 };
     const revealPage = await bootPage(mobile, localeCode, revealSeed);
     await winCurrentAuction(revealPage);
+    await captureDiagnostic(revealPage, `${localeCode}-after-win`);
     // The Open Lot and Reveal buttons overlap this safe center point across their two sequential screens.
     // Alternate mouse/touch activation until the actual reveal analytics event confirms progression.
     await activateUntilEvent(revealPage, 640, 596, 'item_revealed', 10, 280);
@@ -312,6 +323,7 @@ async function pageWaitAndClick(page, x, y, waitMs) {
 }
 
 fs.rmSync(outputRoot, { recursive: true, force: true });
+fs.rmSync(debugRoot, { recursive: true, force: true });
 ensureDirectory(outputRoot);
 
 const preview = spawn(process.execPath, [viteCli, 'preview', '--host', '127.0.0.1', '--port', '4174'], {
