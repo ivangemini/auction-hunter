@@ -53,7 +53,13 @@ export interface AnalyticsEventMap {
   };
   auction_passed: { lotId: string; tierId: AuctionTierId; currentBid: number; daily: boolean };
   item_revealed: { itemId: string; rarity: string };
-  item_appraised: { itemId: string; value: number; condition: number };
+  item_appraised: {
+    itemId: string;
+    value: number;
+    condition: number;
+    traitIds?: ItemTraitId[];
+    traitMultiplier?: number;
+  };
   restoration_completed: {
     itemId: string;
     grade: RestorationGrade;
