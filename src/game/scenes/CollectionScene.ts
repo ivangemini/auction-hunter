@@ -7,7 +7,7 @@ import {
   uniqueCollectionCount,
   type CollectionSetDefinition,
 } from '../../data/collections';
-import { itemTraitNames } from '../../data/itemTraits';
+import { itemTraitNames, itemTraitNamesForIds } from '../../data/itemTraits';
 import { collectionResaleValue, ownedCopies } from '../../domain/collection';
 import { collectionResaleRate, setRewardValue } from '../../domain/meta';
 import type { Locale, Rarity } from '../../domain/types';
@@ -177,9 +177,16 @@ export class CollectionScene extends Phaser.Scene {
       return;
     }
 
+    const instances = (save.collectionItems ?? [])
+      .filter((candidate) => candidate.itemId === itemId)
+      .sort((left, right) => left.appraisedValue - right.appraisedValue || left.acquiredAt - right.acquiredAt);
+    const instance = instances[0];
     const rate = collectionResaleRate(COLLECTION_RESALE_RATE, save.businessUpgrades.warehouse);
-    const resale = collectionResaleValue(item.baseValue, rate);
-    const traits = itemTraitNames(itemId, this.locale);
+    const resaleBasis = instance?.appraisedValue ?? item.baseValue;
+    const resale = collectionResaleValue(resaleBasis, rate);
+    const traits = instance
+      ? itemTraitNamesForIds(instance.traitIds, this.locale)
+      : itemTraitNames(itemId, this.locale);
     const overlay = this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x05070a, 0.78)
       .setInteractive({ useHandCursor: true });
     overlay.on('pointerup', () => {
@@ -192,30 +199,38 @@ export class CollectionScene extends Phaser.Scene {
       .setInteractive();
 
     this.add.image(500, 330, resolveItemTexture(this, itemId)).setDisplaySize(190, 138);
-    this.label(635, 226, item.name[this.locale], 25, '#f7f8fa', 'bold');
-    this.label(635, 273, t(this.locale, 'ownedCopies', { count: copies }), 17, '#aeb5c0');
-    this.label(635, 309, t(this.locale, 'resaleValue', { amount: this.money(resale) }), 19, '#63d28d', 'bold');
+    this.label(635, 218, item.name[this.locale], 25, '#f7f8fa', 'bold');
+    this.label(635, 260, t(this.locale, 'ownedCopies', { count: copies }), 16, '#aeb5c0');
 
-    if (traits.length > 0) {
-      this.label(635, 340, `${this.locale === 'ru' ? 'Признаки' : 'Traits'}: ${traits.join(' · ')}`, 13, '#61a8ff', 'bold')
+    if (instance) {
+      const instanceLabel = this.locale === 'ru' ? 'Самая дешёвая копия' : 'Lowest-value copy';
+      const restored = instance.restored ? (this.locale === 'ru' ? ' · реставрирован' : ' · restored') : '';
+      this.label(635, 292, `${instanceLabel}: ${this.money(instance.appraisedValue)} · ${Math.round(instance.condition * 100)}%${restored}`, 13, '#d7dbe2', 'bold')
         .setWordWrapWidth(255);
     }
 
-    this.label(635, traits.length > 0 ? 380 : 350, t(this.locale, 'sellCollectionWarning'), 13, '#8b93a1')
-      .setWordWrapWidth(255)
-      .setLineSpacing(3);
+    this.label(635, 326, t(this.locale, 'resaleValue', { amount: this.money(resale) }), 18, '#63d28d', 'bold');
 
-    button(this, 690, 485, t(this.locale, 'sellOne', { amount: this.money(resale) }), () => {
+    if (traits.length > 0) {
+      this.label(635, 356, `${this.locale === 'ru' ? 'Признаки' : 'Traits'}: ${traits.join(' · ')}`, 12, '#61a8ff', 'bold')
+        .setWordWrapWidth(255);
+    }
+
+    this.label(635, 400, t(this.locale, 'sellCollectionWarning'), 12, '#8b93a1')
+      .setWordWrapWidth(255)
+      .setLineSpacing(2);
+
+    button(this, 690, 500, t(this.locale, 'sellOne', { amount: this.money(resale) }), () => {
       if (this.store.sellCollectionItem(itemId, resale)) playFeedbackCue(this, 'sell');
       const remaining = ownedCopies(this.store.snapshot.collection, itemId);
       this.selectedItemId = remaining > 0 ? itemId : null;
       this.renderBook();
-    }, { width: 260, height: 54 });
+    }, { width: 260, height: 52 });
 
-    button(this, 690, 555, t(this.locale, 'close'), () => {
+    button(this, 690, 565, t(this.locale, 'close'), () => {
       this.selectedItemId = null;
       this.renderBook();
-    }, { width: 200, height: 48, background: 0x2c313a });
+    }, { width: 200, height: 46, background: 0x2c313a });
 
     void panel;
   }
