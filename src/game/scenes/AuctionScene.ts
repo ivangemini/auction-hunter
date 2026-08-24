@@ -4,6 +4,7 @@ import { BIDDER_PROFILES, BIDDER_TELL_TEXT, ITEM_CONDITION_RANGE, MARKET_FACTOR_
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
 import { uniqueCollectionCount } from '../../data/collections';
 import { getDailySpecial, localDayKey, type DailySpecialDefinition } from '../../data/daily';
+import { ADVANCED_INSPECTION_COST, ADVANCED_INSPECTION_MIN_REP } from '../../data/inspection';
 import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from '../../data/lotModifiers';
 import { MONETIZATION_POLICY } from '../../data/monetization';
 import { AUCTION_TIERS, getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../../data/tiers';
@@ -16,6 +17,7 @@ import {
   opponentTell,
 } from '../../domain/auction';
 import type { AuctionOpponent, BidderTell } from '../../domain/auction';
+import { inspectLot, type InspectionConditionBand, type InspectionReport } from '../../domain/inspection';
 import {
   applyLotModifier,
   modifierConditionRange,
@@ -59,6 +61,7 @@ export class AuctionScene extends Phaser.Scene {
   private locale: Locale = 'en';
   private lot!: LotTemplate;
   private lotModifier: LotModifierDefinition | null = null;
+  private inspectionReport: InspectionReport | null = null;
   private items: RevealedItem[] = [];
   private opponents: AuctionOpponent[] = [];
   private currentTierId: AuctionTierId = 'garage';
@@ -145,6 +148,7 @@ export class AuctionScene extends Phaser.Scene {
       valueMultiplier,
     );
     this.opponents = createAuctionOpponents(this.lot, this.items, BIDDER_PROFILES);
+    this.inspectionReport = null;
     this.currentBid = this.lot.reservePrice;
     this.currentLeader = this.opponents[0]?.id ?? '';
     this.awaitingNpc = false;
@@ -189,23 +193,27 @@ export class AuctionScene extends Phaser.Scene {
     });
 
     this.panel(865, 190, 345, 460, 0x171a20);
-    this.label(900, 222, t(this.locale, 'currentBid'), 15, '#8b93a1');
-    this.label(900, 250, this.money(this.lot.reservePrice), 34, '#f7f8fa', 'bold');
-    this.divider(900, 300, 275);
-    this.label(900, 318, t(this.locale, 'bidIncrement'), 14, '#8b93a1');
-    this.label(900, 345, `+${this.money(this.lot.bidIncrement)}`, 23, '#d7dbe2', 'bold');
-    this.label(900, 390, t(this.locale, 'itemsInside'), 14, '#8b93a1');
-    this.label(900, 416, String(this.lot.itemCount), 23, '#f7f8fa', 'bold');
+    this.label(900, 215, t(this.locale, 'currentBid'), 14, '#8b93a1');
+    this.label(900, 240, this.money(this.lot.reservePrice), 32, '#f7f8fa', 'bold');
+    this.divider(900, 286, 275);
+    this.label(900, 301, t(this.locale, 'bidIncrement'), 13, '#8b93a1');
+    this.label(900, 324, `+${this.money(this.lot.bidIncrement)}`, 21, '#d7dbe2', 'bold');
+    this.label(900, 359, t(this.locale, 'itemsInside'), 13, '#8b93a1');
+    this.label(900, 382, String(this.lot.itemCount), 21, '#f7f8fa', 'bold');
 
-    button(this, 1038, 476, t(this.locale, 'collectionBook'), () => this.scene.start('collection'), {
+    this.renderInspectionControl();
+
+    button(this, 1038, 520, t(this.locale, 'collectionBook'), () => this.scene.start('collection'), {
       width: 270,
-      height: 42,
+      height: 38,
       background: 0x61a8ff,
+      hitSlop: 4,
     });
-    this.renderDailyControl();
-    button(this, 1038, 605, this.dailySpecial ? t(this.locale, 'startDailyAuction') : t(this.locale, 'startAuction'), () => this.startAuction(), {
+    this.renderDailyControl(565);
+    button(this, 1038, 620, this.dailySpecial ? t(this.locale, 'startDailyAuction') : t(this.locale, 'startAuction'), () => this.startAuction(), {
       width: 270,
-      height: 50,
+      height: 48,
+      hitSlop: 4,
     });
   }
 
@@ -243,24 +251,72 @@ export class AuctionScene extends Phaser.Scene {
     });
   }
 
-  private renderDailyControl(): void {
+  private renderInspectionControl(): void {
+    const save = this.store.snapshot;
+    const fee = ADVANCED_INSPECTION_COST[this.currentTierId];
+    this.label(900, 414, t(this.locale, 'advancedInspection'), 12, '#8b93a1', 'bold');
+
+    if (this.inspectionReport) {
+      const condition = this.inspectionConditionLabel(this.inspectionReport.conditionBand);
+      const premium = this.inspectionPremiumLabel(this.inspectionReport.premiumFinds);
+      this.centerLabel(1038, 468, `${condition} · ${premium}`, 12, '#63d28d', 'bold').setWordWrapWidth(270);
+      return;
+    }
+
+    if (save.reputationXp < ADVANCED_INSPECTION_MIN_REP) {
+      this.centerLabel(1038, 468, t(this.locale, 'inspectionLocked', { xp: ADVANCED_INSPECTION_MIN_REP }), 12, '#737b88');
+      return;
+    }
+
+    button(this, 1038, 468, t(this.locale, 'inspectLot', { amount: this.money(fee) }), () => this.useAdvancedInspection(), {
+      width: 270,
+      height: 36,
+      background: 0x3f73b8,
+      disabled: !this.store.canAfford(fee),
+      hitSlop: 4,
+    });
+  }
+
+  private useAdvancedInspection(): void {
+    if (this.inspectionReport) return;
+    const save = this.store.snapshot;
+    if (save.reputationXp < ADVANCED_INSPECTION_MIN_REP) return;
+
+    const fee = ADVANCED_INSPECTION_COST[this.currentTierId];
+    if (!this.store.payInspectionFee(fee)) return;
+
+    this.inspectionReport = inspectLot(this.items);
+    trackEvent('advanced_inspection_used', {
+      lotId: this.lot.id,
+      tierId: this.currentTierId,
+      fee,
+      conditionBand: this.inspectionReport.conditionBand,
+      premiumFinds: this.inspectionReport.premiumFinds,
+      daily: Boolean(this.dailySpecial),
+      modifierId: this.lotModifier?.id,
+    });
+    this.renderLobby();
+  }
+
+  private renderDailyControl(y = 540): void {
     const today = localDayKey();
     const completed = this.store.snapshot.lastDailyCompletedDay === today;
 
     if (completed) {
-      this.centerLabel(1038, 540, t(this.locale, 'dailyComplete'), 13, '#63d28d', 'bold');
+      this.centerLabel(1038, y, t(this.locale, 'dailyComplete'), 12, '#63d28d', 'bold');
       return;
     }
 
     if (this.dailySpecial?.dayKey === today) {
-      this.centerLabel(1038, 540, t(this.locale, 'dailyActive'), 13, '#e9b949', 'bold');
+      this.centerLabel(1038, y, t(this.locale, 'dailyActive'), 12, '#e9b949', 'bold');
       return;
     }
 
-    button(this, 1038, 540, t(this.locale, 'dailySpecial'), () => this.activateDailySpecial(), {
+    button(this, 1038, y, t(this.locale, 'dailySpecial'), () => this.activateDailySpecial(), {
       width: 270,
-      height: 42,
+      height: 38,
       background: 0xc4773a,
+      hitSlop: 4,
     });
   }
 
@@ -839,6 +895,20 @@ export class AuctionScene extends Phaser.Scene {
 
   private centerLabel(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
     return this.label(x, y, text, size, color, style).setOrigin(0.5);
+  }
+
+  private inspectionConditionLabel(band: InspectionConditionBand): string {
+    switch (band) {
+      case 'rough': return t(this.locale, 'inspectionConditionRough');
+      case 'mixed': return t(this.locale, 'inspectionConditionMixed');
+      case 'preserved': return t(this.locale, 'inspectionConditionPreserved');
+    }
+  }
+
+  private inspectionPremiumLabel(count: number): string {
+    if (count <= 0) return t(this.locale, 'inspectionPremiumNone');
+    if (count === 1) return t(this.locale, 'inspectionPremiumOne');
+    return t(this.locale, 'inspectionPremiumMultiple', { count });
   }
 
   private rarityLabel(rarity: Rarity): string {

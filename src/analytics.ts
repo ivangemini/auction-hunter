@@ -1,4 +1,5 @@
 import type { BusinessUpgradeId, Locale, RestorationGrade } from './domain/types';
+import type { InspectionConditionBand } from './domain/inspection';
 import type { AuctionTierId } from './data/tiers';
 
 export const ANALYTICS_SCHEMA_VERSION = 1 as const;
@@ -15,6 +16,15 @@ export interface AnalyticsEventMap {
     tierId?: AuctionTierId;
     daily?: boolean;
     openingBid?: number;
+    modifierId?: string;
+  };
+  advanced_inspection_used: {
+    lotId: string;
+    tierId: AuctionTierId;
+    fee: number;
+    conditionBand: InspectionConditionBand;
+    premiumFinds: number;
+    daily: boolean;
     modifierId?: string;
   };
   bid_placed: { lotId: string; tierId: AuctionTierId; bid: number; cash: number; daily: boolean };
