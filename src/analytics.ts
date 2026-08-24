@@ -1,4 +1,4 @@
-import type { BusinessUpgradeId, Locale, RestorationGrade } from './domain/types';
+import type { BusinessUpgradeId, ItemTraitId, Locale, RestorationGrade } from './domain/types';
 import type { InspectionConditionBand } from './domain/inspection';
 import type { AuctionTierId } from './data/tiers';
 
@@ -66,6 +66,14 @@ export interface AnalyticsEventMap {
     itemId?: string;
     value?: number;
     source?: 'round' | 'collection';
+  };
+  buyer_sale_completed: {
+    buyerId: string;
+    itemId: string;
+    dayKey: string;
+    value: number;
+    premiumMultiplier: number;
+    traitIds: ItemTraitId[];
   };
   collection_set_reward_claimed: { setId: string; reward: number };
   daily_special_completed: { dayKey: string; reputationGain: number };
