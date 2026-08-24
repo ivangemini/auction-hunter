@@ -40,7 +40,9 @@ Pure platform-agnostic rules and types.
 
 ### `src/data/`
 Static content/tuning inputs.
-- `catalog.ts` — 24 items and 18 clue-backed lot templates.
+- `catalog.ts` — 24 items and 18 clue-backed lot templates, including their lot `artId` assignments.
+- `artManifest.ts` — direct item-art IDs and the nine allowed lot-environment art IDs.
+- `artCoverage.test.ts` — prevents catalog item art aliases/fallback and enforces the v1 lot-environment floor.
 - `balance.ts` — condition/market ranges, bidder profiles and tell text.
 - `collections.ts` — 8 sets and resale-rate tuning.
 - `tiers.ts` — reputation/tier definitions and 6 lots per tier.
@@ -60,7 +62,12 @@ Static content/tuning inputs.
 - `preferences.ts` — device-local sound/reduced-motion/high-contrast preferences.
 - `feedback.ts` — lightweight Web Audio cues and motion-aware camera juice.
 - `ui.ts` — shared buttons with mobile hit slop/contrast handling.
-- `art.ts`, `config.ts`, `lifecycle.ts` — rendering/runtime infrastructure.
+- `art.ts` — preloads direct catalog item art and declared lot environments; runtime fallback is defensive only.
+- `config.ts`, `lifecycle.ts` — rendering/runtime infrastructure.
+
+### `public/assets/`
+- `items/` — direct SVG for every one of the 24 catalog item IDs plus defensive `fallback.svg`.
+- `lots/` — nine authored lot environments: three Garage, three Estate and three Collector archetypes.
 
 ### `src/platform/`
 - `yandex.ts` — SDK/Player integration.
@@ -73,12 +80,13 @@ RU/EN gameplay, Office, inspection, accessibility and orientation copy.
 
 ## Tests
 - `src/domain/*.test.ts` — fast economy/game-rule unit tests.
-- `src/data/*.test.ts` — content integrity, scale and replayability regression coverage.
+- `src/data/*.test.ts` — content integrity, art coverage, scale and replayability regression coverage.
 - `tests/browser.spec.ts` — responsive/runtime/orientation smoke coverage.
 - Other `tests/*.spec.ts` cover system contracts used by Playwright QA.
 
 ## Where to make common changes
 - Add/tune lots and clue signals: `src/data/catalog.ts` + `docs/CONTENT_MODEL.md`.
+- Add/change catalog art: `public/assets/`, `src/data/artManifest.ts`, lot `artId` assignments and `src/data/artCoverage.test.ts`.
 - Tune NPC/economy ranges: `src/data/balance.ts` + `docs/ECONOMY_AND_RETENTION.md`.
 - Change clue generation/restoration/resale/inspection formulas: matching `src/domain/` module + focused unit tests.
 - Change contracts/achievements/upgrades: `src/data/meta.ts` + `src/domain/meta.ts`.

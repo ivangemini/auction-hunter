@@ -41,7 +41,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['toolbox', 'cassette-player', 'vinyl-box', 'toy-robot', 'brass-clock', 'film-camera', 'telescope'],
   },
   {
-    id: 'garage-31', artId: 'garage-17',
+    id: 'garage-31', artId: 'garage-workshop',
     name: { ru: 'Мастерская №31', en: 'Workshop Locker #31' },
     location: { ru: 'Кооперативные гаражи', en: 'Co-op garage row' },
     clues: [
@@ -65,7 +65,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['cassette-player', 'vinyl-box', 'toy-robot', 'brass-clock', 'film-camera', 'telescope', 'silver-ring'],
   },
   {
-    id: 'flea-storage-12', artId: 'garage-17',
+    id: 'flea-storage-12', artId: 'garage-market',
     name: { ru: 'Склад барахолки №12', en: 'Flea Market Storage #12' },
     location: { ru: 'Задний двор крытого рынка', en: 'Covered market back lot' },
     clues: [
@@ -77,7 +77,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['toolbox', 'multimeter', 'portable-radio', 'comic-stack', 'tin-car', 'vinyl-box', 'instant-camera'],
   },
   {
-    id: 'repair-shop-4', artId: 'garage-17',
+    id: 'repair-shop-4', artId: 'garage-workshop',
     name: { ru: 'Ремонтная мастерская №4', en: 'Repair Shop Unit #4' },
     location: { ru: 'Старый сервисный квартал', en: 'Old service district' },
     clues: [
@@ -89,7 +89,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['toolbox', 'multimeter', 'cassette-player', 'portable-radio', 'travel-clock', 'film-camera', 'instant-camera'],
   },
   {
-    id: 'student-locker-28', artId: 'garage-17',
+    id: 'student-locker-28', artId: 'garage-market',
     name: { ru: 'Студенческий склад №28', en: 'Student Storage #28' },
     location: { ru: 'Склад у бывшего общежития', en: 'Storage by an old dormitory' },
     clues: [
@@ -113,7 +113,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['vinyl-box', 'brass-clock', 'film-camera', 'signed-poster', 'silver-ring', 'pocket-watch', 'prototype-toy'],
   },
   {
-    id: 'estate-attic-9', artId: 'estate-42',
+    id: 'estate-attic-9', artId: 'estate-attic',
     name: { ru: 'Чердак усадьбы №9', en: 'Estate Attic #9' },
     location: { ru: 'Старый загородный дом', en: 'Old country house' },
     clues: [
@@ -125,7 +125,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['brass-clock', 'film-camera', 'telescope', 'signed-poster', 'silver-ring', 'pocket-watch', 'prototype-toy'],
   },
   {
-    id: 'studio-estate-21', artId: 'estate-42',
+    id: 'studio-estate-21', artId: 'estate-studio',
     name: { ru: 'Студийный склад №21', en: 'Studio Estate #21' },
     location: { ru: 'Бывшая мастерская дизайнера', en: 'Former designer studio' },
     clues: [
@@ -137,7 +137,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['vinyl-box', 'toy-robot', 'film-camera', 'signed-poster', 'silver-ring', 'arcade-handheld', 'prototype-toy'],
   },
   {
-    id: 'manor-basement-5', artId: 'estate-42',
+    id: 'manor-basement-5', artId: 'estate-attic',
     name: { ru: 'Подвал особняка №5', en: 'Manor Basement #5' },
     location: { ru: 'Семейное хранилище за городом', en: 'Family storage outside town' },
     clues: [
@@ -149,7 +149,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['travel-clock', 'binoculars', 'enamel-brooch', 'gallery-print', 'silver-ring', 'pocket-watch', 'telescope'],
   },
   {
-    id: 'photo-estate-13', artId: 'estate-42',
+    id: 'photo-estate-13', artId: 'estate-studio',
     name: { ru: 'Фотоархив №13', en: 'Photo Estate #13' },
     location: { ru: 'Хранилище бывшей фотостудии', en: 'Former photo studio storage' },
     clues: [
@@ -185,7 +185,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['toy-robot', 'film-camera', 'telescope', 'signed-poster', 'arcade-handheld', 'pocket-watch', 'prototype-toy'],
   },
   {
-    id: 'dealer-vault-3', artId: 'collector-8',
+    id: 'dealer-vault-3', artId: 'collector-vault',
     name: { ru: 'Хранилище дилера №3', en: 'Dealer Vault #3' },
     location: { ru: 'Премиальное хранилище', en: 'Premium storage vault' },
     clues: [
@@ -209,7 +209,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['toy-robot', 'telescope', 'signed-poster', 'silver-ring', 'arcade-handheld', 'pocket-watch', 'prototype-toy'],
   },
   {
-    id: 'archive-vault-2', artId: 'collector-8',
+    id: 'archive-vault-2', artId: 'collector-vault',
     name: { ru: 'Архивное хранилище №2', en: 'Archive Vault #2' },
     location: { ru: 'Частный аукционный архив', en: 'Private auction archive' },
     clues: [
@@ -221,7 +221,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['military-watch', 'pocket-watch', 'enamel-brooch', 'silver-ring', 'gallery-print', 'signed-poster', 'preproduction-figure'],
   },
   {
-    id: 'retro-dealer-14', artId: 'collector-8',
+    id: 'retro-dealer-14', artId: 'collector-gallery',
     name: { ru: 'Склад ретро-дилера №14', en: 'Retro Dealer Unit #14' },
     location: { ru: 'Закрытая торговая галерея', en: 'Closed dealer gallery' },
     clues: [
@@ -233,7 +233,7 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['arcade-handheld', 'mini-console', 'instant-camera', 'film-camera', 'portable-radio', 'preproduction-figure', 'pocket-watch'],
   },
   {
-    id: 'private-gallery-6', artId: 'collector-8',
+    id: 'private-gallery-6', artId: 'collector-gallery',
     name: { ru: 'Частная галерея №6', en: 'Private Gallery #6' },
     location: { ru: 'Закрытый зал коллекционера', en: 'Collector’s private gallery' },
     clues: [

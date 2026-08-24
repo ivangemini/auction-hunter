@@ -50,7 +50,7 @@
 - [x] Economy strategy simulation regression gate.
 - [x] Accessibility settings for sound feedback, reduced motion and higher contrast.
 - [x] Replayability/content-scale regression floor and moderation evidence document.
-- [ ] Second art/content pass for the expanded catalog.
+- [x] Second art/content pass: direct art for all 24 items and 9 lot environments.
 - [ ] Timed 10+ minute Yandex draft content-duration check.
 - [ ] Real Yandex draft/device QA and first telemetry-driven tuning pass.
 

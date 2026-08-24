@@ -1,4 +1,4 @@
-# Auction Hunter — Art Direction v0.1
+# Auction Hunter — Art Direction v0.2
 
 ## Visual thesis
 Auction Hunter should feel like a late-evening storage auction: warm tungsten light, cold industrial shadows, dusty surfaces, taped cardboard, worn paint and small flashes of valuable metal or electronics.
@@ -30,13 +30,17 @@ Rarity colors remain UI accents. They should not recolor the whole object.
 - Reveal state: object occupies most of the card and receives a subtle rarity halo.
 - Appraisal state: value UI becomes brighter than the object; the artwork should not compete with the price.
 
-## First asset pack
-The first pack contains three lot illustrations plus representative item illustrations and a neutral fallback silhouette. Assets are SVG so they remain sharp on high-DPI browser canvases and can be replaced one-for-one later without changing game logic.
+## v1 asset coverage
+The v1 catalog has direct SVG coverage for all 24 collectible item identities. Catalog items no longer depend on visual aliases; `fallback.svg` remains only as a defensive runtime fallback for unknown/missing IDs.
+
+Lot presentation uses nine authored environment SVGs: three Garage, three Estate and three Collector visual archetypes. The 18 lot templates reuse these environments intentionally by setting `artId`, so related locations share visual language without every template looking identical.
+
+`src/data/artManifest.ts` is the static asset manifest and `src/data/artCoverage.test.ts` prevents catalog items from silently falling back to aliases or the lot catalog from shrinking below the v1 environment floor.
 
 ## Naming
-- `public/assets/lots/<lot-id>.svg`
+- `public/assets/lots/<art-id>.svg`
 - `public/assets/items/<item-id>.svg`
 - `public/assets/items/fallback.svg`
 
 ## Replacement rule
-Gameplay code refers to semantic Phaser texture keys, not filenames directly. Future hand-painted or generated PNG/WebP art may replace the SVG files while keeping the same keys and dimensions.
+Gameplay code refers to semantic Phaser texture keys, not filenames directly. Future hand-painted or generated PNG/WebP art may replace the SVG files while keeping the same semantic IDs and dimensions. Changes must keep `artManifest.ts` and the coverage test consistent.
