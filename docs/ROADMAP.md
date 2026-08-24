@@ -57,6 +57,7 @@
 ## P4 — v1.1 decision depth
 - [x] Three distinct normal-auction lot options before each auction.
 - [x] Selection cards expose opening price, item count, truthful clues and visible rare modifiers without revealing hidden value.
+- [x] Dealer Memory summarizes recent personal normal-auction outcomes for the same lot template without inspecting current hidden state.
 - [x] Daily Special remains a fixed featured lot and bypasses normal selection after activation.
 - [x] Lot-selection funnel analytics and Metrica goal coverage.
 - [x] One lot-options impression per tier per page-session market cycle, with shared cycle context on presentation and selection events.
