@@ -328,16 +328,47 @@ function appraisal(scene: AuctionRuntime, item: RevealedItem): void {
     const grade = item.restorationGrade ? scene.restorationGradeLabel(item.restorationGrade) : '';
     scene.add.rectangle(842, 446, 348, 38, 0x173522, 0.85).setOrigin(0).setStrokeStyle(1, 0x63d28d, 0.34);
     text(scene, 854, 457, `${grade} · ${t(scene.locale, 'restorationGain', { amount: scene.money(item.restorationGain ?? 0) })}`, 10, '#7ee0a0', 'bold').setWordWrapWidth(322);
-    button(scene, 928, 572, owned ? t(scene.locale, 'sellDuplicate') : t(scene.locale, 'sell'), () => scene.sellCurrentItem(), { width: 160, height: 52, feedback: false });
-    button(scene, 1104, 572, t(scene.locale, 'keep'), () => scene.keepCurrentItem(), { width: 160, height: 52, background: 0x3f73b8, accent: 0x61a8ff, feedback: false });
+    button(scene, 928, 572, owned ? t(scene.locale, 'sellDuplicate') : t(scene.locale, 'sell'), () => scene.sellCurrentItem(), {
+      width: 160,
+      height: 52,
+      feedback: false,
+      fontSize: 13,
+    });
+    button(scene, 1104, 572, t(scene.locale, 'keep'), () => scene.keepCurrentItem(), {
+      width: 160,
+      height: 52,
+      background: 0x3f73b8,
+      accent: 0x61a8ff,
+      feedback: false,
+      fontSize: 14,
+    });
     return;
   }
 
   const canRestore = !scene.restorationUsed;
   text(scene, 842, 452, canRestore ? t(scene.locale, 'restorationAvailable') : t(scene.locale, 'restorationSpent'), 10, canRestore ? '#d8a46c' : '#69717c', 'bold').setWordWrapWidth(348);
-  button(scene, 882, 572, t(scene.locale, 'restore'), () => scene.startRestoration(), { width: 124, height: 52, background: 0xc4773a, accent: 0xe39a58, disabled: !canRestore });
-  button(scene, 1016, 572, owned ? t(scene.locale, 'sellDuplicate') : t(scene.locale, 'sell'), () => scene.sellCurrentItem(), { width: 124, height: 52, feedback: false });
-  button(scene, 1150, 572, t(scene.locale, 'keep'), () => scene.keepCurrentItem(), { width: 124, height: 52, background: 0x3f73b8, accent: 0x61a8ff, feedback: false });
+  button(scene, 882, 572, t(scene.locale, 'restore'), () => scene.startRestoration(), {
+    width: 124,
+    height: 52,
+    background: 0xc4773a,
+    accent: 0xe39a58,
+    disabled: !canRestore,
+    fontSize: 13,
+  });
+  button(scene, 1016, 572, owned ? t(scene.locale, 'sellDuplicate') : t(scene.locale, 'sell'), () => scene.sellCurrentItem(), {
+    width: 124,
+    height: 52,
+    feedback: false,
+    fontSize: 13,
+  });
+  button(scene, 1150, 572, t(scene.locale, 'keep'), () => scene.keepCurrentItem(), {
+    width: 124,
+    height: 52,
+    background: 0x3f73b8,
+    accent: 0x61a8ff,
+    feedback: false,
+    fontSize: 14,
+  });
 }
 
 function animateValue(scene: AuctionRuntime, label: Phaser.GameObjects.Text, value: number): void {
