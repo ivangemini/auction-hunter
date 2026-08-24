@@ -1,0 +1,40 @@
+import Phaser from 'phaser';
+
+export const MOTION = {
+  hoverMs: 140,
+  pressMs: 75,
+  settleMs: 160,
+  cardEnterMs: 260,
+  cardEnterStaggerMs: 55,
+  selectMs: 130,
+} as const;
+
+export function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+export function enterWithStagger(
+  scene: Phaser.Scene,
+  target: Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Alpha & Phaser.GameObjects.Components.Transform,
+  baseY: number,
+  index: number,
+): void {
+  if (prefersReducedMotion()) {
+    target.setAlpha(1);
+    target.setY(baseY);
+    return;
+  }
+
+  target.setAlpha(0);
+  target.setY(baseY + 14);
+  scene.tweens.add({
+    targets: target,
+    alpha: 1,
+    y: baseY,
+    duration: MOTION.cardEnterMs,
+    delay: index * MOTION.cardEnterStaggerMs,
+    ease: 'Cubic.Out',
+  });
+}
