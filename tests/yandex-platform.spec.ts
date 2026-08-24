@@ -71,7 +71,12 @@ test('Yandex Game Ready and gameplay markup follow real scene transitions', asyn
   expect(await page.evaluate(() => (window as any).__yandexContractCalls?.start ?? 0)).toBe(0);
   expect(await page.evaluate(() => (window as any).__yandexContractCalls?.stop ?? 0)).toBe(0);
 
-  await clickGame(page, 1038, 620); // Start auction.
+  await clickGame(page, 240, 625); // Choose one of the three visible lot options.
+  await page.waitForTimeout(120);
+  expect(await page.evaluate(() => (window as any).__yandexContractCalls?.start ?? 0)).toBe(0);
+  expect(await page.evaluate(() => (window as any).__yandexContractCalls?.stop ?? 0)).toBe(0);
+
+  await clickGame(page, 1038, 620); // Enter the chosen auction.
   await expect.poll(() => page.evaluate(() => (window as any).__yandexContractCalls?.start ?? 0)).toBe(1);
   expect(await page.evaluate(() => (window as any).__yandexContractCalls?.stop ?? 0)).toBe(0);
 
