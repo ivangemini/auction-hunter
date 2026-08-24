@@ -1,9 +1,10 @@
 import Phaser from 'phaser';
 import { trackEvent } from '../../analytics';
-import { BIDDER_PROFILES, ITEM_CONDITION_RANGE, MARKET_FACTOR_RANGE } from '../../data/balance';
+import { BIDDER_PROFILES, BIDDER_TELL_TEXT, ITEM_CONDITION_RANGE, MARKET_FACTOR_RANGE } from '../../data/balance';
 import { ITEM_BY_ID, LOTS } from '../../data/catalog';
 import { uniqueCollectionCount } from '../../data/collections';
 import { getDailySpecial, localDayKey, type DailySpecialDefinition } from '../../data/daily';
+import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from '../../data/lotModifiers';
 import { MONETIZATION_POLICY } from '../../data/monetization';
 import { AUCTION_TIERS, getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../../data/tiers';
 import {
@@ -12,8 +13,16 @@ import {
   createLotItems,
   eligibleOpponents,
   nextBid,
+  opponentTell,
 } from '../../domain/auction';
-import type { AuctionOpponent } from '../../domain/auction';
+import type { AuctionOpponent, BidderTell } from '../../domain/auction';
+import {
+  applyLotModifier,
+  modifierConditionRange,
+  modifierMarketMultiplier,
+  selectLotModifier,
+  type LotModifierDefinition,
+} from '../../domain/lotModifier';
 import { rewardedSummaryBonus, shouldRequestInterstitial } from '../../domain/monetization';
 import { applyRestoration } from '../../domain/restoration';
 import type { Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
@@ -38,10 +47,18 @@ const RARITY_COLORS: Record<Rarity, number> = {
   legendary: 0xffc857,
 };
 
+const TELL_COLORS: Record<BidderTell, string> = {
+  calm: '#8b93a1',
+  watching: '#d7dbe2',
+  hesitating: '#e9b949',
+  out: '#666e79',
+};
+
 export class AuctionScene extends Phaser.Scene {
   private readonly store = new GameStore();
   private locale: Locale = 'en';
   private lot!: LotTemplate;
+  private lotModifier: LotModifierDefinition | null = null;
   private items: RevealedItem[] = [];
   private opponents: AuctionOpponent[] = [];
   private currentTierId: AuctionTierId = 'garage';
@@ -92,13 +109,13 @@ export class AuctionScene extends Phaser.Scene {
     }
 
     let tier = getAuctionTier(this.currentTierId);
-    let lot: LotTemplate | undefined;
+    let baseLot: LotTemplate | undefined;
     let valueMultiplier = 1;
 
     if (this.dailySpecial) {
       tier = getAuctionTier(this.dailySpecial.tierId);
       this.currentTierId = tier.id;
-      lot = LOTS.find((candidate) => candidate.id === this.dailySpecial?.lotId);
+      baseLot = LOTS.find((candidate) => candidate.id === this.dailySpecial?.lotId);
       valueMultiplier = this.dailySpecial.valueMultiplier;
     } else {
       if (save.reputationXp < tier.minReputationXp) {
@@ -109,21 +126,26 @@ export class AuctionScene extends Phaser.Scene {
       const tierLots = tier.lotIds
         .map((lotId) => LOTS.find((candidate) => candidate.id === lotId))
         .filter((candidate): candidate is LotTemplate => Boolean(candidate));
-      lot = chooseRandom(tierLots);
+      baseLot = chooseRandom(tierLots);
     }
 
-    if (!lot) throw new Error(`No lot templates configured for tier ${tier.id}`);
+    if (!baseLot) throw new Error(`No lot templates configured for tier ${tier.id}`);
 
-    this.lot = lot;
+    // Daily Special is already a special mode; normal auctions can roll one visible rare modifier.
+    this.lotModifier = this.dailySpecial ? null : selectLotModifier(LOT_MODIFIERS, LOT_MODIFIER_CHANCE);
+    this.lot = applyLotModifier(baseLot, this.lotModifier);
+    const conditionRange = modifierConditionRange(ITEM_CONDITION_RANGE, this.lotModifier);
+    valueMultiplier *= modifierMarketMultiplier(this.lotModifier);
+
     this.items = createLotItems(
-      lot,
+      this.lot,
       ITEM_BY_ID,
-      ITEM_CONDITION_RANGE,
+      conditionRange,
       MARKET_FACTOR_RANGE,
       valueMultiplier,
     );
-    this.opponents = createAuctionOpponents(lot, this.items, BIDDER_PROFILES);
-    this.currentBid = lot.reservePrice;
+    this.opponents = createAuctionOpponents(this.lot, this.items, BIDDER_PROFILES);
+    this.currentBid = this.lot.reservePrice;
     this.currentLeader = this.opponents[0]?.id ?? '';
     this.awaitingNpc = false;
     this.revealIndex = 0;
@@ -151,7 +173,14 @@ export class AuctionScene extends Phaser.Scene {
     this.label(105, 214, lotEyebrow, 14, this.dailySpecial ? '#e9b949' : '#8b93a1', this.dailySpecial ? 'bold' : 'normal');
     this.label(105, 242, this.lot.name[this.locale], 32, '#f7f8fa', 'bold');
     this.label(105, 284, `${t(this.locale, 'location')}: ${this.lot.location[this.locale]}`, 16, '#aeb5c0');
-    this.renderLotArtwork(285, 438, 360, 205);
+
+    if (this.lotModifier) {
+      this.label(105, 316, `EVENT · ${this.lotModifier.name[this.locale]}`, 14, '#e9b949', 'bold');
+      this.label(105, 340, this.lotModifier.description[this.locale], 13, '#aeb5c0').setWordWrapWidth(340);
+      this.renderLotArtwork(285, 495, 360, 180);
+    } else {
+      this.renderLotArtwork(285, 438, 360, 205);
+    }
 
     this.label(500, 322, t(this.locale, 'visibleClues'), 18, '#e9b949', 'bold');
     this.label(500, 348, t(this.locale, 'clueBackedHint'), 12, '#737b88').setWordWrapWidth(285);
@@ -259,6 +288,7 @@ export class AuctionScene extends Phaser.Scene {
       tierId: this.currentTierId,
       daily: Boolean(this.dailySpecial),
       openingBid: this.lot.reservePrice,
+      modifierId: this.lotModifier?.id,
     });
     setGameplayActive(true);
     this.currentBid = this.lot.reservePrice;
@@ -272,6 +302,7 @@ export class AuctionScene extends Phaser.Scene {
     this.renderHeader();
     this.label(80, 160, this.lot.name[this.locale], 28, '#f7f8fa', 'bold');
     this.label(80, 202, this.lot.location[this.locale], 16, '#8b93a1');
+    if (this.lotModifier) this.label(80, 225, `EVENT · ${this.lotModifier.name[this.locale]}`, 13, '#e9b949', 'bold');
 
     this.panel(70, 245, 760, 370);
     this.renderLotArtwork(645, 342, 300, 150);
@@ -308,11 +339,16 @@ export class AuctionScene extends Phaser.Scene {
     });
 
     this.panel(865, 245, 345, 370, 0x171a20);
-    this.label(900, 282, t(this.locale, 'bidders'), 19, '#e9b949', 'bold');
+    this.label(900, 275, t(this.locale, 'bidders'), 19, '#e9b949', 'bold');
     this.opponents.forEach((opponent, index) => {
+      const y = 320 + index * 92;
       const active = opponent.id === this.currentLeader;
-      this.label(900, 338 + index * 66, opponent.name[this.locale], 21, active ? '#f7f8fa' : '#aeb5c0', active ? 'bold' : 'normal');
-      this.label(1115, 340 + index * 66, active ? '●' : '○', 18, active ? '#e9b949' : '#555c68');
+      const tell = opponentTell(opponent, this.currentBid, this.lot);
+      const trait = opponent.trait?.[this.locale];
+      const detail = trait ? `${trait} · ${BIDDER_TELL_TEXT[tell][this.locale]}` : BIDDER_TELL_TEXT[tell][this.locale];
+      this.label(900, y, opponent.name[this.locale], 19, active ? '#f7f8fa' : tell === 'out' ? '#666e79' : '#aeb5c0', active ? 'bold' : 'normal');
+      this.label(900, y + 28, detail, 12, TELL_COLORS[tell]).setWordWrapWidth(225);
+      this.label(1145, y + 2, active ? '●' : tell === 'out' ? '×' : '○', 17, active ? '#e9b949' : '#555c68');
     });
   }
 
