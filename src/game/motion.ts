@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { loadAccessibilityPreferences } from './preferences';
 
 export const MOTION = {
   hoverMs: 140,
@@ -15,9 +16,7 @@ type StaggerTarget = Phaser.GameObjects.GameObject & {
 };
 
 export function prefersReducedMotion(): boolean {
-  return typeof window !== 'undefined'
-    && typeof window.matchMedia === 'function'
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return loadAccessibilityPreferences().reducedMotion;
 }
 
 export function enterWithStagger(
