@@ -1,4 +1,4 @@
-# Auction Hunter — Art Direction v0.4
+# Auction Hunter — Art Direction v0.5
 
 ## Visual thesis
 Auction Hunter should feel like a late-evening storage auction: warm tungsten light, cold industrial shadows, dusty surfaces, taped cardboard, worn paint and small flashes of valuable metal or electronics.
@@ -8,12 +8,26 @@ The visual hierarchy is built around uncertainty. Lots should look cluttered and
 The player-facing experience must look like a commercial treasure-hunting game, not a dark web dashboard. Flat panels and text are structural tools, not the visual identity.
 
 ## Style
-- 2D illustrated vector/raster hybrid with simplified shapes and strong silhouettes.
-- Semi-realistic proportions, not cartoon/chibi.
+- High-resolution 2D illustrated vector/raster hybrid with simplified, readable shapes and strong silhouettes.
+- Slightly stylized/cartoon-adjacent rendering: richer shapes, controlled exaggeration and appealing materials, but not chibi, toy-like or flat clip-art.
 - Dark industrial environments with warm amber focal lighting.
-- Materials: cardboard, plywood, steel, brass, aged plastic, glass.
-- Use texture sparingly; readability at 1280×720 and on mobile browsers is more important than fine detail.
+- Materials: cardboard, plywood, steel, brass, aged plastic, leather, glass and fabric.
+- Use texture deliberately; readability at 1280×720 and on mobile browsers is more important than microscopic detail.
 - Prefer authored scene composition and object art over schematic/icon-like depictions for primary gameplay visuals.
+- Primary art should still read cleanly when scaled down; silhouette, lighting and material separation matter more than tiny prop density.
+
+## Authored-quality / anti-generated-art rules
+Generated concepts may be used as visual-development input, but production assets must be cleaned and art-directed.
+
+Avoid common synthetic/AI-looking artifacts:
+- meaningless micro-detail, pseudo-text, fake labels or impossible object joins;
+- inconsistent perspective or light direction within one scene;
+- repeated decorative clutter with no gameplay or material purpose;
+- excessive bloom, gold trim, sparkles or glossy chrome on every component;
+- noisy hyper-real rendering that conflicts with the slightly stylized game language;
+- baking interface text, prices or dynamic values into generated artwork.
+
+UI typography, prices, clues, badges and dynamic labels are rendered by Phaser, not embedded in raster art. Raster assets should contain the physical scene/object only. Clean silhouettes, controlled value grouping and consistent materials are preferable to maximum detail.
 
 ## Palette
 - Ink / near-black: `#101216`
@@ -74,7 +88,7 @@ Lot/item/buyer cards should combine a subset of:
 Card types should differ according to purpose. A storage lot, rival dealer and inventory collectible should not feel like the same component with different text.
 
 ## Composition rules
-- Lot art: dense foreground clutter, a darker back wall, one warm light source and 2–3 readable clue silhouettes.
+- Lot art: dense but controlled foreground clutter, a darker back wall, one primary warm light source and 2–3 readable clue silhouettes.
 - Item art: single object, three-quarter view where practical, transparent/neutral background, strong silhouette.
 - Reveal state: object occupies most of the card/screen and receives a subtle rarity halo.
 - Appraisal state: value UI becomes brighter than the object; the artwork should not compete with the price.
@@ -94,6 +108,8 @@ Preferred lightweight treatments:
 
 Effects must respect the reduced-motion accessibility setting. Motion is for input acknowledgement, state transition, causality and emphasis, not constant decoration.
 
+`skills/auction-hunter-animation-game-feel/SKILL.md` is the implementation standard for motion timing, state safety and browser performance.
+
 ## Typography
 Typography must create hierarchy. At minimum distinguish:
 - screen/lot/item titles;
@@ -109,21 +125,26 @@ Avoid dense developer-style key/value tables when the same information can be sc
 ## Current asset coverage
 The expanded catalog has direct SVG coverage for all 36 collectible item identities. Catalog items do not depend on visual aliases; `fallback.svg` remains only as a defensive runtime fallback for unknown/missing IDs.
 
-Lot presentation uses nine authored environment SVGs: three Garage, three Estate and three Collector visual archetypes. The 24 lot templates reuse these environments intentionally by setting `artId`, so related locations share visual language while names, clues, item pools and economy create distinct lot identities.
+Lot presentation keeps nine semantic environment identities: three Garage, three Estate and three Collector archetypes. The 24 lot templates reuse these identities intentionally through `artId`, so related locations share visual language while names, clues, item pools and economy create distinct lot identities.
 
-This coverage is a correctness floor, not a quality ceiling. Existing simple SVGs may be replaced or augmented with higher-fidelity raster/vector art when they read as schematic placeholders in production screenshots.
+P7 has started the higher-fidelity raster replacement pass. The three Estate archetypes (`estate-42`, `estate-attic`, `estate-studio`) now use cleaned WebP environment art while preserving the same semantic Phaser texture keys. Garage and Collector archetypes still use their SVG implementations until their corresponding art pass is complete.
 
-`src/data/artManifest.ts` is the static asset manifest and `src/data/artCoverage.test.ts` prevents catalog items from silently falling back to aliases or the lot catalog from shrinking below the environment floor.
+This coverage is a correctness floor, not a quality ceiling. Existing simple SVGs should be replaced or augmented when they read as schematic placeholders in production screenshots.
+
+`src/data/artManifest.ts` remains the semantic asset manifest and `src/data/artCoverage.test.ts` prevents catalog items from silently falling back to aliases or the lot catalog from shrinking below the environment floor.
 
 ## Naming
-- `public/assets/lots/<art-id>.svg`
-- `public/assets/items/<item-id>.svg`
-- `public/assets/items/fallback.svg`
+- vector lot art: `public/assets/lots/<art-id>.svg`
+- raster lot art: `public/assets/lots/<art-id>.webp`
+- item art: `public/assets/items/<item-id>.svg` (raster replacements may follow the same semantic-ID rule)
+- defensive item fallback: `public/assets/items/fallback.svg`
 
 ## Replacement rule
-Gameplay code refers to semantic Phaser texture keys, not filenames directly. Future hand-painted or generated PNG/WebP art may replace the SVG files while keeping the same semantic IDs and dimensions. Changes must keep `artManifest.ts` and the coverage test consistent.
+Gameplay code refers to semantic Phaser texture keys, not filenames directly. Higher-fidelity PNG/WebP art may replace SVG files while keeping the same semantic IDs. Asset loader routing decides which implementation backs a semantic key; gameplay/data code must not branch on file format.
+
+Changes must keep `artManifest.ts`, loader behavior and coverage tests consistent.
 
 ## Visual acceptance
 For material player-facing changes, run the browser capture flow and inspect the resulting image. Passing functional/browser tests does not by itself establish visual quality.
 
-Use `skills/auction-hunter-visual-design/SKILL.md` and its visual review checklist. If a screenshot still reads primarily as black rectangles, borders, small schematic art and equal-weight text, the visual task is not complete.
+Use `skills/auction-hunter-visual-design/SKILL.md`, `skills/auction-hunter-animation-game-feel/SKILL.md` and the visual review checklist. If a screenshot still reads primarily as black rectangles, borders, small schematic art and equal-weight text, the visual task is not complete.
