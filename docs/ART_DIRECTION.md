@@ -1,4 +1,4 @@
-# Auction Hunter — Art Direction v0.2
+# Auction Hunter — Art Direction v0.3
 
 ## Visual thesis
 Auction Hunter should feel like a late-evening storage auction: warm tungsten light, cold industrial shadows, dusty surfaces, taped cardboard, worn paint and small flashes of valuable metal or electronics.
@@ -30,12 +30,12 @@ Rarity colors remain UI accents. They should not recolor the whole object.
 - Reveal state: object occupies most of the card and receives a subtle rarity halo.
 - Appraisal state: value UI becomes brighter than the object; the artwork should not compete with the price.
 
-## v1 asset coverage
-The v1 catalog has direct SVG coverage for all 24 collectible item identities. Catalog items no longer depend on visual aliases; `fallback.svg` remains only as a defensive runtime fallback for unknown/missing IDs.
+## Current asset coverage
+The expanded catalog has direct SVG coverage for all 36 collectible item identities. Catalog items do not depend on visual aliases; `fallback.svg` remains only as a defensive runtime fallback for unknown/missing IDs.
 
-Lot presentation uses nine authored environment SVGs: three Garage, three Estate and three Collector visual archetypes. The 18 lot templates reuse these environments intentionally by setting `artId`, so related locations share visual language without every template looking identical.
+Lot presentation uses nine authored environment SVGs: three Garage, three Estate and three Collector visual archetypes. The 24 lot templates reuse these environments intentionally by setting `artId`, so related locations share visual language while names, clues, item pools and economy create distinct lot identities.
 
-`src/data/artManifest.ts` is the static asset manifest and `src/data/artCoverage.test.ts` prevents catalog items from silently falling back to aliases or the lot catalog from shrinking below the v1 environment floor.
+`src/data/artManifest.ts` is the static asset manifest and `src/data/artCoverage.test.ts` prevents catalog items from silently falling back to aliases or the lot catalog from shrinking below the environment floor.
 
 ## Naming
 - `public/assets/lots/<art-id>.svg`
