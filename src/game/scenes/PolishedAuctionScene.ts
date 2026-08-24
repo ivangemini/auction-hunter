@@ -13,6 +13,7 @@ type AuctionRuntime = Phaser.Scene & {
   locale: 'ru' | 'en';
   lotChoices: LotChoice[];
   currentTierId: string;
+  lotSelectionPending: boolean;
   store: {
     snapshot: {
       cash: number;
@@ -45,12 +46,14 @@ export class PolishedAuctionScene extends AuctionScene {
   constructor() {
     super();
     const runtime = this as unknown as AuctionRuntime;
+    runtime.lotSelectionPending = false;
     runtime.renderLotSelection = () => renderPolishedLotSelection(runtime);
   }
 }
 
 function renderPolishedLotSelection(scene: AuctionRuntime): void {
   setGameplayActive(false);
+  scene.lotSelectionPending = false;
   scene.resetCanvas();
   renderHeader(scene);
   scene.renderTierTabs(true);
@@ -149,6 +152,8 @@ function renderPolishedLotSelection(scene: AuctionRuntime): void {
     }
 
     const choose = button(scene, CARD_WIDTH / 2, 451, t(scene.locale, 'chooseLot'), () => {
+      if (scene.lotSelectionPending) return;
+      scene.lotSelectionPending = true;
       animateSelection(scene, card, accent, () => scene.selectLotChoice(choice, index));
     }, {
       width: 344,
