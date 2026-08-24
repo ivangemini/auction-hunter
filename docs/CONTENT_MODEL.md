@@ -42,7 +42,9 @@ Generated lot/item instances reference stable definitions and carry runtime outc
 Display copy is content, not identity. IDs must not depend on English/Russian names.
 
 ## Current scale
-The current content pass contains 24 item identities, 18 lot templates and 8 collection sets. All 24 catalog items have direct dedicated SVG art identities. The lot catalog uses nine authored environment illustrations across the three auction tiers; multiple lot templates may intentionally share an environment while retaining distinct names, clues, pools and economy tuning.
+The current breadth pass contains 36 item identities, 24 lot templates and 12 collection sets. All 36 catalog items have direct dedicated SVG art identities. The lot catalog uses nine authored environment illustrations across the three auction tiers; multiple lot templates may intentionally share an environment while retaining distinct names, clues, pools and economy tuning.
+
+Each tier now owns eight normal-auction lot templates. This increases the number of possible three-option market combinations while preserving the existing tier progression and save schema.
 
 ## Scale safeguards
 Automated tests check:

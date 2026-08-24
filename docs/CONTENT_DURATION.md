@@ -10,8 +10,8 @@ Reference: https://yandex.com/dev/games/doc/en/requirements/2/9
 
 Auction Hunter is not a finite one-shot level sequence. Its core auction loop is repeatable and materially changes between runs:
 
-- 18 authored lot templates across Garage, Estate and Collector tiers.
-- 24 collectible item identities and 8 collection sets.
+- 24 authored lot templates across Garage, Estate and Collector tiers, eight per tier.
+- 36 collectible item identities and 12 collection sets.
 - Hidden lot contents are generated from clue-backed pools rather than fixed reveal scripts.
 - Item condition and market factors vary between generated finds.
 - NPC bidder profiles and auction pressure vary, so the safe stopping point is not fixed.
@@ -21,12 +21,13 @@ Auction Hunter is not a finite one-shot level sequence. Its core auction loop is
 - Achievements and Business Office upgrades create persistent goals between individual auctions.
 - Collection completion, recent auction history and lifetime statistics provide long-run progress tracking.
 - Late-game Advanced Inspection adds an optional cash-for-information decision without revealing exact hidden value.
+- Three-option normal markets create many possible comparison combinations before hidden contents are generated.
 
 These systems create both content breadth and metagame motivation to continue playing beyond a single auction.
 
 ## Automated regression floor
 
-`src/data/replayability.test.ts` protects a minimum structural floor for the release build. It verifies that the project keeps the expected catalog/tier/meta breadth instead of accidentally shrinking into a short prototype.
+`src/data/replayability.test.ts` protects a minimum structural floor for the release build. `src/data/contentScale.test.ts` additionally protects the 36-item / 24-lot / 12-set breadth target, eight lots per tier, truthful clues and full collection coverage.
 
 The automated gate is evidence only. It cannot prove elapsed playable duration and does not replace the timed Yandex draft test below.
 
@@ -49,6 +50,7 @@ Record at least:
 - elapsed time;
 - auctions entered, won and passed;
 - distinct lot templates encountered;
+- distinct item identities revealed;
 - reputation/tier progression;
 - collection/set progress;
 - Daily Contract progress;
@@ -61,7 +63,7 @@ Do not count ad playback, background-tab time, deliberate inactivity or debug-pa
 
 Use a 12-minute internal safety target even though the platform rule is more than 10 minutes.
 
-The gate passes only if a normal fresh-save player can remain in meaningful gameplay for at least 12 minutes and still has legitimate reasons to continue, such as new auctions, collection goals, contracts, achievements, upgrades or tier progression.
+The gate passes only if a normal fresh-save player can remain in meaningful gameplay for at least 12 minutes and still has legitimate reasons to continue, such as unseen lots/items, collection goals, contracts, achievements, upgrades or tier progression.
 
 The run fails if gameplay becomes exhausted, deterministic/repetitive without meaningful choice, blocked by economy state, or functionally complete before the target.
 
@@ -77,6 +79,7 @@ Fill this section from the final candidate build.
 - Timed meaningful gameplay: `TBD`
 - Auctions played: `TBD`
 - Distinct lots encountered: `TBD`
+- Distinct items revealed: `TBD`
 - Highest tier reached: `TBD`
 - Notes/blockers: `TBD`
 - Result: `NOT YET VERIFIED`

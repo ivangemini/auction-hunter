@@ -24,6 +24,7 @@ Fast navigation map for humans and coding agents.
 
 ## Documentation
 - `GAME_DESIGN.md`, `ROADMAP.md`, `V1_ROADMAP.md` — product intent and delivery status.
+- `PRE_RELEASE_AUDIT.md` — latest release-risk and maintainability audit.
 - `ARCHITECTURE.md`, `ENGINEERING.md`, `DECISIONS.md` — technical contracts/workflow.
 - `CONTENT_MODEL.md`, `ECONOMY_AND_RETENTION.md`, `CONTENT_DURATION.md` — content/economy/replayability rules and moderation evidence.
 - `RESTORATION.md`, `COLLECTIONS.md`, `TIERS.md`, `DAILY_SPECIAL.md`, `FIRST_SESSION.md` — gameplay contracts.
@@ -53,17 +54,17 @@ Pure platform-agnostic rules and types.
 
 ### `src/data/`
 Static content/tuning inputs.
-- `catalog.ts` — 24 items and 18 clue-backed lot templates, including their lot `artId` assignments.
+- `catalog.ts` — 36 items and 24 clue-backed lot templates, including their lot `artId` assignments.
 - `artManifest.ts` — direct item-art IDs and the nine allowed lot-environment art IDs.
-- `artCoverage.test.ts` — prevents catalog item art aliases/fallback and enforces the v1 lot-environment floor.
+- `artCoverage.test.ts` — prevents catalog item art aliases/fallback and enforces the lot-environment floor.
 - `balance.ts` — condition/market ranges and bidder profiles and tell text.
-- `collections.ts` — 8 sets and resale-rate tuning.
-- `tiers.ts` — reputation/tier definitions and 6 lots per tier.
+- `collections.ts` — 12 sets and resale-rate tuning.
+- `tiers.ts` — reputation/tier definitions and 8 lots per tier.
 - `lotModifiers.ts` — rare visible lot events and their probability.
 - `inspection.ts` — inspection unlock/cost tuning.
 - `meta.ts` — daily contracts, achievements and business upgrades.
 - `daily.ts`, `progression.ts`, `monetization.ts` — daily/progression/ad policy.
-- `replayability.test.ts` — v1 content/replayability regression floor.
+- `replayability.test.ts`, `contentScale.test.ts` — expanded content/replayability regression floors.
 
 ### `src/game/`
 - `scenes/AuctionScene.ts` — three-option normal-auction selection with Dealer Memory, detailed lot lobby, bidding, clues, modifiers, bidder tells, advanced inspection, one-per-lot restoration and round summary/ads.
@@ -79,12 +80,12 @@ Static content/tuning inputs.
 - `config.ts`, `lifecycle.ts` — rendering/runtime infrastructure.
 
 ### `public/assets/`
-- `items/` — direct SVG for every one of the 24 catalog item IDs plus defensive `fallback.svg`.
+- `items/` — direct SVG for every one of the 36 catalog item IDs plus defensive `fallback.svg`.
 - `lots/` — nine authored lot environments: three Garage, three Estate and three Collector archetypes.
 
 ### `src/platform/`
 - `yandex.ts` — Yandex Games SDK/Player integration plus gameplay-activity notifications for platform policies.
-- `cloudSave.ts` — Player-data synchronization.
+- `cloudSave.ts` — Player-data synchronization with coalesced, serialized uploads.
 - `ads.ts` — rewarded/interstitial adapters plus API-controlled sticky-banner policy.
 - `lifecycle.ts` — Yandex/browser/orientation pause reasons.
 - `metrica.ts` — optional Yandex Metrica tag loader and typed analytics transport; no-op without a real counter ID.
@@ -94,8 +95,8 @@ RU/EN gameplay, lot-selection/Dealer Memory, Office, inspection, accessibility a
 
 ## Tests
 - `src/domain/*.test.ts` — fast economy/game-rule unit tests, including deterministic lot-option sampling and Dealer Memory aggregation.
-- `src/data/*.test.ts` — content integrity, art coverage, scale and replayability regression coverage.
-- `src/platform/*.test.ts` — platform adapter contracts that can be verified without live Yandex services.
+- `src/data/*.test.ts` — content integrity, direct-art coverage, 36/24/12 scale and replayability regression coverage.
+- `src/platform/*.test.ts` — platform adapter contracts, including cloud-save ordering, that can be verified without live Yandex services.
 - `tests/browser.spec.ts` — responsive/runtime/orientation smoke coverage.
 - `tests/lot-selection.spec.ts` — browser funnel coverage for three unique options, market-cycle semantics, Dealer Memory rendering path, committed choice and delayed auction start.
 - Other `tests/*.spec.ts` cover system contracts used by Playwright QA.

@@ -47,11 +47,11 @@
 - [x] Bidder personality tells/reactions.
 - [x] Rare lot modifiers/events.
 - [x] Paid late-game advanced inspection that preserves hidden exact value.
-- [x] Expanded catalog: 18 lot templates, 24 items and 8 collection sets.
+- [x] Initial expanded catalog: 18 lot templates, 24 items and 8 collection sets.
 - [x] Economy strategy simulation regression gate.
 - [x] Accessibility settings for sound feedback, reduced motion and higher contrast.
 - [x] Replayability/content-scale regression floor and moderation evidence document.
-- [x] Second art/content pass: direct art for all 24 items and 9 lot environments.
+- [x] Second art/content pass: direct art for all initial 24 items and 9 lot environments.
 - [ ] Timed 10+ minute Yandex draft content-duration check.
 - [ ] Real Yandex draft/device QA and first telemetry-driven tuning pass.
 
@@ -65,4 +65,14 @@
 - [x] Browser/Yandex contract and production screenshot automation updated for selection -> lobby -> auction.
 - [ ] Tune option mix/modifier frequency from post-launch choice and retention telemetry before promoting v1.1 to a release candidate.
 
-See `V1_ROADMAP.md` for the detailed v1.0 plan and `CONTENT_DURATION.md` for moderation evidence/checks.
+## P5 — content breadth
+- [x] First breadth pack: 36 item identities with direct art.
+- [x] Expand normal-auction catalog to 24 templates / 8 per tier without changing tier unlock pacing.
+- [x] Expand Collection Book to 12 sets while preserving existing set IDs/rewards and save compatibility.
+- [x] Keep all new lot clues truthful and all new items represented in at least one collection set.
+- [x] Raise automated content/replayability floors to the expanded catalog.
+- [ ] Run economy simulation and browser/release CI against the expanded pack.
+- [ ] After the first candidate is submitted, build a second breadth pack toward roughly 48 items / 30 lots / 16 sets on top of the submitted commit rather than idling during moderation.
+- [ ] Decide any new core mechanic only after the current auction/collection loop has real session and D1 data.
+
+See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.

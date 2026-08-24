@@ -25,6 +25,18 @@ export const ITEMS: ItemDefinition[] = [
   { id: 'mini-console', name: { ru: 'Мини-консоль первого выпуска', en: 'First-run mini console' }, category: 'electronics', rarity: 'epic', baseValue: 2300 },
   { id: 'military-watch', name: { ru: 'Военные наручные часы', en: 'Military wristwatch' }, category: 'watches', rarity: 'epic', baseValue: 2600 },
   { id: 'preproduction-figure', name: { ru: 'Предсерийная коллекционная фигурка', en: 'Pre-production collectible figure' }, category: 'toys', rarity: 'legendary', baseValue: 6200 },
+  { id: 'soldering-station', name: { ru: 'Винтажная паяльная станция', en: 'Vintage soldering station' }, category: 'tools', rarity: 'uncommon', baseValue: 420 },
+  { id: 'pocket-tv', name: { ru: 'Карманный телевизор', en: 'Pocket television' }, category: 'electronics', rarity: 'rare', baseValue: 900 },
+  { id: 'model-train', name: { ru: 'Коллекционный паровоз', en: 'Collector model train' }, category: 'toys', rarity: 'rare', baseValue: 1100 },
+  { id: 'manual-typewriter', name: { ru: 'Механическая печатная машинка', en: 'Manual typewriter' }, category: 'collectibles', rarity: 'rare', baseValue: 950 },
+  { id: 'porcelain-figurine', name: { ru: 'Фарфоровая статуэтка', en: 'Porcelain figurine' }, category: 'collectibles', rarity: 'rare', baseValue: 1250 },
+  { id: 'art-deco-lamp', name: { ru: 'Лампа ар-деко', en: 'Art Deco lamp' }, category: 'art', rarity: 'rare', baseValue: 1400 },
+  { id: 'fountain-pen', name: { ru: 'Перьевая ручка в футляре', en: 'Cased fountain pen' }, category: 'collectibles', rarity: 'epic', baseValue: 1850 },
+  { id: 'chronograph-watch', name: { ru: 'Механический хронограф', en: 'Mechanical chronograph' }, category: 'watches', rarity: 'epic', baseValue: 2800 },
+  { id: 'first-edition-book', name: { ru: 'Книга первого издания', en: 'First-edition book' }, category: 'collectibles', rarity: 'epic', baseValue: 2400 },
+  { id: 'signed-vinyl', name: { ru: 'Подписанная редкая пластинка', en: 'Signed rare vinyl' }, category: 'art', rarity: 'epic', baseValue: 2600 },
+  { id: 'clockwork-automaton', name: { ru: 'Заводной автомат', en: 'Clockwork automaton' }, category: 'toys', rarity: 'legendary', baseValue: 6800 },
+  { id: 'master-study', name: { ru: 'Этюд известного мастера', en: 'Master artist study' }, category: 'art', rarity: 'legendary', baseValue: 7200 },
 ];
 
 export const LOTS: LotTemplate[] = [
@@ -101,6 +113,30 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['portable-radio', 'comic-stack', 'tin-car', 'vinyl-box', 'cassette-player', 'mini-console', 'instant-camera'],
   },
   {
+    id: 'radio-repair-unit-16', artId: 'garage-workshop',
+    name: { ru: 'Радиомастерская №16', en: 'Radio Repair Unit #16' },
+    location: { ru: 'Склад закрытого радиосервиса', en: 'Closed radio-service storage' },
+    clues: [
+      { text: { ru: 'На столе остались паяльники и измерительные щупы', en: 'Soldering tools and test probes remain on the bench' }, signal: { categories: ['tools'] } },
+      { text: { ru: 'В коробке видны маленькие экраны и антенны', en: 'Small screens and antennas are visible in a box' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'В ящике лежит старый механический будильник', en: 'An old mechanical clock rests in a drawer' }, signal: { categories: ['watches'] } },
+    ],
+    reservePrice: 375, bidIncrement: 75, itemCount: 4,
+    itemPool: ['multimeter', 'soldering-station', 'portable-radio', 'pocket-tv', 'cassette-player', 'travel-clock', 'instant-camera'],
+  },
+  {
+    id: 'hobby-locker-22', artId: 'garage-market',
+    name: { ru: 'Хобби-склад №22', en: 'Hobby Locker #22' },
+    location: { ru: 'Склад бывшего клуба моделистов', en: 'Former hobby-club storage' },
+    clues: [
+      { text: { ru: 'На верхней полке видны рельсы и коробки моделей', en: 'Model boxes and track pieces sit on the top shelf' }, signal: { categories: ['toys'] } },
+      { text: { ru: 'Стопка журналов перевязана рядом с печатной машинкой', en: 'Magazines are tied beside a typewriter case' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'В пластиковом контейнере лежит портативная электроника', en: 'Portable electronics fill a plastic bin' }, signal: { categories: ['electronics'] } },
+    ],
+    reservePrice: 400, bidIncrement: 75, itemCount: 4,
+    itemPool: ['model-train', 'tin-car', 'toy-robot', 'comic-stack', 'manual-typewriter', 'mini-console', 'pocket-tv'],
+  },
+  {
     id: 'estate-42', artId: 'estate-42',
     name: { ru: 'Наследственный склад №42', en: 'Estate Locker #42' },
     location: { ru: 'Частное хранилище', en: 'Private storage facility' },
@@ -173,6 +209,30 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['signed-poster', 'gallery-print', 'tin-car', 'preproduction-figure', 'comic-stack', 'enamel-brooch', 'mini-console'],
   },
   {
+    id: 'library-estate-18', artId: 'estate-attic',
+    name: { ru: 'Библиотека усадьбы №18', en: 'Estate Library #18' },
+    location: { ru: 'Дом частного библиофила', en: 'Private bibliophile estate' },
+    clues: [
+      { text: { ru: 'На столе лежат старые книги и письменные принадлежности', en: 'Old books and writing instruments cover a desk' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'Под тканью заметны фарфор и декоративные рамки', en: 'Porcelain and decorative frames show beneath cloth' }, signal: { categories: ['art', 'collectibles'] } },
+      { text: { ru: 'В закрытом ящике лежит длинный футляр', en: 'A long presentation case sits in a locked drawer' }, signal: { itemIds: ['fountain-pen', 'chronograph-watch', 'pocket-watch'] } },
+    ],
+    reservePrice: 650, bidIncrement: 100, itemCount: 4,
+    itemPool: ['manual-typewriter', 'first-edition-book', 'fountain-pen', 'porcelain-figurine', 'gallery-print', 'pocket-watch', 'chronograph-watch'],
+  },
+  {
+    id: 'designer-loft-27', artId: 'estate-studio',
+    name: { ru: 'Лофт дизайнера №27', en: 'Designer Loft #27' },
+    location: { ru: 'Архив закрытого интерьерного бюро', en: 'Closed interior-design archive' },
+    clues: [
+      { text: { ru: 'За мебелью виден силуэт декоративной лампы', en: 'A decorative lamp silhouette shows behind furniture' }, signal: { categories: ['art'] } },
+      { text: { ru: 'В фотокейсе лежит старая портативная техника', en: 'Old portable electronics sit in a camera case' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'На столе оставлен дорогой часовой футляр', en: 'A premium watch case was left on the desk' }, signal: { categories: ['watches'] } },
+    ],
+    reservePrice: 700, bidIncrement: 100, itemCount: 4,
+    itemPool: ['art-deco-lamp', 'instant-camera', 'gallery-print', 'chronograph-watch', 'signed-poster', 'enamel-brooch', 'pocket-tv'],
+  },
+  {
     id: 'collector-8', artId: 'collector-8',
     name: { ru: 'Бокс коллекционера №8', en: 'Collector Locker #8' },
     location: { ru: 'Закрытый клубный аукцион', en: 'Members-only auction house' },
@@ -243,6 +303,30 @@ export const LOTS: LotTemplate[] = [
     ],
     reservePrice: 1200, bidIncrement: 150, itemCount: 4,
     itemPool: ['signed-poster', 'gallery-print', 'enamel-brooch', 'silver-ring', 'military-watch', 'binoculars', 'preproduction-figure'],
+  },
+  {
+    id: 'horology-case-5', artId: 'collector-vault',
+    name: { ru: 'Часовой кейс №5', en: 'Horology Case #5' },
+    location: { ru: 'Закрытый часовой аукцион', en: 'Private horology auction' },
+    clues: [
+      { text: { ru: 'В лотке лежат ремешки, ключи и сервисные бирки', en: 'Straps, keys and service tags fill a tray' }, signal: { categories: ['watches'] } },
+      { text: { ru: 'Рядом стоит маленький бархатный футляр', en: 'A small velvet presentation case sits nearby' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'Под стеклом виден сложный заводной механизм', en: 'A complex clockwork mechanism is visible under glass' }, signal: { itemIds: ['clockwork-automaton', 'chronograph-watch', 'pocket-watch'] } },
+    ],
+    reservePrice: 1100, bidIncrement: 150, itemCount: 4,
+    itemPool: ['chronograph-watch', 'military-watch', 'pocket-watch', 'fountain-pen', 'clockwork-automaton', 'silver-ring', 'enamel-brooch'],
+  },
+  {
+    id: 'private-archive-19', artId: 'collector-gallery',
+    name: { ru: 'Частный архив №19', en: 'Private Archive #19' },
+    location: { ru: 'Закрытая коллекция мецената', en: 'Patron’s private collection' },
+    clues: [
+      { text: { ru: 'Архивные папки и холсты промаркированы вручную', en: 'Archive folders and canvases are labeled by hand' }, signal: { categories: ['art'] } },
+      { text: { ru: 'В сейфе лежат редкие печатные издания', en: 'Rare printed editions rest inside the safe' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'Отдельный ящик предназначен для механической игрушки', en: 'A separate crate is fitted for a mechanical toy' }, signal: { categories: ['toys'] } },
+    ],
+    reservePrice: 1200, bidIncrement: 150, itemCount: 4,
+    itemPool: ['first-edition-book', 'signed-vinyl', 'master-study', 'clockwork-automaton', 'preproduction-figure', 'signed-poster', 'gallery-print'],
   },
 ];
 

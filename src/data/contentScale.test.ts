@@ -3,18 +3,18 @@ import { ITEMS, ITEM_BY_ID, LOTS } from './catalog';
 import { COLLECTION_SETS } from './collections';
 import { AUCTION_TIERS } from './tiers';
 
-describe('v1 content scale', () => {
-  it('ships the target 24 items and 18 lot templates', () => {
-    expect(ITEMS).toHaveLength(24);
-    expect(LOTS).toHaveLength(18);
-    expect(new Set(ITEMS.map((item) => item.id)).size).toBe(24);
-    expect(new Set(LOTS.map((lot) => lot.id)).size).toBe(18);
+describe('content scale', () => {
+  it('ships the expanded 36-item and 24-lot catalog', () => {
+    expect(ITEMS).toHaveLength(36);
+    expect(LOTS).toHaveLength(24);
+    expect(new Set(ITEMS.map((item) => item.id)).size).toBe(36);
+    expect(new Set(LOTS.map((lot) => lot.id)).size).toBe(24);
   });
 
-  it('gives every tier six distinct lot variants', () => {
+  it('gives every tier eight distinct lot variants', () => {
     for (const tier of AUCTION_TIERS) {
-      expect(tier.lotIds).toHaveLength(6);
-      expect(new Set(tier.lotIds).size).toBe(6);
+      expect(tier.lotIds).toHaveLength(8);
+      expect(new Set(tier.lotIds).size).toBe(8);
       for (const lotId of tier.lotIds) expect(LOTS.some((lot) => lot.id === lotId)).toBe(true);
     }
   });

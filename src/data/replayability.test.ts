@@ -5,15 +5,15 @@ import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from './lotModifiers';
 import { ACHIEVEMENTS, BUSINESS_UPGRADE_ORDER, DAILY_CONTRACT_POOL } from './meta';
 import { AUCTION_TIERS } from './tiers';
 
-describe('v1 replayability floor', () => {
+describe('replayability floor', () => {
   it('keeps enough configured variety for repeated auction sessions', () => {
-    expect(ITEMS.length).toBeGreaterThanOrEqual(24);
-    expect(LOTS.length).toBeGreaterThanOrEqual(18);
-    expect(COLLECTION_SETS.length).toBeGreaterThanOrEqual(8);
+    expect(ITEMS.length).toBeGreaterThanOrEqual(36);
+    expect(LOTS.length).toBeGreaterThanOrEqual(24);
+    expect(COLLECTION_SETS.length).toBeGreaterThanOrEqual(12);
     expect(AUCTION_TIERS).toHaveLength(3);
 
     for (const tier of AUCTION_TIERS) {
-      expect(tier.lotIds.length, `${tier.id} lot variety`).toBeGreaterThanOrEqual(6);
+      expect(tier.lotIds.length, `${tier.id} lot variety`).toBeGreaterThanOrEqual(8);
     }
   });
 

@@ -32,6 +32,9 @@ Use this checklist before submitting a build. Requirements can change; re-check 
 - [ ] Reward is granted only after `onRewarded` and only once.
 - [ ] Closing/error without reward does not grant cash or block progression.
 - [ ] Interstitial appears only after `Next auction` and never during bidding/reveal/restoration/sell-keep decisions.
+- [ ] Sticky banners are enabled for intended desktop/mobile placements and **Use the API to display a sticky-banner** is enabled in the Yandex Console.
+- [ ] Sticky banner is visible on non-gameplay/break screens, hidden from auction start through reveal/restoration/sell-keep, and returns at the next natural break.
+- [ ] Sticky placement does not overlap or create accidental-click pressure near primary controls on desktop or landscape mobile.
 - [ ] Returning from an ad preserves progress.
 - [ ] YAN monetization is enabled in the Developer Console before submission if the release is monetized.
 
@@ -41,6 +44,7 @@ Use this checklist before submitting a build. Requirements can change; re-check 
 - [ ] Offline/SDK failure continues with local progress.
 - [ ] Older v1 local saves normalize without reset.
 - [ ] Recent auction history survives restart/cloud reconciliation without duplicate entries.
+- [ ] Rapid consecutive mutations/background flushes do not cause an older cloud upload to replace newer progress.
 
 ## Analytics
 - [ ] Built-in Yandex Games metrics appear for the draft/test traffic where applicable.
@@ -63,6 +67,7 @@ Use this checklist before submitting a build. Requirements can change; re-check 
 
 ## Content / policy
 - [ ] Read `docs/CONTENT_DURATION.md` and confirm the current build still satisfies its replayability evidence assumptions.
+- [ ] Confirm the current breadth floor: 36 items, 24 lot templates / 8 per tier and 12 collection sets, with direct item art and truthful clues.
 - [ ] On a fresh Yandex draft save, run a timed natural session for at least 10 minutes; confirm meaningful progression/replay goals still remain after minute 10.
 - [ ] During that run, complete multiple auctions and verify different lots/items/NPC outcomes or modifiers occur rather than a fixed one-shot sequence.
 - [ ] Genre/description accurately match auction, appraisal, restoration and collection gameplay.

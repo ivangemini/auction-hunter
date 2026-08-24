@@ -1,4 +1,4 @@
-# Auction Hunter — Game Design v0.6
+# Auction Hunter — Game Design v0.7
 
 ## Product thesis
 Auction Hunter combines uncertain-value auctions, truthful visual clues, item reveals, appraisal, selective restoration, collection and a lightweight dealer-business meta. The retention hook is curiosity plus judgment: the player compares several imperfect opportunities, learns from prior outcomes, then risks bankroll using partial information without ever seeing exact hidden value.
@@ -49,16 +49,16 @@ Start as a small garage reseller and grow into a high-end auction/antique busine
 - Long term: achievements, business upgrades, rare sets, auction history and reputation progression.
 
 ## Monetization principles
-Rewarded ads trade optional attention for bounded bonus value. The launch summary reward uses total round appraisal rather than only sold value so keeping a collectible is not monetization-negative. Interstitials only appear at natural transitions.
+Rewarded ads trade optional attention for bounded bonus value. The launch summary reward uses total round appraisal rather than only sold value so keeping a collectible is not monetization-negative. Interstitials only appear at natural transitions. The sticky banner provides passive exposure outside the active auction/reveal/restoration decision boundary.
 
 ## Current content scope
-- 24 collectible item definitions with direct SVG art for every identity.
-- 18 lot templates: 6 Garage, 6 Estate and 6 Collector variants.
+- 36 collectible item definitions with direct SVG art for every identity.
+- 24 lot templates: 8 Garage, 8 Estate and 8 Collector variants.
 - 9 lot environment illustrations: 3 visual archetypes per tier.
 - 3 auction tiers.
-- 8 collection sets covering the full catalog.
+- 12 collection sets covering the full catalog.
 - Three-option normal-auction selection using truthful signals, visible modifiers and recent personal Dealer Memory where available.
 - Daily Special, Daily Contracts, achievements, Office upgrades, recent history, local/cloud save, analytics and policy-compliant ads.
 
-## Art scope note
-The v1 second art pass is complete at the catalog-identity level: the 12 expansion items no longer alias the original 12 item textures, and the lot catalog now uses nine authored environments rather than only one background per tier. `fallback.svg` remains defensive only, not normal catalog presentation.
+## Breadth strategy
+Content breadth should grow primarily through new item identities, truthful lot pools/clues and collection goals before another large core mechanic is introduced. New content must preserve old IDs and saves. Shared lot environments are acceptable when the lot identity, clues, pools and economy differ; item identities should retain direct art so collection discovery remains visually meaningful.
