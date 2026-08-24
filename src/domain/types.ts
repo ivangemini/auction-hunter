@@ -6,6 +6,7 @@ export type ItemCategory = 'electronics' | 'watches' | 'toys' | 'art' | 'tools' 
 export type ContractMetric = 'auctionsPlayed' | 'auctionsWon' | 'itemsSold' | 'itemsKept' | 'salesValue';
 export type AchievementMetric = 'auctionsPlayed' | 'auctionsWon' | 'uniqueCollection' | 'lifetimeSales' | 'claimedSets' | 'reputationXp' | 'highestCash';
 export type BusinessUpgradeId = 'warehouse' | 'contractsDesk' | 'showroom';
+export type AuctionHistoryOutcome = 'won' | 'passed';
 
 export interface LocalizedText {
   ru: string;
@@ -56,6 +57,20 @@ export interface BusinessUpgradeState {
   showroom: number;
 }
 
+export interface AuctionHistoryEntry {
+  id: string;
+  occurredAt: string;
+  lotId: string;
+  tierId: 'garage' | 'estate' | 'collector';
+  outcome: AuctionHistoryOutcome;
+  finalBid: number;
+  sales: number;
+  keptValue: number;
+  estimatedResult: number;
+  daily: boolean;
+  modifierId?: string;
+}
+
 export interface PlayerSave {
   version: 1;
   updatedAt: number;
@@ -74,4 +89,5 @@ export interface PlayerSave {
   claimedContractRewards: string[];
   claimedAchievements: string[];
   businessUpgrades: BusinessUpgradeState;
+  auctionHistory: AuctionHistoryEntry[];
 }

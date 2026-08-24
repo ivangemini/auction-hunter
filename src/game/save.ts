@@ -1,4 +1,5 @@
-import type { BusinessUpgradeState, PlayerSave } from '../domain/types';
+import type { AuctionHistoryEntry, BusinessUpgradeState, PlayerSave } from '../domain/types';
+import { AUCTION_HISTORY_LIMIT } from '../domain/history';
 
 export const SAVE_STORAGE_KEY = 'auction-hunter.save.v1';
 
@@ -26,6 +27,7 @@ const DEFAULT_SAVE: PlayerSave = {
   claimedContractRewards: [],
   claimedAchievements: [],
   businessUpgrades: DEFAULT_UPGRADES,
+  auctionHistory: [],
 };
 
 export function createDefaultSave(): PlayerSave {
@@ -37,6 +39,7 @@ export function createDefaultSave(): PlayerSave {
     claimedContractRewards: [],
     claimedAchievements: [],
     businessUpgrades: { ...DEFAULT_UPGRADES },
+    auctionHistory: [],
   };
 }
 
@@ -62,6 +65,7 @@ export function normalizeSave(value: unknown): PlayerSave {
     claimedContractRewards: cleanStringArray(value.claimedContractRewards),
     claimedAchievements: cleanStringArray(value.claimedAchievements),
     businessUpgrades: cleanBusinessUpgrades(value.businessUpgrades),
+    auctionHistory: cleanAuctionHistory(value.auctionHistory),
   };
 }
 
@@ -114,6 +118,44 @@ function cleanBusinessUpgrades(value: unknown): BusinessUpgradeState {
   };
 }
 
+function cleanAuctionHistory(value: unknown): AuctionHistoryEntry[] {
+  if (!Array.isArray(value)) return [];
+  const history: AuctionHistoryEntry[] = [];
+
+  for (const candidate of value) {
+    if (!isRecord(candidate)) continue;
+    const id = cleanRequiredString(candidate.id);
+    const occurredAt = cleanRequiredString(candidate.occurredAt);
+    const lotId = cleanRequiredString(candidate.lotId);
+    const tierId = cleanHistoryTier(candidate.tierId);
+    const outcome = candidate.outcome === 'won' || candidate.outcome === 'passed' ? candidate.outcome : null;
+    if (!id || !occurredAt || !lotId || !tierId || !outcome) continue;
+
+    const modifierId = cleanNullableString(candidate.modifierId);
+    history.push({
+      id,
+      occurredAt,
+      lotId,
+      tierId,
+      outcome,
+      finalBid: cleanNonNegativeNumber(candidate.finalBid),
+      sales: cleanNonNegativeNumber(candidate.sales),
+      keptValue: cleanNonNegativeNumber(candidate.keptValue),
+      estimatedResult: cleanFiniteNumber(candidate.estimatedResult),
+      daily: candidate.daily === true,
+      ...(modifierId ? { modifierId } : {}),
+    });
+
+    if (history.length >= AUCTION_HISTORY_LIMIT) break;
+  }
+
+  return history;
+}
+
+function cleanHistoryTier(value: unknown): AuctionHistoryEntry['tierId'] | null {
+  return value === 'garage' || value === 'estate' || value === 'collector' ? value : null;
+}
+
 function cleanUpgradeLevel(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value)
     ? Math.max(0, Math.min(3, Math.floor(value)))
@@ -122,6 +164,14 @@ function cleanUpgradeLevel(value: unknown): number {
 
 function cleanNonNegativeNumber(value: unknown, fallback = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : fallback;
+}
+
+function cleanFiniteNumber(value: unknown, fallback = 0): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function cleanRequiredString(value: unknown): string | null {
+  return typeof value === 'string' && value.length > 0 ? value : null;
 }
 
 function cleanNullableString(value: unknown): string | null {
