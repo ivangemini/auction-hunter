@@ -1,3 +1,4 @@
+import { itemTraitValueMultiplier, rollItemTraits } from '../data/itemTraits';
 import { estimateItemValue } from './restoration';
 import type { ItemDefinition, LocalizedText, LotClue, LotTemplate, RevealedItem } from './types';
 
@@ -94,15 +95,25 @@ export function createLotItems(
     selectId(id);
   }
 
-  return selected.map((definition) => {
-    const condition = randomBetween(conditionRange, random);
-    const marketFactor = randomBetween(marketFactorRange, random) * valueMultiplier;
+  // Sample condition/market values for the whole lot before trait rolls. Keeping this
+  // order stable preserves deterministic economy tests while still allowing each
+  // concrete find to gain independent provenance/variant modifiers afterwards.
+  const baseSamples = selected.map((definition) => ({
+    definition,
+    condition: randomBetween(conditionRange, random),
+    marketFactor: randomBetween(marketFactorRange, random) * valueMultiplier,
+  }));
+
+  return baseSamples.map(({ definition, condition, marketFactor }) => {
+    const traitIds = rollItemTraits(definition, random);
+    const traitMultiplier = itemTraitValueMultiplier(traitIds);
 
     return {
       definition,
       condition,
       restored: false,
-      appraisedValue: estimateItemValue(definition.baseValue, condition, marketFactor),
+      traitIds,
+      appraisedValue: estimateItemValue(definition.baseValue, condition, marketFactor * traitMultiplier),
     };
   });
 }
