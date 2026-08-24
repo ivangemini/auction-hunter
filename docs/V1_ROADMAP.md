@@ -25,7 +25,7 @@ This roadmap starts from the MVP+ build and tracks the path to a durable first r
 - [x] 8 collection sets covering the full 24-item catalog.
 - [x] Content validation for IDs, pools, clue signals, tier coverage and collection coverage.
 - [x] Replayability regression floor for content count, tier variety, contracts, achievements, upgrades and lot modifiers.
-- [ ] Second art pass for the 12 new item identities and additional lot backgrounds; current expansion uses intentional visual archetype aliases rather than generic fallback art.
+- [x] Second art pass: all 24 item identities have direct SVG art and the catalog uses 9 lot environments across the three tiers.
 
 ## D. Return loops
 - [x] Daily Special.
@@ -54,4 +54,4 @@ This roadmap starts from the MVP+ build and tracks the path to a durable first r
 - [ ] Real Yandex draft/device QA.
 
 ## v1.0 definition
-Auction Hunter can be called a full v1.0 when the core auction loop is proven in the real Yandex draft/traffic and the game has durable goals beyond the first tier unlocks. The code-side v1 systems are now substantially present: daily objectives, achievements, meaningful cash sinks/business progression, history, advanced auction information layers, sufficient catalog variety, stable economy recovery and accessibility controls. Remaining release gates are the second visual polish pass plus real draft/device/content-duration validation and telemetry-driven tuning.
+Auction Hunter can be called a full v1.0 when the core auction loop is proven in the real Yandex draft/traffic and the game has durable goals beyond the first tier unlocks. The code/content-side v1 systems are now substantially present: daily objectives, achievements, meaningful cash sinks/business progression, history, advanced auction information layers, sufficient catalog variety, direct catalog art coverage, stable economy recovery and accessibility controls. Remaining release gates require the real Yandex draft/device/content-duration validation and the first telemetry-driven tuning pass.
