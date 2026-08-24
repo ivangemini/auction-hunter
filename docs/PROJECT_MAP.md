@@ -6,11 +6,12 @@ Fast navigation map for humans and coding agents.
 - `AGENTS.md` — canonical agent policy.
 - `README.md` — entry point and commands.
 - `package.json` — scripts/dependencies.
+- `.env.example` — optional local Yandex Metrica counter configuration.
 - `index.html` — browser shell, Yandex SDK script and portrait orientation guard.
 - `vite.config.ts` — relative build configuration.
 - `playwright.config.ts` — desktop/landscape/portrait browser QA.
 - `.github/workflows/ci.yml` — CI gates.
-- `.github/workflows/yandex-release.yml` — moderation-ready ZIP build workflow.
+- `.github/workflows/yandex-release.yml` — moderation-ready ZIP build workflow; injects optional `YANDEX_METRICA_ID` repository variable into the release build.
 
 ## Documentation
 - `GAME_DESIGN.md`, `ROADMAP.md`, `V1_ROADMAP.md` — product intent and delivery status.
@@ -18,15 +19,15 @@ Fast navigation map for humans and coding agents.
 - `CONTENT_MODEL.md`, `ECONOMY_AND_RETENTION.md`, `CONTENT_DURATION.md` — content/economy/replayability rules and moderation evidence.
 - `RESTORATION.md`, `COLLECTIONS.md`, `TIERS.md`, `DAILY_SPECIAL.md`, `FIRST_SESSION.md` — gameplay contracts.
 - `CLOUD_SAVE.md`, `YANDEX_INTEGRATION.md`, `MONETIZATION.md`, `MODERATION.md` — persistence/platform/release contracts.
-- `ANALYTICS.md` — telemetry contract.
+- `ANALYTICS.md` — typed event schema plus optional Yandex Metrica transport/setup.
 - `ART_DIRECTION.md`, `QA.md` — visual/device QA contracts.
 
 ## Source
 ### `src/main.ts`
-Startup orchestration: SDK, localized orientation guard, accessibility preferences, lifecycle, cloud sync, auction-history analytics sink and Phaser boot.
+Startup orchestration: SDK, localized orientation guard, accessibility preferences, lifecycle, cloud sync, auction-history analytics sink, optional Metrica analytics sink and Phaser boot.
 
 ### `src/analytics.ts`
-Versioned gameplay analytics boundary, including auction, monetization, meta-progression and advanced-inspection events.
+Versioned vendor-neutral gameplay analytics boundary, including auction, monetization, meta-progression and advanced-inspection events.
 
 ### `src/domain/`
 Pure platform-agnostic rules and types.
@@ -70,10 +71,11 @@ Static content/tuning inputs.
 - `lots/` — nine authored lot environments: three Garage, three Estate and three Collector archetypes.
 
 ### `src/platform/`
-- `yandex.ts` — SDK/Player integration.
+- `yandex.ts` — Yandex Games SDK/Player integration.
 - `cloudSave.ts` — Player-data synchronization.
 - `ads.ts` — rewarded/interstitial adapter.
 - `lifecycle.ts` — Yandex/browser/orientation pause reasons.
+- `metrica.ts` — optional Yandex Metrica tag loader and typed analytics transport; no-op without a real counter ID.
 
 ### `src/i18n.ts`
 RU/EN gameplay, Office, inspection, accessibility and orientation copy.
@@ -81,6 +83,7 @@ RU/EN gameplay, Office, inspection, accessibility and orientation copy.
 ## Tests
 - `src/domain/*.test.ts` — fast economy/game-rule unit tests.
 - `src/data/*.test.ts` — content integrity, art coverage, scale and replayability regression coverage.
+- `src/platform/*.test.ts` — platform adapter contracts that can be verified without live Yandex services.
 - `tests/browser.spec.ts` — responsive/runtime/orientation smoke coverage.
 - Other `tests/*.spec.ts` cover system contracts used by Playwright QA.
 
@@ -93,5 +96,5 @@ RU/EN gameplay, Office, inspection, accessibility and orientation copy.
 - Change presentation: `src/game/scenes/`.
 - Change local/cloud save schema: `src/game/save.ts` + migration/normalization tests.
 - Change device-local accessibility preferences: `src/game/preferences.ts`.
-- Change Yandex/cloud/ads/lifecycle: `src/platform/` + platform docs/tests.
+- Change Yandex Games/cloud/ads/lifecycle/Metrica: `src/platform/` + platform docs/tests.
 - Change localized copy: `src/i18n.ts`.

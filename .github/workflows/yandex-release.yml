@@ -9,6 +9,8 @@ permissions:
 jobs:
   archive:
     runs-on: ubuntu-latest
+    env:
+      VITE_YANDEX_METRICA_ID: ${{ vars.YANDEX_METRICA_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
