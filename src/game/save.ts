@@ -28,6 +28,8 @@ const DEFAULT_SAVE: PlayerSave = {
   claimedAchievements: [],
   businessUpgrades: DEFAULT_UPGRADES,
   auctionHistory: [],
+  buyerMarketDayKey: null,
+  claimedBuyerOfferIds: [],
 };
 
 export function createDefaultSave(): PlayerSave {
@@ -40,6 +42,7 @@ export function createDefaultSave(): PlayerSave {
     claimedAchievements: [],
     businessUpgrades: { ...DEFAULT_UPGRADES },
     auctionHistory: [],
+    claimedBuyerOfferIds: [],
   };
 }
 
@@ -66,6 +69,8 @@ export function normalizeSave(value: unknown): PlayerSave {
     claimedAchievements: cleanStringArray(value.claimedAchievements),
     businessUpgrades: cleanBusinessUpgrades(value.businessUpgrades),
     auctionHistory: cleanAuctionHistory(value.auctionHistory),
+    buyerMarketDayKey: cleanNullableString(value.buyerMarketDayKey),
+    claimedBuyerOfferIds: cleanStringArray(value.claimedBuyerOfferIds),
   };
 }
 
