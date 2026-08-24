@@ -153,7 +153,7 @@ async function winCurrentAuction(page) {
 
   for (let attempt = 0; attempt < 30; attempt += 1) {
     if (await eventSeen(page, 'auction_won')) return;
-    await clickGame(page, 250, 555);
+    await clickGame(page, 226, 626); // Polished primary bid action.
     await page.waitForTimeout(1_000);
   }
 
@@ -247,7 +247,7 @@ async function captureLocale(browser, localeCode, locale) {
     await saveViewport(
       page,
       path.join(desktopDir, '02-active-bidding.png'),
-      { x: 510, y: 280, width: 270, height: 120 },
+      { x: 510, y: 200, width: 270, height: 150 },
     );
     await page.close();
   } finally {
@@ -265,19 +265,19 @@ async function captureLocale(browser, localeCode, locale) {
   try {
     const revealPage = await bootPage(mobile, localeCode);
     await winCurrentAuction(revealPage);
-    await pageWaitAndClick(revealPage, 640, 560, 250); // Open lot.
-    await pageWaitAndClick(revealPage, 640, 555, 260); // Reveal first item.
-    await pageWaitAndClick(revealPage, 640, 568, 300); // Appraise first item.
+    await pageWaitAndClick(revealPage, 640, 592, 250); // Open won lot.
+    await pageWaitAndClick(revealPage, 640, 600, 320); // Reveal first item.
+    await pageWaitAndClick(revealPage, 1016, 560, 520); // Appraise first item.
     assert(await eventSeen(revealPage, 'item_appraised'), 'Appraisal event was not observed before screenshot');
     await saveViewport(
       revealPage,
       path.join(mobileDir, '01-appraised-find.png'),
-      { x: 500, y: 200, width: 280, height: 180 },
+      { x: 250, y: 190, width: 330, height: 230 },
     );
     await revealPage.close();
 
     const officePage = await bootPage(mobile, localeCode);
-    await pageWaitAndClick(officePage, 940, 218, 260); // Collection Book from lot selection.
+    await pageWaitAndClick(officePage, 1000, 112, 260); // Collection Book from polished lot selection.
     await pageWaitAndClick(officePage, 875, 72, 350); // Office.
     await saveViewport(officePage, path.join(mobileDir, '02-office-progression.png'));
     await officePage.close();
