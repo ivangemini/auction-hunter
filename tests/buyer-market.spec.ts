@@ -18,25 +18,27 @@ test('Buyer Market completes one premium sale and persists the daily claim', asy
   test.skip(testInfo.project.name !== 'desktop-1280x720', 'One desktop transaction pass is sufficient');
 
   await page.addInitScript((saveKey) => {
-    localStorage.setItem(saveKey, JSON.stringify({
-      version: 1,
-      updatedAt: 1,
-      cash: 2500,
-      collection: [
-        'toolbox',
-        'cassette-player',
-        'toy-robot',
-        'signed-poster',
-        'pocket-watch',
-        'vinyl-box',
-        'prototype-toy',
-        'art-deco-lamp',
-      ],
-      reputationXp: 0,
-      onboardingComplete: true,
-      auctionsWon: 0,
-      auctionsPlayed: 0,
-    }));
+    if (!localStorage.getItem(saveKey)) {
+      localStorage.setItem(saveKey, JSON.stringify({
+        version: 1,
+        updatedAt: 1,
+        cash: 2500,
+        collection: [
+          'toolbox',
+          'cassette-player',
+          'toy-robot',
+          'signed-poster',
+          'pocket-watch',
+          'vinyl-box',
+          'prototype-toy',
+          'art-deco-lamp',
+        ],
+        reputationXp: 0,
+        onboardingComplete: true,
+        auctionsWon: 0,
+        auctionsPlayed: 0,
+      }));
+    }
     (window as any).__buyerEvents = [];
     window.addEventListener('auction-hunter:analytics', (event) => {
       (window as any).__buyerEvents.push((event as CustomEvent).detail);
