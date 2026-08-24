@@ -10,10 +10,10 @@ Each local calendar day exposes three deterministic offers:
 
 The same day key always produces the same offers. Each offer can purchase exactly one matching collection item that day. The claimed-offer list resets when the local day changes.
 
-Category premiums currently range from 15% to 30% above catalog base value. Specialist premiums range from 32% to 50% above catalog base value. These values are intentionally stronger than Collection Book quick-sale rates so holding inventory can create a meaningful future payoff.
+Category premiums currently range from 15% to 30% above the concrete copy's saved appraisal. Specialist premiums range from 32% to 50% above the concrete copy's saved appraisal. This is intentionally stronger than Collection Book quick-sale rates so holding a strong example can create a meaningful future payoff.
 
-## Traits
-Traits are stable market/provenance tags attached to selected item identities. Initial traits include:
+## Identity traits and per-copy variants
+Stable identity traits still describe properties inherent to a catalog item, including:
 - Signed;
 - First edition;
 - Original package;
@@ -23,35 +23,55 @@ Traits are stable market/provenance tags attached to selected item identities. I
 - Period design;
 - Provenance.
 
-Traits are visible in the Collection Book and are used by specialist buyers. They do not alter set identity: collection/set progression still uses stable item IDs.
+Each generated find may additionally roll a concrete-copy variant after its normal condition and market-factor sampling. Positive variants include Complete set, Rare variant and Documented history. Negative variants include Replacement parts, Incomplete and Authenticity risk.
 
-This first version intentionally uses stable identity-level traits rather than per-copy randomized serial numbers/defects. Per-copy traits require an inventory-instance persistence model and should be added only after the large Auction scene is decomposed so that reveal/appraisal UI and save migration can be changed safely.
+Variant probabilities scale by rarity: better items have a higher chance of a positive distinguishing property and a lower chance of a negative one. Variant multipliers are bounded so they can create a meaningful surprise without producing unbounded economy spikes. The generator prevents contradictory `Complete set` + `Incomplete` combinations.
+
+Traits are shown after appraisal and in collection/Buyer Market views. They do not alter stable set identity: collection-set progression still uses catalog item IDs.
+
+## Concrete inventory instances
+`collection` remains the compatibility/index layer used by existing collection-set and achievement logic. In parallel, `collectionItems` stores one record for every owned copy:
+- unique instance ID;
+- stable catalog item ID;
+- saved appraised value;
+- condition;
+- restoration state/grade;
+- exact trait IDs;
+- acquisition timestamp.
+
+Keeping an item after appraisal writes the exact current copy, including any restoration performed during that lot. Two copies of the same catalog item can therefore have different condition, traits and economic value.
+
+Older v1 saves with only `collection: string[]` normalize into one legacy instance per owned ID. Legacy instances use catalog base value and stable identity traits, so existing players keep all inventory without a reset or save-version bump.
 
 ## Economy rules
-- Immediate sell during lot resolution remains the liquidity-first option based on the generated appraisal.
-- Collection quick-sale remains always available and preserves the existing Warehouse upgrade value.
-- Buyer Market offers are optional, limited and higher-value.
-- Selling to a buyer removes exactly one copy from collection inventory.
+- Immediate sale during lot resolution is the liquidity-first option and realizes the generated appraisal immediately.
+- Collection quick-sale remains always available and preserves the Warehouse upgrade. For duplicates it uses the lowest-appraised owned copy first, protecting stronger specimens from accidental disposal.
+- Buyer Market uses the concrete copy's saved appraisal as its premium basis, so condition, variant traits and restoration continue to matter after the auction ends.
+- The market automatically surfaces the highest-value matching concrete copy for each offer.
+- Selling to a buyer removes that exact instance plus one matching entry from the compatibility collection index.
 - Buyer sales count toward lifetime sales and daily `itemsSold` / `salesValue` contract progress.
 - Selling the last copy of a set item can reduce unfinished set progress, exactly like normal collection resale.
 
 ## Persistence
-The existing save schema version remains `1` and receives two additive fields:
+The save schema remains `version: 1` and uses additive fields:
 - `buyerMarketDayKey`;
-- `claimedBuyerOfferIds`.
+- `claimedBuyerOfferIds`;
+- `collectionItems` for concrete owned copies.
 
-Older v1 saves normalize these fields to `null` and `[]` without resetting cash, collection or progression.
+Normalization sanitizes instance values/conditions/traits and reconciles instances against the legacy collection ID list. Orphan instance records are ignored, and missing legacy instances are synthesized rather than deleting progression.
 
 ## Analytics
+`item_appraised` can record the concrete trait IDs and combined trait multiplier.
+
 `buyer_sale_completed` records:
 - buyer ID;
 - sold item ID;
 - local day key;
 - realized value;
 - buyer multiplier;
-- applicable collectible trait IDs.
+- exact concrete-copy trait IDs.
 
-The event is also a Yandex Metrica goal so buyer-market adoption and value can be compared against normal item disposition and retention.
+The buyer-sale event is also a Yandex Metrica goal so market adoption and value can be compared against normal item disposition and retention.
 
 ## Follow-up depth
-The next deeper iteration can add per-copy traits such as condition defects, serial-number rarity, replaced parts and discovered provenance. That iteration should persist individual inventory instances instead of overloading the current string-ID collection model.
+The next trading-depth work should not add another major responsibility directly to `AuctionScene.ts`. Decompose that scene first, then deepen restoration choices, persistent rival specialties, set perks and longer discovery chains.

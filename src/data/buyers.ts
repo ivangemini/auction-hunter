@@ -1,4 +1,10 @@
-import type { ItemCategory, ItemDefinition, ItemTraitId, LocalizedText } from '../domain/types';
+import type {
+  CollectionItem,
+  ItemCategory,
+  ItemDefinition,
+  ItemTraitId,
+  LocalizedText,
+} from '../domain/types';
 import { itemTraitsFor } from './itemTraits';
 
 export interface BuyerOfferDefinition {
@@ -14,6 +20,11 @@ export interface BuyerMatch {
   itemId: string;
   value: number;
   copies: number;
+  instanceId?: string;
+  appraisedValue?: number;
+  condition?: number;
+  traitIds?: ItemTraitId[];
+  restored?: boolean;
 }
 
 export const CATEGORY_BUYERS: readonly BuyerOfferDefinition[] = [
@@ -67,14 +78,14 @@ export const SPECIALIST_BUYERS: readonly BuyerOfferDefinition[] = [
     name: { ru: 'Охотник за историей', en: 'Provenance Hunter' },
     description: { ru: 'Платит особенно много за подписи, первые издания и подтверждённое происхождение.', en: 'Pays strongly for signatures, first editions and traceable provenance.' },
     multiplier: 1.45,
-    traitIds: ['signed', 'first-edition', 'provenance'],
+    traitIds: ['signed', 'first-edition', 'provenance', 'documented-history'],
   },
   {
     id: 'prototype-broker',
     name: { ru: 'Брокер прототипов', en: 'Prototype Broker' },
-    description: { ru: 'Ищет предсерийные и малотиражные вещи.', en: 'Hunting pre-production pieces and limited runs.' },
+    description: { ru: 'Ищет предсерийные, малотиражные и редкие варианты.', en: 'Hunting pre-production pieces, limited runs and rare variants.' },
     multiplier: 1.5,
-    traitIds: ['prototype', 'limited-run'],
+    traitIds: ['prototype', 'limited-run', 'rare-variant'],
   },
   {
     id: 'mechanical-society',
@@ -88,7 +99,7 @@ export const SPECIALIST_BUYERS: readonly BuyerOfferDefinition[] = [
     name: { ru: 'Дом винтажного дизайна', en: 'Vintage Design House' },
     description: { ru: 'Ищет предметы с выразительным дизайном эпохи или полным оригинальным комплектом.', en: 'Seeking strong period design or complete original presentation.' },
     multiplier: 1.32,
-    traitIds: ['period-design', 'original-packaging'],
+    traitIds: ['period-design', 'original-packaging', 'complete-set'],
   },
 ];
 
@@ -109,28 +120,59 @@ export function dailyBuyerOffersForDay(dayKey: string): BuyerOfferDefinition[] {
   return [first, second, specialist].filter((offer): offer is BuyerOfferDefinition => Boolean(offer));
 }
 
-export function buyerOfferMatches(item: ItemDefinition, offer: BuyerOfferDefinition): boolean {
+export function buyerOfferMatches(
+  item: ItemDefinition,
+  offer: BuyerOfferDefinition,
+  traitIds: readonly ItemTraitId[] = itemTraitsFor(item.id),
+): boolean {
   if (offer.category && item.category === offer.category) return true;
   if (!offer.traitIds || offer.traitIds.length === 0) return false;
-  const traits = new Set(itemTraitsFor(item.id));
+  const traits = new Set(traitIds);
   return offer.traitIds.some((traitId) => traits.has(traitId));
 }
 
-export function buyerOfferValue(item: ItemDefinition, offer: BuyerOfferDefinition): number {
-  if (!buyerOfferMatches(item, offer)) return 0;
-  return Math.max(1, Math.round(item.baseValue * offer.multiplier));
+export function buyerOfferValue(
+  item: ItemDefinition,
+  offer: BuyerOfferDefinition,
+  appraisedValue = item.baseValue,
+  traitIds: readonly ItemTraitId[] = itemTraitsFor(item.id),
+): number {
+  if (!buyerOfferMatches(item, offer, traitIds)) return 0;
+  return Math.max(1, Math.round(Math.max(1, appraisedValue) * offer.multiplier));
 }
 
 export function bestBuyerMatch(
   collectionIds: readonly string[],
   itemById: ReadonlyMap<string, ItemDefinition>,
   offer: BuyerOfferDefinition,
+  collectionItems: readonly CollectionItem[] = [],
 ): BuyerMatch | null {
-  let best: BuyerMatch | null = null;
   const copiesById = new Map<string, number>();
-
   for (const itemId of collectionIds) copiesById.set(itemId, (copiesById.get(itemId) ?? 0) + 1);
 
+  if (collectionItems.length > 0) {
+    let best: BuyerMatch | null = null;
+    for (const instance of collectionItems) {
+      const item = itemById.get(instance.itemId);
+      if (!item || !buyerOfferMatches(item, offer, instance.traitIds)) continue;
+      const value = buyerOfferValue(item, offer, instance.appraisedValue, instance.traitIds);
+      if (!best || value > best.value) {
+        best = {
+          itemId: item.id,
+          value,
+          copies: copiesById.get(item.id) ?? 1,
+          instanceId: instance.id,
+          appraisedValue: instance.appraisedValue,
+          condition: instance.condition,
+          traitIds: [...instance.traitIds],
+          restored: instance.restored,
+        };
+      }
+    }
+    return best;
+  }
+
+  let best: BuyerMatch | null = null;
   for (const [itemId, copies] of copiesById) {
     const item = itemById.get(itemId);
     if (!item || !buyerOfferMatches(item, offer)) continue;

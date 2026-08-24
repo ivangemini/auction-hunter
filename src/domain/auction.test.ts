@@ -59,7 +59,7 @@ describe('auction domain', () => {
       { min: 0.42, max: 0.92 },
       { min: 0.9, max: 1.15 },
       1,
-      sequence([0, 0, 0, 0, 1, 1]),
+      sequence([0, 0, 0, 0, 1, 1, 1]),
     );
 
     expect(generated.map((item) => item.definition.id)).toEqual(['item-a', 'item-b']);
@@ -85,17 +85,41 @@ describe('auction domain', () => {
     };
 
     expect(clueCandidateIds(clueLot.clues[0]!, clueLot.itemPool, itemById)).toEqual(['item-b']);
-    const generated = createLotItems(clueLot, itemById, { min: 0.5, max: 0.5 }, { min: 1, max: 1 }, 1, () => 0);
-    expect(generated[0]!.definition.id).toBe('item-b');
+    const generated = createLotItems(clueLot, itemById, { min: 0.5, max: 0.5 }, { min: 1, max: 1 }, 1, () => 0.99);
+    expect(generated.map((item) => item.definition.id)).toContain('item-b');
     expect(generated.map((item) => item.definition.id)).toContain('item-a');
   });
 
   it('applies daily/special value multipliers after market-factor sampling', () => {
     const itemById = new Map(items.map((item) => [item.id, item]));
     const singleLot = { ...lot, itemCount: 1, itemPool: ['item-a'] };
-    const normal = createLotItems(singleLot, itemById, { min: 0.5, max: 0.5 }, { min: 1, max: 1 }, 1, () => 0);
-    const boosted = createLotItems(singleLot, itemById, { min: 0.5, max: 0.5 }, { min: 1, max: 1 }, 1.5, () => 0);
+    const normal = createLotItems(singleLot, itemById, { min: 0.5, max: 0.5 }, { min: 1, max: 1 }, 1, () => 0.99);
+    const boosted = createLotItems(singleLot, itemById, { min: 0.5, max: 0.5 }, { min: 1, max: 1 }, 1.5, () => 0.99);
     expect(boosted[0]!.appraisedValue).toBeGreaterThan(normal[0]!.appraisedValue);
+  });
+
+  it('lets a positive per-find variant increase appraisal for the same item', () => {
+    const itemById = new Map(items.map((item) => [item.id, item]));
+    const singleLot = { ...lot, itemCount: 1, itemPool: ['item-b'] };
+    const baseline = createLotItems(
+      singleLot,
+      itemById,
+      { min: 0.8, max: 0.8 },
+      { min: 1, max: 1 },
+      1,
+      sequence([0, 0, 0, 1, 1]),
+    );
+    const variant = createLotItems(
+      singleLot,
+      itemById,
+      { min: 0.8, max: 0.8 },
+      { min: 1, max: 1 },
+      1,
+      sequence([0, 0, 0, 0, 0.6, 1]),
+    );
+
+    expect(variant[0]!.traitIds).toContain('rare-variant');
+    expect(variant[0]!.appraisedValue).toBeGreaterThan(baseline[0]!.appraisedValue);
   });
 
   it('derives NPC budgets from hidden lot value and filters who can answer the next bid', () => {

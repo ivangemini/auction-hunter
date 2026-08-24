@@ -49,12 +49,43 @@ describe('GameStore buyer market', () => {
 
     expect(firstValue).toBeGreaterThan(item!.baseValue);
     expect(afterFirst.collection.filter((id) => id === item!.id)).toHaveLength(1);
+    expect(afterFirst.collectionItems).toHaveLength(1);
     expect(afterFirst.claimedBuyerOfferIds).toContain(offer!.id);
     expect(afterFirst.cash).toBe(2500 + firstValue);
     expect(afterFirst.lifetimeSales).toBe(firstValue);
 
     expect(store.sellToBuyer(offer!.id, item!.id, dayKey)).toBe(0);
     expect(store.snapshot.collection.filter((id) => id === item!.id)).toHaveLength(1);
+  });
+
+  it('prices and removes the exact concrete copy selected by the buyer', () => {
+    const dayKey = '2026-08-24';
+    const offer = dailyBuyerOffersForDay(dayKey)[0];
+    expect(offer).toBeDefined();
+    const item = ITEMS.find((candidate) => buyerOfferMatches(candidate, offer!));
+    expect(item).toBeDefined();
+
+    const save = createDefaultSave();
+    save.collection = [item!.id];
+    save.collectionItems = [{
+      id: 'premium-copy',
+      itemId: item!.id,
+      appraisedValue: 5000,
+      condition: 0.92,
+      restored: true,
+      traitIds: [],
+      acquiredAt: 10,
+      restorationGrade: 'perfect',
+    }];
+    save.buyerMarketDayKey = dayKey;
+    storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
+
+    const store = new GameStore();
+    const value = store.sellToBuyer(offer!.id, 'premium-copy', dayKey);
+
+    expect(value).toBe(Math.round(5000 * offer!.multiplier));
+    expect(store.snapshot.collection).toEqual([]);
+    expect(store.snapshot.collectionItems).toEqual([]);
   });
 
   it('resets claimed offers when the local market day changes', () => {

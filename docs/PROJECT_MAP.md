@@ -27,7 +27,7 @@ Fast navigation map for humans and coding agents.
 - `PRE_RELEASE_AUDIT.md` — latest release-risk and maintainability audit.
 - `ARCHITECTURE.md`, `ENGINEERING.md`, `DECISIONS.md` — technical contracts/workflow.
 - `CONTENT_MODEL.md`, `ECONOMY_AND_RETENTION.md`, `CONTENT_DURATION.md` — content/economy/replayability rules and moderation evidence.
-- `BUYER_MARKET.md` — daily specialist demand, collectible-trait and premium-sale rules.
+- `BUYER_MARKET.md` — daily specialist demand, identity/per-copy trait rules and exact-copy premium-sale economics.
 - `RESTORATION.md`, `COLLECTIONS.md`, `TIERS.md`, `DAILY_SPECIAL.md`, `FIRST_SESSION.md` — gameplay contracts.
 - `CLOUD_SAVE.md`, `YANDEX_INTEGRATION.md`, `MONETIZATION.md`, `MODERATION.md` — persistence/platform/release contracts.
 - `YANDEX_DRAFT_METADATA.md` — ready-to-paste draft fields, generated promotional-art workflow and gameplay screenshot guidance.
@@ -39,11 +39,11 @@ Fast navigation map for humans and coding agents.
 Startup orchestration: SDK, sticky-banner gameplay policy, localized orientation guard, accessibility preferences, lifecycle, cloud sync, auction-history analytics sink, optional Metrica analytics sink and Phaser boot.
 
 ### `src/analytics.ts`
-Versioned vendor-neutral gameplay analytics boundary, including lot-selection, auction, buyer-market, monetization, meta-progression and advanced-inspection events.
+Versioned vendor-neutral gameplay analytics boundary, including lot-selection, per-find appraisal traits, auction, buyer-market, monetization, meta-progression and advanced-inspection events.
 
 ### `src/domain/`
 Pure platform-agnostic rules and types.
-- `auction.ts` — clue-backed lot generation, bidding, NPC budgets and bidder tells.
+- `auction.ts` — clue-backed lot generation, per-find trait rolls/value multipliers, bidding, NPC budgets and bidder tells.
 - `lotSelection.ts` — deterministic distinct-option sampling for the pre-auction market choice.
 - `lotModifier.ts` — deterministic effects for rare visible lot events.
 - `inspection.ts` — late-game inspection report rules.
@@ -51,14 +51,16 @@ Pure platform-agnostic rules and types.
 - `collection.ts` — collection resale/copy-count helpers.
 - `meta.ts` — meta-progression calculations.
 - `history.ts` — capped recent-auction history plus pure per-lot Dealer Memory summaries used by the selection screen.
+- `types.ts` — stable catalog types plus `CollectionItem` concrete owned-copy persistence model.
 - `*.test.ts` — deterministic domain coverage.
 
 ### `src/data/`
 Static content/tuning inputs.
 - `catalog.ts` — 36 items and 24 clue-backed lot templates, including their lot `artId` assignments.
-- `itemTraits.ts` — stable collectible/provenance trait definitions and item assignments used by specialist demand.
-- `buyers.ts` — category/specialist buyer definitions, deterministic daily offer selection and premium-sale matching/value rules.
-- `buyers.test.ts` — deterministic offer, trait matching and premium regression coverage.
+- `itemTraits.ts` — stable identity traits plus bounded positive/negative per-find variants, their appraisal multipliers and compatibility rules.
+- `itemTraits.test.ts` — variant multiplier and contradictory-trait regression coverage.
+- `buyers.ts` — category/specialist buyer definitions, deterministic daily offer selection and exact-copy premium-sale matching/value rules.
+- `buyers.test.ts` — deterministic offer, trait matching and concrete-copy premium regression coverage.
 - `artManifest.ts` — direct item-art IDs and the nine allowed lot-environment art IDs.
 - `artCoverage.test.ts` — prevents catalog item art aliases/fallback and enforces the lot-environment floor.
 - `balance.ts` — condition/market ranges and bidder profiles and tell text.
@@ -71,12 +73,12 @@ Static content/tuning inputs.
 - `replayability.test.ts`, `contentScale.test.ts` — expanded content/replayability regression floors.
 
 ### `src/game/`
-- `scenes/AuctionScene.ts` — three-option normal-auction selection with Dealer Memory, detailed lot lobby, bidding, clues, modifiers, bidder tells, advanced inspection, one-per-lot restoration and round summary/ads.
-- `scenes/CollectionScene.ts` — paged collection sets, market-trait display, Buyer Market navigation and inventory quick-sale modal.
-- `scenes/BuyerMarketScene.ts` — three deterministic daily buyers, premium inventory matching and one completed sale per offer/day.
+- `scenes/AuctionScene.ts` — three-option normal-auction selection with Dealer Memory, detailed lot lobby, bidding, clues, modifiers, bidder tells, advanced inspection, per-find trait display, one-per-lot restoration and round summary/ads.
+- `scenes/CollectionScene.ts` — paged collection sets, concrete-copy appraisal/condition/trait display, Buyer Market navigation and lowest-value-first inventory quick sale.
+- `scenes/BuyerMarketScene.ts` — three deterministic daily buyers, exact-copy premium inventory matching and one completed sale per offer/day.
 - `scenes/OfficeScene.ts` — contracts, upgrades, achievements, stats, recent auction history and accessibility settings.
 - `scenes/OnboardingScene.ts` — first-session onboarding.
-- `store.ts`, `save.ts` — gameplay mutation and persistence boundaries, including Buyer Market day/claim state and transactions.
+- `store.ts`, `save.ts` — gameplay mutation and persistence boundaries, including concrete `collectionItems`, legacy collection reconciliation, Buyer Market day/claim state and exact-copy transactions.
 - `historyTracking.ts` — turns canonical typed analytics outcomes into capped persisted history; Dealer Memory reads this existing save data rather than introducing a new schema.
 - `preferences.ts` — device-local sound/reduced-motion/high-contrast preferences.
 - `feedback.ts` — lightweight Web Audio cues and motion-aware camera juice.
@@ -99,9 +101,10 @@ Static content/tuning inputs.
 RU/EN gameplay, lot-selection/Dealer Memory, Office, inspection, accessibility and orientation copy. The Buyer Market keeps its compact RU/EN scene copy beside the isolated market UI for now. The visible game brand is `Auction Hunter` in both locales to match Yandex draft materials.
 
 ## Tests
-- `src/domain/*.test.ts` — fast economy/game-rule unit tests, including deterministic lot-option sampling and Dealer Memory aggregation.
-- `src/data/*.test.ts` — content integrity, Buyer Market rules, direct-art coverage, 36/24/12 scale and replayability regression coverage.
-- `src/game/buyerMarket.test.ts` — focused persistence/transaction coverage for one-copy sale, one-offer-per-day and daily reset semantics.
+- `src/domain/*.test.ts` — fast economy/game-rule unit tests, including deterministic lot-option sampling, per-find appraisal variance and Dealer Memory aggregation.
+- `src/data/*.test.ts` — content integrity, item-trait compatibility, Buyer Market exact-copy rules, direct-art coverage, 36/24/12 scale and replayability regression coverage.
+- `src/game/save.test.ts` — save normalization, legacy-to-instance collection migration and persisted-instance sanitization.
+- `src/game/buyerMarket.test.ts` — focused persistence/transaction coverage for exact-copy sale, one-offer-per-day and daily reset semantics.
 - `src/platform/*.test.ts` — platform adapter contracts, including cloud-save ordering, that can be verified without live Yandex services.
 - `tests/browser.spec.ts` — responsive/runtime/orientation smoke coverage.
 - `tests/lot-selection.spec.ts` — browser funnel coverage for three unique options, market-cycle semantics, Dealer Memory rendering path, committed choice and delayed auction start.
@@ -110,7 +113,8 @@ RU/EN gameplay, lot-selection/Dealer Memory, Office, inspection, accessibility a
 
 ## Where to make common changes
 - Add/tune lots and clue signals: `src/data/catalog.ts` + `docs/CONTENT_MODEL.md`.
-- Add/change stable collectible traits: `src/data/itemTraits.ts` + `docs/BUYER_MARKET.md`.
+- Add/change stable or randomized collectible traits: `src/data/itemTraits.ts` + `src/domain/auction.ts` + `docs/BUYER_MARKET.md`.
+- Change concrete owned-copy persistence: `src/game/save.ts` + `src/game/store.ts` + migration tests. Keep `collection: string[]` synchronized while legacy set/progression logic depends on it.
 - Change Buyer Market buyers/premiums/matching: `src/data/buyers.ts`; transaction semantics live in `src/game/store.ts`; presentation lives in `src/game/scenes/BuyerMarketScene.ts`.
 - Change normal-auction option sampling/selection behavior: `src/domain/lotSelection.ts` + `src/game/scenes/AuctionScene.ts` + focused browser coverage.
 - Change Dealer Memory aggregation: `src/domain/history.ts`; change its presentation in `src/game/scenes/AuctionScene.ts`.

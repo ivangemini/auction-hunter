@@ -11,7 +11,13 @@ export type ItemTraitId =
   | 'prototype'
   | 'mechanical'
   | 'period-design'
-  | 'provenance';
+  | 'provenance'
+  | 'complete-set'
+  | 'rare-variant'
+  | 'documented-history'
+  | 'replacement-parts'
+  | 'incomplete'
+  | 'replica-risk';
 export type ContractMetric = 'auctionsPlayed' | 'auctionsWon' | 'itemsSold' | 'itemsKept' | 'salesValue';
 export type AchievementMetric = 'auctionsPlayed' | 'auctionsWon' | 'uniqueCollection' | 'lifetimeSales' | 'claimedSets' | 'reputationXp' | 'highestCash';
 export type BusinessUpgradeId = 'warehouse' | 'contractsDesk' | 'showroom';
@@ -56,8 +62,20 @@ export interface RevealedItem {
   appraisedValue: number;
   condition: number;
   restored: boolean;
+  traitIds?: ItemTraitId[];
   restorationGrade?: RestorationGrade;
   restorationGain?: number;
+}
+
+export interface CollectionItem {
+  id: string;
+  itemId: string;
+  appraisedValue: number;
+  condition: number;
+  restored: boolean;
+  traitIds: ItemTraitId[];
+  acquiredAt: number;
+  restorationGrade?: RestorationGrade;
 }
 
 export interface BusinessUpgradeState {
@@ -85,6 +103,7 @@ export interface PlayerSave {
   updatedAt: number;
   cash: number;
   collection: string[];
+  collectionItems?: CollectionItem[];
   claimedSetRewards: string[];
   reputationXp: number;
   lastDailyCompletedDay: string | null;

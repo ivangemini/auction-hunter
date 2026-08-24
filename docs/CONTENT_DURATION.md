@@ -14,7 +14,8 @@ Auction Hunter is not a finite one-shot level sequence. Its core auction loop is
 - 36 collectible item identities and 12 collection sets.
 - Hidden lot contents are generated from clue-backed pools rather than fixed reveal scripts.
 - Item condition and market factors vary between generated finds.
-- NPC bidder profiles and auction pressure vary, so the safe stopping point is not fixed.
+- Concrete copies can roll positive or negative variant traits, changing appraisal and making repeated copies economically distinct.
+- NPC bidder profiles and auction pressure vary, and their hidden budgets inherit the actual generated lot value including copy variants.
 - Visible rare lot modifiers can change quantity, condition, reserve price or market value.
 - Three reputation-gated auction tiers provide progression into higher-value content.
 - Daily Special and Daily Contracts provide changing return objectives.
@@ -22,14 +23,14 @@ Auction Hunter is not a finite one-shot level sequence. Its core auction loop is
 - Collection completion, recent auction history and lifetime statistics provide long-run progress tracking.
 - Late-game Advanced Inspection adds an optional cash-for-information decision without revealing exact hidden value.
 - Three-option normal markets create many possible comparison combinations before hidden contents are generated.
-- Stable collectible traits add specialist demand to selected finds instead of making every item only a rarity/value pair.
-- The daily Buyer Market creates three rotating premium sale opportunities, making the keep-versus-sell decision relevant across sessions rather than only inside one auction.
+- Stable collectible identity traits plus per-copy variants create specialist demand instead of making every item only a rarity/value pair.
+- The daily Buyer Market creates three rotating premium sale opportunities and prices the exact kept copy, so condition/restoration/variant quality can matter across sessions.
 
 These systems create both content breadth and metagame motivation to continue playing beyond a single auction.
 
 ## Automated regression floor
 
-`src/data/replayability.test.ts` protects a minimum structural floor for the release build. `src/data/contentScale.test.ts` additionally protects the 36-item / 24-lot / 12-set breadth target, eight lots per tier, truthful clues and full collection coverage. `src/data/buyers.test.ts` protects deterministic daily offers, specialist trait matching and meaningful buyer premiums.
+`src/data/replayability.test.ts` protects a minimum structural floor for the release build. `src/data/contentScale.test.ts` additionally protects the 36-item / 24-lot / 12-set breadth target, eight lots per tier, truthful clues and full collection coverage. Buyer/trait tests protect deterministic daily offers, exact-copy pricing, trait appraisal variance and save migration.
 
 The automated gate is evidence only. It cannot prove elapsed playable duration and does not replace the timed Yandex draft test below.
 
@@ -53,6 +54,7 @@ Record at least:
 - auctions entered, won and passed;
 - distinct lot templates encountered;
 - distinct item identities revealed;
+- any repeated identity that appeared with meaningfully different appraisal/traits;
 - reputation/tier progression;
 - collection/set progress;
 - Daily Contract progress;
@@ -66,7 +68,7 @@ Do not count ad playback, background-tab time, deliberate inactivity or debug-pa
 
 Use a 12-minute internal safety target even though the platform rule is more than 10 minutes.
 
-The gate passes only if a normal fresh-save player can remain in meaningful gameplay for at least 12 minutes and still has legitimate reasons to continue, such as unseen lots/items, collection goals, specialist buyer demand, contracts, achievements, upgrades or tier progression.
+The gate passes only if a normal fresh-save player can remain in meaningful gameplay for at least 12 minutes and still has legitimate reasons to continue, such as unseen lots/items, better variants of known items, collection goals, specialist buyer demand, contracts, achievements, upgrades or tier progression.
 
 The run fails if gameplay becomes exhausted, deterministic/repetitive without meaningful choice, blocked by economy state, or functionally complete before the target.
 
@@ -84,7 +86,7 @@ Fill this section from the final candidate build.
 - Distinct lots encountered: `TBD`
 - Distinct items revealed: `TBD`
 - Highest tier reached: `TBD`
-- Buyer Market notes: `TBD`
+- Buyer Market / copy-variant notes: `TBD`
 - Notes/blockers: `TBD`
 - Result: `NOT YET VERIFIED`
 

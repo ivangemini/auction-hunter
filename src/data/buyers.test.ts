@@ -10,6 +10,7 @@ import {
 } from './buyers';
 import { ITEM_BY_ID } from './catalog';
 import { itemTraitsFor } from './itemTraits';
+import type { CollectionItem } from '../domain/types';
 
 describe('buyer market', () => {
   it('creates two category buyers plus one specialist deterministically each day', () => {
@@ -55,5 +56,46 @@ describe('buyer market', () => {
       copies: 2,
     });
     expect(match!.value).toBeGreaterThan(masterStudy!.baseValue);
+  });
+
+  it('chooses the highest-value concrete copy and prices its saved appraisal', () => {
+    const curator = BUYER_OFFERS.find((offer) => offer.id === 'art-curator');
+    const masterStudy = ITEM_BY_ID.get('master-study');
+    expect(curator).toBeDefined();
+    expect(masterStudy).toBeDefined();
+
+    const collectionItems: CollectionItem[] = [
+      {
+        id: 'copy-low',
+        itemId: 'master-study',
+        appraisedValue: 3000,
+        condition: 0.6,
+        restored: false,
+        traitIds: ['period-design', 'provenance'],
+        acquiredAt: 1,
+      },
+      {
+        id: 'copy-high',
+        itemId: 'master-study',
+        appraisedValue: 9000,
+        condition: 0.94,
+        restored: true,
+        traitIds: ['period-design', 'provenance', 'documented-history'],
+        acquiredAt: 2,
+        restorationGrade: 'perfect',
+      },
+    ];
+
+    const match = bestBuyerMatch(
+      ['master-study', 'master-study'],
+      ITEM_BY_ID,
+      curator!,
+      collectionItems,
+    );
+
+    expect(match?.instanceId).toBe('copy-high');
+    expect(match?.appraisedValue).toBe(9000);
+    expect(match?.restored).toBe(true);
+    expect(match?.value).toBe(Math.round(9000 * curator!.multiplier));
   });
 });
