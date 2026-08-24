@@ -9,6 +9,7 @@ const METRICA_SCRIPT_MARKER = 'auction-hunter-metrica';
 
 export const METRICA_GOAL_EVENTS = new Set<AnalyticsEventName>([
   'onboarding_completed',
+  'lot_option_selected',
   'auction_started',
   'advanced_inspection_used',
   'auction_won',
