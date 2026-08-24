@@ -103,10 +103,14 @@ async function clickGame(page, gameX, gameY) {
   const canvas = page.locator('canvas');
   const box = await canvas.boundingBox();
   assert(box, 'Game canvas has no bounding box');
-  await page.mouse.click(
-    box.x + (gameX / GAME_WIDTH) * box.width,
-    box.y + (gameY / GAME_HEIGHT) * box.height,
-  );
+  const pageX = box.x + (gameX / GAME_WIDTH) * box.width;
+  const pageY = box.y + (gameY / GAME_HEIGHT) * box.height;
+  const touchPoints = await page.evaluate(() => navigator.maxTouchPoints);
+  if (touchPoints > 0) {
+    await page.touchscreen.tap(pageX, pageY);
+  } else {
+    await page.mouse.click(pageX, pageY);
+  }
 }
 
 async function installSeed(page, platformLocale, save = seedSave) {
@@ -149,7 +153,8 @@ async function winCurrentAuction(page) {
   await clickGame(page, 240, 625); // Choose the first Garage lot option.
   await page.waitForTimeout(180);
   await clickGame(page, 1038, 620); // Enter the chosen auction.
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(350);
+  assert(await eventSeen(page, 'auction_started'), 'Auction did not start before screenshot win loop');
 
   for (let attempt = 0; attempt < 120; attempt += 1) {
     if (await eventSeen(page, 'auction_won')) return;
