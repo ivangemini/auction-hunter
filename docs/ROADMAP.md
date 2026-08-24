@@ -95,9 +95,9 @@ This pass is a product-quality priority, not optional decoration. Complete it be
 - [x] Add a repository-level visual/game-design skill and screenshot review checklist; require it from agent instructions for player-facing work.
 - [x] Raise `ART_DIRECTION.md` from palette/asset guidance to explicit composition, hierarchy, interaction and visual-acceptance rules.
 - [ ] Establish shared visual tokens/helpers for surfaces, typography roles, buttons, chips, elevation, lighting and motion durations.
-- [ ] Redesign lot selection first: larger authored environment art, stronger lot identity, physical auction-card language, compact clue/status treatment and richer selected/hover states.
-- [ ] Redesign auction presentation: stronger current-bid focal point, visible rival presence/tells, environmental depth and bid/win/loss feedback.
-- [ ] Redesign reveal + appraisal flow around the item as a hero visual with staged reveal, rarity/value feedback and less dashboard-like metadata.
+- [x] Redesign lot selection first: larger authored environment art, stronger lot identity, physical auction-card language, compact clue/status treatment and richer selected/hover states.
+- [x] Redesign auction presentation: stronger current-bid focal point, visible rival presence/tells, environmental depth and bid/win/loss feedback.
+- [x] Redesign reveal + appraisal flow around the item as a hero visual with staged reveal, rarity/value feedback and less dashboard-like metadata.
 - [ ] Redesign restoration so condition, tool/strategy choice and result feel tactile rather than form-like.
 - [ ] Redesign Collection Book and Buyer Market with stronger collectible/buyer identity, set-progress visualization and premium-sale feedback.
 - [ ] Bring Business Office, contracts, achievements, statistics and secondary hubs onto the same visual system instead of generic panels.
