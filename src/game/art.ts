@@ -5,6 +5,21 @@ const ITEM_IDS = [
   'telescope', 'signed-poster', 'silver-ring', 'arcade-handheld', 'pocket-watch', 'prototype-toy',
 ] as const;
 
+const ITEM_ART_ALIASES: Record<string, (typeof ITEM_IDS)[number]> = {
+  multimeter: 'toolbox',
+  'portable-radio': 'cassette-player',
+  'comic-stack': 'vinyl-box',
+  'tin-car': 'toy-robot',
+  'travel-clock': 'brass-clock',
+  'instant-camera': 'film-camera',
+  binoculars: 'telescope',
+  'gallery-print': 'signed-poster',
+  'enamel-brooch': 'silver-ring',
+  'mini-console': 'arcade-handheld',
+  'military-watch': 'pocket-watch',
+  'preproduction-figure': 'prototype-toy',
+};
+
 const LOT_ART_IDS = ['garage-17', 'estate-42', 'collector-8'] as const;
 
 export function preloadArt(scene: Phaser.Scene): void {
@@ -31,7 +46,8 @@ export function lotTextureKey(id: string): string {
 }
 
 export function resolveItemTexture(scene: Phaser.Scene, id: string): string {
-  const key = itemTextureKey(id);
+  const artId = ITEM_ART_ALIASES[id] ?? id;
+  const key = itemTextureKey(artId);
   return scene.textures.exists(key) ? key : itemTextureKey('fallback');
 }
 

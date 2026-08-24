@@ -1,7 +1,7 @@
-# Auction Hunter — Game Design v0.2
+# Auction Hunter — Game Design v0.3
 
 ## Product thesis
-Auction Hunter combines uncertain-value auctions, truthful visual clues, item reveals, appraisal, selective restoration and collection. The retention hook is curiosity plus judgment: the player has partial information before risking bankroll, but never exact value.
+Auction Hunter combines uncertain-value auctions, truthful visual clues, item reveals, appraisal, selective restoration, collection and a lightweight dealer-business meta. The retention hook is curiosity plus judgment: the player has partial information before risking bankroll, but never exact value.
 
 ## Core loop
 1. Inspect a lot and read clue-backed signals.
@@ -13,6 +13,12 @@ Auction Hunter combines uncertain-value auctions, truthful visual clues, item re
 7. Sell for immediate cash or keep for collection/set progress.
 8. Review cash result plus estimated kept value, then continue into another varied lot.
 
+## Meta loop
+- Three deterministic Daily Contracts create short return goals.
+- Achievements reward permanent milestones.
+- The Office turns cash into Warehouse, Contracts Desk and Showroom upgrades instead of letting bankroll become meaningless.
+- Lifetime stats make long-run progress visible.
+
 ## Player fantasy
 Start as a small garage reseller and grow into a high-end auction/antique business.
 
@@ -22,20 +28,24 @@ Start as a small garage reseller and grow into a high-end auction/antique busine
 - Keeping items must have opportunity cost without creating irreversible bankroll failure.
 - Restoration must be scarce enough to require prioritization.
 - Collection and monetization incentives must not contradict each other.
+- Meta rewards should amplify an enjoyable loop, not compensate for a deliberately frustrating base game.
 
 ## Retention layers
 - Seconds: next NPC bid / reveal / restoration timing.
 - Minutes: did the lot create total value and did the player overpay?
-- Session: unlock another tier and discover different lot templates.
-- Days: Daily Special and set completion.
-- Long term: rare sets, prestige-like reputation tiers and future business progression.
+- Session: unlock another tier, complete contracts and invest in the Office.
+- Days: Daily Special, Daily Contracts and set completion.
+- Long term: achievements, business upgrades, rare sets and reputation progression.
 
 ## Monetization principles
 Rewarded ads trade optional attention for bounded bonus value. The launch summary reward uses total round appraisal rather than only sold value so keeping a collectible is not monetization-negative. Interstitials only appear at natural transitions.
 
 ## Current content scope
-- 12 collectible item definitions.
-- 9 lot templates: 3 Garage, 3 Estate and 3 Collector variants.
+- 24 collectible item definitions.
+- 18 lot templates: 6 Garage, 6 Estate and 6 Collector variants.
 - 3 auction tiers.
-- 4 collection sets.
-- Daily Special, local/cloud save, analytics and policy-compliant ads.
+- 8 collection sets covering the full catalog.
+- Daily Special, Daily Contracts, achievements, Office upgrades, local/cloud save, analytics and policy-compliant ads.
+
+## Art scope note
+The original 12 items retain distinct SVG assets. The additional 12 v1 content identities temporarily reuse closely related visual archetypes so they never render as a generic fallback. A second art pass should replace those aliases before final v1.0 polish.

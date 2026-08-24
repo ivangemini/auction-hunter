@@ -20,13 +20,11 @@ This roadmap starts from the current MVP+ build. It is intentionally ordered by 
 - [ ] Rare lot modifiers/events that alter risk or condition distributions.
 
 ## C. Content scale
-- [x] 9 lot templates across 3 tiers.
-- [x] 12 collectible items and 4 sets.
-- [ ] Grow to at least 18 distinct lot templates.
-- [ ] Grow to at least 24 collectible items before calling content scope v1.0-complete.
-- [ ] Expand collection sets around the larger catalog.
-- [ ] Second art pass for new items/lots instead of generic fallback art.
-- [x] Content validation for IDs, pools and clue signals; asset coverage expands with the next art pass.
+- [x] 18 lot templates: 6 Garage, 6 Estate and 6 Collector variants.
+- [x] 24 collectible items.
+- [x] 8 collection sets covering the full 24-item catalog.
+- [ ] Second art pass for the 12 new item identities and additional lot backgrounds; current expansion uses intentional visual archetype aliases rather than generic fallback art.
+- [x] Content validation for IDs, pools, clue signals, tier coverage and collection coverage.
 
 ## D. Return loops
 - [x] Daily Special.
@@ -52,4 +50,4 @@ This roadmap starts from the current MVP+ build. It is intentionally ordered by 
 - [ ] Final v1.0 content-duration check against Yandex requirements.
 
 ## v1.0 definition
-Auction Hunter can be called a full v1.0 when the core auction loop is already proven in draft/traffic and the game has durable goals beyond the first tier unlocks: daily objectives, achievements, meaningful cash sinks/business progression, sufficient content variety, stable economy recovery, and verified mobile/Yandex behavior.
+Auction Hunter can be called a full v1.0 when the core auction loop is proven in draft/traffic and the game has durable goals beyond the first tier unlocks: daily objectives, achievements, meaningful cash sinks/business progression, sufficient content variety, stable economy recovery, and verified mobile/Yandex behavior.
