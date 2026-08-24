@@ -14,6 +14,13 @@ async function clickGame(page: Page, gameX: number, gameY: number): Promise<void
   );
 }
 
+async function completedBuyerSales(page: Page): Promise<number> {
+  return page.evaluate(() => {
+    const events = (window as any).__buyerEvents ?? [];
+    return events.filter((event: any) => event?.eventName === 'buyer_sale_completed').length;
+  });
+}
+
 test('Buyer Market completes one premium sale and persists the daily claim', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-1280x720', 'One desktop transaction pass is sufficient');
 
@@ -57,12 +64,21 @@ test('Buyer Market completes one premium sale and persists the daily claim', asy
   const beforeCollectionLength = before.collection.length as number;
   const beforeCash = before.cash as number;
 
-  await clickGame(page, 250, 590); // First daily buyer's sale action.
+  // Daily buyer composition is intentionally variable. Exercise the first card that
+  // actually exposes a sale action instead of assuming offer #1 always matches this fixture.
+  const buyerCardXs = [250, 640, 1030] as const;
+  let soldBuyerX: number | null = null;
+  for (const x of buyerCardXs) {
+    await clickGame(page, x, 607);
+    await page.waitForTimeout(180);
+    if (await completedBuyerSales(page) === 1) {
+      soldBuyerX = x;
+      break;
+    }
+  }
 
-  await expect.poll(() => page.evaluate(() => {
-    const events = (window as any).__buyerEvents ?? [];
-    return events.filter((event: any) => event?.eventName === 'buyer_sale_completed').length;
-  })).toBe(1);
+  expect(soldBuyerX).not.toBeNull();
+  await expect.poll(() => completedBuyerSales(page)).toBe(1);
 
   const after = await page.evaluate((saveKey) => JSON.parse(localStorage.getItem(saveKey) ?? '{}'), SAVE_KEY);
   expect(after.collection).toHaveLength(beforeCollectionLength - 1);
@@ -70,12 +86,9 @@ test('Buyer Market completes one premium sale and persists the daily claim', asy
   expect(after.claimedBuyerOfferIds).toHaveLength(1);
   expect(typeof after.buyerMarketDayKey).toBe('string');
 
-  await clickGame(page, 250, 590); // Completed offer has no second sale button.
+  await clickGame(page, soldBuyerX ?? buyerCardXs[0], 607); // Completed offer has no second sale button.
   await page.waitForTimeout(150);
-  expect(await page.evaluate(() => {
-    const events = (window as any).__buyerEvents ?? [];
-    return events.filter((event: any) => event?.eventName === 'buyer_sale_completed').length;
-  })).toBe(1);
+  expect(await completedBuyerSales(page)).toBe(1);
 
   await page.reload();
   await expect(page.locator('canvas')).toBeVisible();
