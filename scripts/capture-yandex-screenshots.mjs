@@ -7,6 +7,7 @@ import { chromium } from '@playwright/test';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = path.join(root, 'release', 'screenshots', 'generated');
 const previewUrl = 'http://127.0.0.1:4174';
+const viteCli = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const SAVE_KEY = 'auction-hunter.save.v1';
@@ -79,6 +80,25 @@ async function waitForPreview() {
   throw new Error('Timed out waiting for Vite preview server');
 }
 
+async function stopPreview(preview) {
+  if (preview.exitCode !== null || preview.signalCode) return;
+
+  const closed = new Promise((resolve) => preview.once('close', resolve));
+  preview.kill('SIGTERM');
+  const graceful = await Promise.race([
+    closed.then(() => true),
+    new Promise((resolve) => setTimeout(() => resolve(false), 2_000)),
+  ]);
+
+  if (!graceful && preview.exitCode === null) {
+    preview.kill('SIGKILL');
+    await Promise.race([
+      closed,
+      new Promise((resolve) => setTimeout(resolve, 1_000)),
+    ]);
+  }
+}
+
 async function clickGame(page, gameX, gameY) {
   const canvas = page.locator('canvas');
   const box = await canvas.boundingBox();
@@ -122,16 +142,20 @@ async function eventSeen(page, eventName) {
 }
 
 async function winCurrentAuction(page) {
+  // Use the real Garage tier tab for a shorter deterministic submission capture while
+  // preserving the same production bidding/win/reveal path as higher tiers.
+  await clickGame(page, 250, 151);
+  await page.waitForTimeout(180);
   await clickGame(page, 1038, 620);
-  await page.waitForTimeout(350);
+  await page.waitForTimeout(300);
 
-  for (let attempt = 0; attempt < 60; attempt += 1) {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
     if (await eventSeen(page, 'auction_won')) return;
     await clickGame(page, 250, 555);
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(1_000);
   }
 
-  throw new Error('Unable to reach a legitimate auction win while capturing screenshots');
+  throw new Error('Unable to reach a legitimate Garage auction win while capturing screenshots');
 }
 
 async function saveViewport(page, outputPath) {
@@ -203,7 +227,7 @@ async function pageWaitAndClick(page, x, y, waitMs) {
 fs.rmSync(outputRoot, { recursive: true, force: true });
 ensureDirectory(outputRoot);
 
-const preview = spawn('npm', ['run', 'preview', '--', '--host', '127.0.0.1', '--port', '4174'], {
+const preview = spawn(process.execPath, [viteCli, 'preview', '--host', '127.0.0.1', '--port', '4174'], {
   cwd: root,
   stdio: ['ignore', 'pipe', 'pipe'],
   env: { ...process.env },
@@ -226,7 +250,7 @@ try {
   console.error(previewLog);
   throw error;
 } finally {
-  preview.kill('SIGTERM');
+  await stopPreview(preview);
 }
 
 const generated = [];
