@@ -55,6 +55,14 @@ jobs:
           path: release/screenshots/collection-market-review/**/*.png
           if-no-files-found: error
           retention-days: 7
+      - run: node scripts/capture-character-tutorial-review.mjs
+      - name: Upload P7 character and tutorial review
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-character-tutorial-review-ci
+          path: release/screenshots/character-tutorial-review/**/*.png
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload screenshot diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
