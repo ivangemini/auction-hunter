@@ -2,6 +2,11 @@
   "version": "1.0.0",
   "supportedPlatforms": ["desktop", "mobile"],
   "orientation": "landscape",
+  "draftDefaults": {
+    "usesCloudSave": true,
+    "postponePublication": true,
+    "developerComment": "Auction Hunter is a replayable auction and collection game rather than a linear level game. The v1 build contains 18 varied lot templates across three auction tiers, 24 collectible items, truthful clue-driven decisions, bidder behavior, rare lot modifiers, daily auctions and contracts, collection sets, achievements, recent auction history and permanent Office upgrades. Progress is saved locally and synchronized with Yandex Player data when available. Ads appear only at natural breaks and rewarded ads are optional. The game supports RU and EN through Yandex SDK language detection and landscape play on desktop and mobile. Please evaluate the 10+ minute content requirement through repeated auction runs and the metagame; our timed Draft verification procedure is documented in CONTENT_DURATION.md."
+  },
   "locales": {
     "ru": {
       "title": "Auction Hunter",
