@@ -28,6 +28,8 @@ const save: PlayerSave = {
   claimedAchievements: [],
   businessUpgrades: { warehouse: 0, contractsDesk: 0, showroom: 0 },
   auctionHistory: [],
+  buyerMarketDayKey: null,
+  claimedBuyerOfferIds: [],
 };
 
 describe('meta progression domain', () => {
