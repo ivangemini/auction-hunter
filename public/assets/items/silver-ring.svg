@@ -1,1 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360"><g stroke="#17191e" stroke-width="8" stroke-linejoin="round"><ellipse cx="256" cy="220" rx="86" ry="96" fill="none" stroke="#cbd2da" stroke-width="34"/><path fill="#cbd2da" d="m218 126 38-54 38 54-18 38h-44z"/><path fill="#8fd7ff" d="m237 119 19-27 19 27-11 23h-16z"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360">
+  <defs>
+    <linearGradient id="silver" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f0f3f5"/><stop offset=".28" stop-color="#aeb7c1"/><stop offset=".62" stop-color="#6f7983"/><stop offset="1" stop-color="#dbe1e6"/></linearGradient>
+    <linearGradient id="gem" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dff8ff"/><stop offset=".35" stop-color="#76cde9"/><stop offset=".7" stop-color="#3f77a3"/><stop offset="1" stop-color="#203852"/></linearGradient>
+    <filter id="shadow"><feGaussianBlur stdDeviation="7"/></filter>
+  </defs>
+  <ellipse cx="258" cy="295" rx="112" ry="19" fill="#000" opacity=".25" filter="url(#shadow)"/>
+  <g stroke="#17191e" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M170 223c0-69 36-112 86-112 55 0 90 46 90 113 0 66-36 108-87 108-53 0-89-42-89-109z" fill="none" stroke="url(#silver)" stroke-width="31"/>
+    <path d="M201 135 223 91l34-23 35 23 22 44-23 33h-67z" fill="url(#silver)"/>
+    <path d="m231 102 26-20 26 20 15 31-20 24h-43l-19-24z" fill="url(#gem)"/>
+    <path d="m257 83 5 74M231 102l47 55M283 102l-48 55M216 133h82" fill="none" stroke="#dff8ff" stroke-width="3" opacity=".6"/>
+    <path d="M185 212c9-37 25-61 47-74" stroke="#fff" stroke-width="5" opacity=".48"/>
+    <path d="M310 232c-8 36-26 60-51 73" stroke="#535c66" stroke-width="5" opacity=".55"/>
+    <circle cx="220" cy="147" r="6" fill="#eef5f8"/>
+    <circle cx="294" cy="147" r="6" fill="#eef5f8"/>
+  </g>
+</svg>
