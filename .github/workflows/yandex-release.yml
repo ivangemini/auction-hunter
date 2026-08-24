@@ -39,6 +39,8 @@ jobs:
           cd dist
           zip -r ../auction-hunter-yandex.zip .
       - run: node scripts/build-yandex-submission.mjs
+        env:
+          SOURCE_COMMIT_SHA: ${{ github.sha }}
       - name: Build unified Yandex submission ZIP
         shell: bash
         run: |
