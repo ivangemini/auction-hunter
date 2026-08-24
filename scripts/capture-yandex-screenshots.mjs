@@ -143,10 +143,12 @@ async function eventSeen(page, eventName) {
 
 async function winCurrentAuction(page) {
   // Use the real Garage tier tab for a shorter deterministic submission capture while
-  // preserving the same production bidding/win/reveal path as higher tiers.
+  // preserving the production selection -> bidding -> win -> reveal path.
   await clickGame(page, 250, 151);
   await page.waitForTimeout(180);
-  await clickGame(page, 1038, 620);
+  await clickGame(page, 240, 625); // Choose the first Garage lot option.
+  await page.waitForTimeout(180);
+  await clickGame(page, 1038, 620); // Enter the chosen auction.
   await page.waitForTimeout(300);
 
   for (let attempt = 0; attempt < 30; attempt += 1) {
@@ -237,11 +239,11 @@ async function captureLocale(browser, localeCode, locale) {
     const page = await bootPage(desktop, localeCode);
     await saveViewport(
       page,
-      path.join(desktopDir, '01-lot-lobby.png'),
-      { x: 120, y: 360, width: 330, height: 160 },
+      path.join(desktopDir, '01-lot-selection.png'),
+      { x: 90, y: 292, width: 300, height: 105 },
     );
-    await clickGame(page, 1038, 620);
-    await page.waitForTimeout(300);
+    await pageWaitAndClick(page, 240, 625, 180); // Choose first visible lot.
+    await pageWaitAndClick(page, 1038, 620, 300); // Enter auction.
     await saveViewport(
       page,
       path.join(desktopDir, '02-active-bidding.png'),
@@ -275,7 +277,7 @@ async function captureLocale(browser, localeCode, locale) {
     await revealPage.close();
 
     const officePage = await bootPage(mobile, localeCode);
-    await pageWaitAndClick(officePage, 1038, 520, 260); // Collection Book.
+    await pageWaitAndClick(officePage, 940, 218, 260); // Collection Book from lot selection.
     await pageWaitAndClick(officePage, 875, 72, 350); // Office.
     await saveViewport(officePage, path.join(mobileDir, '02-office-progression.png'));
     await officePage.close();
