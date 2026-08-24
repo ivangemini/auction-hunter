@@ -1,0 +1,33 @@
+{
+  "version": "1.0.0",
+  "supportedPlatforms": ["desktop", "mobile"],
+  "orientation": "landscape",
+  "locales": {
+    "ru": {
+      "title": "Auction Hunter",
+      "seoDescription": "Аукционы с тайными находками: читай подсказки, торгуйся с соперниками и превращай удачные покупки в коллекцию и прибыль.",
+      "shortDescription": "Оценивай риск, выигрывай лоты и собирай редкие находки.",
+      "description": "Покупай загадочные гаражные, наследственные и коллекционные лоты на аукционах. Читай правдивые подсказки, следи за поведением соперников и решай, когда остановиться, чтобы не переплатить. После победы открывай находки, оценивай их состояние, выбирай предмет для реставрации, продавай ради оборота или оставляй в коллекции. Выполняй ежедневные контракты, закрывай наборы и развивай свой аукционный бизнес.",
+      "howToPlay": "Перед началом торгов изучи подсказки и, если доступно, закажи расширенную проверку лота. Во время аукциона повышай ставку кнопкой «Ставка» или нажми «Пас», если цена стала слишком высокой. После победы открывай предметы по одному, оценивай их, используй одну реставрацию на весь лот и решай, продать находку или оставить её в коллекции. Зарабатывай репутацию, открывай новые уровни аукционов и улучшай бизнес в Офисе."
+    },
+    "en": {
+      "title": "Auction Hunter",
+      "seoDescription": "Mystery auctions with real clues: read the lot, outbid rivals wisely, uncover valuables and turn smart purchases into profit and collections.",
+      "shortDescription": "Read the clues, manage risk, win lots and uncover rare finds.",
+      "description": "Buy mysterious garage, estate and collector lots at competitive auctions. Read truthful clues, watch rival behavior and decide when to stop before you overpay. After a win, reveal finds one by one, appraise their condition, choose one item to restore, then sell for cash or keep it for collection sets. Complete daily contracts, earn reputation, unlock higher auction tiers and grow your dealer business through permanent Office upgrades.",
+      "howToPlay": "Before bidding, study the visible clues and use Advanced Inspection when it is unlocked and worth the fee. During the auction, press Bid to raise the price or Pass when the risk is too high. After winning, reveal and appraise each item, spend the lot’s single restoration attempt carefully, then choose Sell or Keep. Build reputation to unlock stronger auction tiers, complete collection sets and invest profits into upgrades in the Office."
+    }
+  },
+  "visualRequirements": {
+    "icon": { "width": 512, "height": 512, "format": "png" },
+    "cover": { "width": 800, "height": 470, "format": "png" },
+    "heroImage": { "width": 1560, "height": 520, "formats": ["png", "jpg"], "optional": true },
+    "screenshots": {
+      "landscapeRatio": "16:9",
+      "longSideMin": 1280,
+      "longSideMax": 2560,
+      "formats": ["jpeg", "png24"],
+      "minimumPerSelectedPlatform": 2
+    }
+  }
+}
