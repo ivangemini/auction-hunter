@@ -80,7 +80,7 @@ test('Yandex Game Ready and gameplay markup follow real scene transitions', asyn
   await expect.poll(() => page.evaluate(() => (window as any).__yandexContractCalls?.start ?? 0)).toBe(1);
   expect(await page.evaluate(() => (window as any).__yandexContractCalls?.stop ?? 0)).toBe(0);
 
-  await clickGame(page, 560, 555); // Pass at a natural gameplay stop.
+  await clickGame(page, 580, 626); // Pass at a natural gameplay stop in the polished auction layout.
   await expect.poll(() => page.evaluate(() => (window as any).__yandexContractCalls?.stop ?? 0)).toBe(1);
   expect(await page.evaluate(() => (window as any).__yandexContractCalls?.start ?? 0)).toBe(1);
 
