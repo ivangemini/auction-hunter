@@ -341,7 +341,7 @@ export class AuctionScene extends Phaser.Scene {
         rect.on('pointerover', () => rect.setStrokeStyle(1, tier.accent, 0.6));
         rect.on('pointerout', () => rect.setStrokeStyle(1, 0xffffff, 0.18));
         rect.on('pointerup', () => {
-          if (!interactive) return;
+          if (!interactive || this.lotChoices.length === 0) return;
           playFeedbackCue(this, 'ui');
           trackEvent('tier_selected', { tierId: tier.id, reputationXp });
           this.dailySpecial = null;
@@ -429,6 +429,7 @@ export class AuctionScene extends Phaser.Scene {
 
     this.dailySpecial = getDailySpecial(today, save.reputationXp);
     this.currentTierId = this.dailySpecial.tierId;
+    this.lotChoices = [];
     trackEvent('daily_special_activated', {
       dayKey: this.dailySpecial.dayKey,
       tierId: this.dailySpecial.tierId,
