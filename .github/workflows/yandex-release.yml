@@ -30,25 +30,7 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run qa:browser
-      - name: Validate Yandex archive constraints
-        shell: bash
-        run: |
-          test -f dist/index.html
-          python3 - <<'PY'
-          from pathlib import Path
-          root = Path('dist')
-          bad = []
-          for path in root.rglob('*'):
-              relative = str(path.relative_to(root))
-              if ' ' in relative or any(ord(char) > 127 for char in relative):
-                  bad.append(relative)
-          if bad:
-              raise SystemExit('Invalid archive paths: ' + ', '.join(bad))
-          size = sum(path.stat().st_size for path in root.rglob('*') if path.is_file())
-          if size > 100 * 1024 * 1024:
-              raise SystemExit(f'Uncompressed archive exceeds 100 MB: {size} bytes')
-          print(f'Archive validation OK: {size} bytes uncompressed')
-          PY
+      - run: node scripts/validate-yandex-archive.mjs
       - name: Build ZIP with index.html at root
         shell: bash
         run: |
