@@ -2,7 +2,7 @@ import type { Locale } from './domain/types';
 
 export const COPY = {
   ru: {
-    title: 'AUCTION HUNTER',
+    title: 'Auction Hunter',
     subtitle: 'Найди ценность там, где другие видят хлам',
     onboardingAuctionTitle: 'Смотри до того, как ставить',
     onboardingAuctionBody: 'Подсказки теперь отражают реальное содержимое: каждая указывает хотя бы на один тип находки. Читай сигналы и не дожимай каждый лот любой ценой.',
@@ -159,7 +159,7 @@ export const COPY = {
     rarity_legendary: 'ЛЕГЕНДАРНЫЙ',
   },
   en: {
-    title: 'AUCTION HUNTER',
+    title: 'Auction Hunter',
     subtitle: 'Find value where everyone else sees junk',
     onboardingAuctionTitle: 'Look before you bid',
     onboardingAuctionBody: 'Clues now reflect real contents: every clue points to at least one type of find inside. Read the signals and do not force every lot at any price.',
