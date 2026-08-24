@@ -15,6 +15,7 @@ export interface AnalyticsEventMap {
     tierId?: AuctionTierId;
     daily?: boolean;
     openingBid?: number;
+    modifierId?: string;
   };
   bid_placed: { lotId: string; tierId: AuctionTierId; bid: number; cash: number; daily: boolean };
   auction_won: {
