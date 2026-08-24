@@ -314,10 +314,22 @@ function animateSelection(
   accent: number,
   onComplete: () => void,
 ): void {
+  if (!scene.input.enabled) return;
+  scene.input.enabled = false;
+
+  const complete = (): void => {
+    try {
+      onComplete();
+    } finally {
+      scene.input.enabled = true;
+    }
+  };
+
   if (prefersReducedMotion()) {
-    onComplete();
+    complete();
     return;
   }
+
   scene.tweens.killTweensOf(card);
   const flash = scene.add.rectangle(CARD_WIDTH / 2, CARD_HEIGHT / 2, CARD_WIDTH - 10, CARD_HEIGHT - 10, accent, 0);
   card.add(flash);
@@ -334,7 +346,7 @@ function animateSelection(
     yoyo: true,
     duration: MOTION.selectMs,
     ease: 'Sine.Out',
-    onComplete: () => onComplete(),
+    onComplete: complete,
   });
 }
 
