@@ -1,1 +1,23 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360"><g stroke="#17191e" stroke-width="8" stroke-linejoin="round"><path fill="#8a6346" d="M116 142h280l-30 148H146z"/><path fill="#5b4232" d="M136 116h240l20 32H116z"/><path d="M176 124v120M216 118v130M256 116v136M296 118v130M336 124v120" stroke-width="13" stroke="#d7dbe2"/><circle cx="256" cy="174" r="58" fill="#22262d"/><circle cx="256" cy="174" r="17" fill="#c4773a"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360">
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a66f43"/><stop offset="1" stop-color="#5d3927"/></linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ddd2b8"/><stop offset="1" stop-color="#9f927c"/></linearGradient>
+    <filter id="shadow"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>
+  <ellipse cx="257" cy="299" rx="163" ry="19" fill="#000" opacity=".3" filter="url(#shadow)"/>
+  <g stroke="#17191e" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M112 135 384 118l25 145-248 31-50-35z" fill="url(#wood)"/>
+    <path d="m112 135 49 35 248-25-25-27z" fill="#bc8452"/>
+    <path d="m161 170 248-25v118l-248 31z" fill="#7c4c31"/>
+    <path d="M161 170v124l-50-35V135z" fill="#6a402d"/>
+    <path d="M175 109 211 91l18 112-38 5z" fill="#c77d4d"/>
+    <path d="M217 95 254 82l15 114-39 6z" fill="url(#paper)"/>
+    <path d="M262 92 300 77l14 113-39 5z" fill="#73889a"/>
+    <path d="M307 95 344 82l12 104-39 5z" fill="#b45f52"/>
+    <circle cx="282" cy="132" r="46" fill="#252a30"/>
+    <circle cx="282" cy="132" r="11" fill="#c4773a"/>
+    <path d="M179 238c62 5 135-3 207-16" stroke="#d39a5d" stroke-width="4" opacity=".38"/>
+    <path d="M178 259c75 4 137-4 212-17" stroke="#d39a5d" stroke-width="3" opacity=".28"/>
+    <path d="m139 170 18 12M141 202l16 11M142 234l16 11" stroke="#b7794e" stroke-width="4" opacity=".45"/>
+  </g>
+</svg>
