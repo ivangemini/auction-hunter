@@ -1,4 +1,4 @@
-# Auction Hunter — Art Direction v0.6
+# Auction Hunter — Art Direction v0.7
 
 ## Visual thesis
 Auction Hunter should feel like a late-evening storage auction: warm tungsten light, cold industrial shadows, dusty surfaces, taped cardboard, worn paint and small flashes of valuable metal or electronics.
@@ -51,6 +51,8 @@ Avoid leaving the entire canvas as featureless near-black. Use restrained enviro
 
 The background should create place and depth without reducing text readability.
 
+Garage environments should read as practical, worn and materially dense: steel shelving, cardboard/wood storage, concrete or painted floors, repair equipment and warm utility lighting. Collector environments should feel more curated and valuable: cabinets, glass, dark wood, framed/display objects, safer storage and tighter spotlighting. Tier identity should be readable from the environment before UI copy is read.
+
 ### Primary content layer
 The thing the player is deciding about should receive the most visual weight:
 - lot selection -> lot/environment art;
@@ -91,6 +93,8 @@ Card types should differ according to purpose. A storage lot, rival dealer and i
 
 ## Composition rules
 - Lot art: dense but controlled foreground clutter, a darker back wall, one primary warm light source and 2–3 readable clue silhouettes.
+- Garage lot art: practical storage depth, stronger floor perspective and mixed cardboard/wood/steel materials.
+- Collector lot art: curated display/storage depth, more selective highlights and higher-value materials without generic luxury gloss.
 - Item art: single object, three-quarter view where practical, transparent/neutral background, strong silhouette.
 - Reveal state: object occupies most of the card/screen and receives a subtle rarity halo.
 - Appraisal state: value UI becomes brighter than the object; the artwork should not compete with the price.
@@ -129,7 +133,12 @@ The expanded catalog has direct SVG coverage for all 36 collectible item identit
 
 Lot presentation keeps nine semantic environment identities: three Garage, three Estate and three Collector archetypes. The 24 lot templates reuse these identities intentionally through `artId`, so related locations share visual language while names, clues, item pools and economy create distinct lot identities.
 
-P7 has started the higher-fidelity raster replacement pass. The three Estate archetypes (`estate-42`, `estate-attic`, `estate-studio`) now use cleaned WebP environment art while preserving the same semantic Phaser texture keys. Garage and Collector archetypes still use their SVG implementations until their corresponding art pass is complete.
+### P7 environment fidelity
+All nine semantic lot environments now meet the P7 fidelity floor while preserving their existing Phaser texture keys.
+
+The three Estate archetypes (`estate-42`, `estate-attic`, `estate-studio`) use cleaned WebP environment art. The three Garage archetypes (`garage-17`, `garage-workshop`, `garage-market`) and three Collector archetypes (`collector-8`, `collector-vault`, `collector-gallery`) use authored 512×360 SVG environments with stronger perspective, environmental depth, tier-specific materials, controlled warm focal lighting and readable foreground clutter.
+
+Garage/Collector SVGs intentionally do not embed UI copy, labels or pseudo-text. `scripts/capture-environment-art-review.mjs` validates those source contracts and renders all six into a deterministic 3×2 1280×720 CI contact sheet for visual review. Estate remains covered by the normal production screenshot path and runtime loader checks.
 
 ### P7 item fidelity — Batch 01
 Nine high-visibility reveal/restoration finds preserve their existing semantic IDs and 512×360 vector contract while using stronger silhouettes, authored perspective, material separation, controlled highlights and restrained gradients/shadows rather than schematic icon geometry:
