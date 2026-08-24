@@ -9,7 +9,7 @@ import type { LotChoice } from '../lotMarket';
 import { button } from '../ui';
 import { AuctionScene } from './AuctionScene';
 
-type AuctionRuntime = AuctionScene & {
+type AuctionRuntime = Phaser.Scene & {
   locale: 'ru' | 'en';
   lotChoices: LotChoice[];
   currentTierId: string;
