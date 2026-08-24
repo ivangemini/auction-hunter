@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const metadataPath = path.join(root, 'release', 'yandex-draft-metadata.json');
 const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+const packageManifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
 
 function length(value) {
   return Array.from(value).length;
@@ -21,6 +22,7 @@ function assertRange(label, value, min, max) {
 }
 
 assert(metadata.version && typeof metadata.version === 'string', 'version is required');
+assert(packageManifest.version === metadata.version, `package.json version ${packageManifest.version} must match release metadata version ${metadata.version}`);
 assert(metadata.orientation === 'landscape', 'Auction Hunter release metadata must declare landscape orientation');
 assert(Array.isArray(metadata.supportedPlatforms), 'supportedPlatforms must be an array');
 assert(metadata.supportedPlatforms.includes('desktop'), 'desktop platform is required');
@@ -78,5 +80,6 @@ assert(visuals?.screenshots?.minimumPerSelectedPlatform >= 2, 'At least two scre
 for (const row of report) {
   console.log(`${row.locale}: title=${row.titleLength}, seo=${row.seoLength}, short=${row.shortLength}, description=${row.descriptionLength}, howToPlay=${row.howLength}`);
 }
+console.log(`Release version consistency OK: ${metadata.version}`);
 console.log(`Brand consistency OK: ${canonicalTitle}`);
 console.log('Yandex draft metadata validation OK');
