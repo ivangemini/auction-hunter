@@ -19,7 +19,7 @@ Fast navigation map for humans and coding agents.
 - `scripts/validate-yandex-draft.mjs` — release metadata length/casing/consistency/spec validator, including package/release version parity.
 - `scripts/validate-yandex-archive.mjs` — built archive root/path/size/SDK/title validator; rejects production source maps.
 - `scripts/render-yandex-promos.mjs` — deterministic 512×512 icon and 800×470 cover PNG renderer/validator.
-- `scripts/capture-yandex-screenshots.mjs` — production-build RU/EN gameplay capture plus non-blank art-region checks.
+- `scripts/capture-yandex-screenshots.mjs` — production-build RU/EN gameplay capture plus non-blank art-region checks; current core-loop capture includes lot selection before bidding.
 - `scripts/build-yandex-submission.mjs` — assembles game ZIP, promo art, screenshots and metadata with SHA-256 manifests.
 
 ## Documentation
@@ -37,11 +37,12 @@ Fast navigation map for humans and coding agents.
 Startup orchestration: SDK, localized orientation guard, accessibility preferences, lifecycle, cloud sync, auction-history analytics sink, optional Metrica analytics sink and Phaser boot.
 
 ### `src/analytics.ts`
-Versioned vendor-neutral gameplay analytics boundary, including auction, monetization, meta-progression and advanced-inspection events.
+Versioned vendor-neutral gameplay analytics boundary, including lot-selection, auction, monetization, meta-progression and advanced-inspection events.
 
 ### `src/domain/`
 Pure platform-agnostic rules and types.
 - `auction.ts` — clue-backed lot generation, bidding, NPC budgets and bidder tells.
+- `lotSelection.ts` — deterministic distinct-option sampling for the pre-auction market choice.
 - `lotModifier.ts` — deterministic effects for rare visible auction events.
 - `inspection.ts` — late-game inspection report rules.
 - `restoration.ts` — condition/value formulas.
@@ -64,7 +65,7 @@ Static content/tuning inputs.
 - `replayability.test.ts` — v1 content/replayability regression floor.
 
 ### `src/game/`
-- `scenes/AuctionScene.ts` — auction presentation/orchestration, clues, modifiers, bidder tells, advanced inspection, one-per-lot restoration and round summary/ads.
+- `scenes/AuctionScene.ts` — three-option normal-auction selection, detailed lot lobby, bidding, clues, modifiers, bidder tells, advanced inspection, one-per-lot restoration and round summary/ads.
 - `scenes/CollectionScene.ts` — paged collection sets plus inventory resale modal.
 - `scenes/OfficeScene.ts` — contracts, upgrades, achievements, stats, recent auction history and accessibility settings.
 - `scenes/OnboardingScene.ts` — first-session onboarding.
@@ -88,18 +89,20 @@ Static content/tuning inputs.
 - `metrica.ts` — optional Yandex Metrica tag loader and typed analytics transport; no-op without a real counter ID.
 
 ### `src/i18n.ts`
-RU/EN gameplay, Office, inspection, accessibility and orientation copy. The visible game brand is `Auction Hunter` in both locales to match Yandex draft materials.
+RU/EN gameplay, lot-selection, Office, inspection, accessibility and orientation copy. The visible game brand is `Auction Hunter` in both locales to match Yandex draft materials.
 
 ## Tests
-- `src/domain/*.test.ts` — fast economy/game-rule unit tests.
+- `src/domain/*.test.ts` — fast economy/game-rule unit tests, including deterministic distinct lot-option sampling.
 - `src/data/*.test.ts` — content integrity, art coverage, scale and replayability regression coverage.
 - `src/platform/*.test.ts` — platform adapter contracts that can be verified without live Yandex services.
 - `tests/browser.spec.ts` — responsive/runtime/orientation smoke coverage.
+- `tests/lot-selection.spec.ts` — browser funnel coverage for three unique options, committed choice and delayed auction start.
 - Other `tests/*.spec.ts` cover system contracts used by Playwright QA.
 - `scripts/capture-yandex-screenshots.mjs` doubles as a production-build core-loop smoke test and rejects visually blank lot/item art.
 
 ## Where to make common changes
 - Add/tune lots and clue signals: `src/data/catalog.ts` + `docs/CONTENT_MODEL.md`.
+- Change normal-auction option sampling/selection behavior: `src/domain/lotSelection.ts` + `src/game/scenes/AuctionScene.ts` + focused browser coverage.
 - Add/change catalog art: `public/assets/`, `src/data/artManifest.ts`, lot `artId` assignments and `src/data/artCoverage.test.ts`.
 - Change Yandex icon/cover: `release/promotional/*.svg` + `scripts/render-yandex-promos.mjs`; never hand-edit generated PNGs.
 - Change Yandex gameplay screenshot scenarios: `scripts/capture-yandex-screenshots.mjs`; keep them on the production build and real scene transitions.
