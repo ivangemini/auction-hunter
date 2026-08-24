@@ -1,0 +1,151 @@
+import type { ItemCategory, ItemDefinition, ItemTraitId, LocalizedText } from '../domain/types';
+import { itemTraitsFor } from './itemTraits';
+
+export interface BuyerOfferDefinition {
+  id: string;
+  name: LocalizedText;
+  description: LocalizedText;
+  multiplier: number;
+  category?: ItemCategory;
+  traitIds?: readonly ItemTraitId[];
+}
+
+export interface BuyerMatch {
+  itemId: string;
+  value: number;
+  copies: number;
+}
+
+export const CATEGORY_BUYERS: readonly BuyerOfferDefinition[] = [
+  {
+    id: 'watch-specialist',
+    name: { ru: 'Часовой специалист', en: 'Watch Specialist' },
+    description: { ru: 'Сегодня ищет любые часы и платит выше обычного рынка.', en: 'Buying watches today at a premium over the normal market.' },
+    multiplier: 1.3,
+    category: 'watches',
+  },
+  {
+    id: 'retro-electronics',
+    name: { ru: 'Дилер ретро-техники', en: 'Retro Electronics Dealer' },
+    description: { ru: 'Собирает старую электронику для частных клиентов.', en: 'Sourcing vintage electronics for private clients.' },
+    multiplier: 1.22,
+    category: 'electronics',
+  },
+  {
+    id: 'toy-collector',
+    name: { ru: 'Коллекционер игрушек', en: 'Toy Collector' },
+    description: { ru: 'Покупает винтажные игрушки и редкие модели.', en: 'Buying vintage toys and unusual models.' },
+    multiplier: 1.24,
+    category: 'toys',
+  },
+  {
+    id: 'art-curator',
+    name: { ru: 'Частный куратор', en: 'Private Curator' },
+    description: { ru: 'Ищет искусство и декоративные вещи для новой экспозиции.', en: 'Looking for art and decorative pieces for a new display.' },
+    multiplier: 1.28,
+    category: 'art',
+  },
+  {
+    id: 'tool-reseller',
+    name: { ru: 'Реселлер мастерской', en: 'Workshop Reseller' },
+    description: { ru: 'Забирает исправные и винтажные инструменты.', en: 'Buying useful and vintage workshop tools.' },
+    multiplier: 1.15,
+    category: 'tools',
+  },
+  {
+    id: 'curiosity-dealer',
+    name: { ru: 'Дилер редкостей', en: 'Curiosity Dealer' },
+    description: { ru: 'Покупает необычные коллекционные предметы широкого профиля.', en: 'Buying unusual general collectibles for a mixed cabinet.' },
+    multiplier: 1.18,
+    category: 'collectibles',
+  },
+];
+
+export const SPECIALIST_BUYERS: readonly BuyerOfferDefinition[] = [
+  {
+    id: 'provenance-hunter',
+    name: { ru: 'Охотник за историей', en: 'Provenance Hunter' },
+    description: { ru: 'Платит особенно много за подписи, первые издания и подтверждённое происхождение.', en: 'Pays strongly for signatures, first editions and traceable provenance.' },
+    multiplier: 1.45,
+    traitIds: ['signed', 'first-edition', 'provenance'],
+  },
+  {
+    id: 'prototype-broker',
+    name: { ru: 'Брокер прототипов', en: 'Prototype Broker' },
+    description: { ru: 'Ищет предсерийные и малотиражные вещи.', en: 'Hunting pre-production pieces and limited runs.' },
+    multiplier: 1.5,
+    traitIds: ['prototype', 'limited-run'],
+  },
+  {
+    id: 'mechanical-society',
+    name: { ru: 'Клуб механики', en: 'Mechanical Society' },
+    description: { ru: 'Ценит часы, автоматы и другие механические находки.', en: 'Values watches, automatons and other mechanical finds.' },
+    multiplier: 1.35,
+    traitIds: ['mechanical'],
+  },
+  {
+    id: 'design-house',
+    name: { ru: 'Дом винтажного дизайна', en: 'Vintage Design House' },
+    description: { ru: 'Ищет предметы с выразительным дизайном эпохи или полным оригинальным комплектом.', en: 'Seeking strong period design or complete original presentation.' },
+    multiplier: 1.32,
+    traitIds: ['period-design', 'original-packaging'],
+  },
+];
+
+export const BUYER_OFFERS: readonly BuyerOfferDefinition[] = [
+  ...CATEGORY_BUYERS,
+  ...SPECIALIST_BUYERS,
+];
+
+export function dailyBuyerOffersForDay(dayKey: string): BuyerOfferDefinition[] {
+  const firstIndex = stableHash(`${dayKey}:category:first`) % CATEGORY_BUYERS.length;
+  let secondIndex = stableHash(`${dayKey}:category:second`) % (CATEGORY_BUYERS.length - 1);
+  if (secondIndex >= firstIndex) secondIndex += 1;
+  const specialistIndex = stableHash(`${dayKey}:specialist`) % SPECIALIST_BUYERS.length;
+
+  const first = CATEGORY_BUYERS[firstIndex];
+  const second = CATEGORY_BUYERS[secondIndex];
+  const specialist = SPECIALIST_BUYERS[specialistIndex];
+  return [first, second, specialist].filter((offer): offer is BuyerOfferDefinition => Boolean(offer));
+}
+
+export function buyerOfferMatches(item: ItemDefinition, offer: BuyerOfferDefinition): boolean {
+  if (offer.category && item.category === offer.category) return true;
+  if (!offer.traitIds || offer.traitIds.length === 0) return false;
+  const traits = new Set(itemTraitsFor(item.id));
+  return offer.traitIds.some((traitId) => traits.has(traitId));
+}
+
+export function buyerOfferValue(item: ItemDefinition, offer: BuyerOfferDefinition): number {
+  if (!buyerOfferMatches(item, offer)) return 0;
+  return Math.max(1, Math.round(item.baseValue * offer.multiplier));
+}
+
+export function bestBuyerMatch(
+  collectionIds: readonly string[],
+  itemById: ReadonlyMap<string, ItemDefinition>,
+  offer: BuyerOfferDefinition,
+): BuyerMatch | null {
+  let best: BuyerMatch | null = null;
+  const copiesById = new Map<string, number>();
+
+  for (const itemId of collectionIds) copiesById.set(itemId, (copiesById.get(itemId) ?? 0) + 1);
+
+  for (const [itemId, copies] of copiesById) {
+    const item = itemById.get(itemId);
+    if (!item || !buyerOfferMatches(item, offer)) continue;
+    const value = buyerOfferValue(item, offer);
+    if (!best || value > best.value) best = { itemId, value, copies };
+  }
+
+  return best;
+}
+
+function stableHash(value: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
