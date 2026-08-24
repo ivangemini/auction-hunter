@@ -15,6 +15,12 @@ Build a browser-first auction, appraisal, restoration and collection game for Ya
 
 For economy, content, save/cloud, analytics or platform work also read the matching source-of-truth document under `docs/`.
 
+For any player-facing UI, art, layout, animation, game-feel or presentation work, **also read and apply**:
+- `docs/ART_DIRECTION.md`
+- `skills/auction-hunter-visual-design/SKILL.md`
+
+Do not treat functional UI as visually complete merely because browser tests pass.
+
 ## Product priorities
 In order:
 1. A clear and satisfying core loop.
@@ -24,6 +30,17 @@ In order:
 5. Data-driven content and economy that can be tuned without rewriting scenes.
 6. Optional, policy-compliant monetization. Never make the base game intentionally frustrating to sell relief.
 7. Small, reversible changes backed by validation.
+
+## Visual-quality requirement
+Auction Hunter is a game, not an admin dashboard. Player-facing screens must communicate the storage-auction/treasure-hunting fantasy through authored art, visual hierarchy, atmosphere, material language and responsive feedback.
+
+For material presentation changes:
+- identify the intended focal point before coding;
+- prefer reusable visual systems over one-off rectangles/text styles;
+- make lot/item imagery a meaningful part of the composition rather than a decorative thumbnail;
+- add proportionate interaction/state feedback while respecting reduced-motion settings;
+- inspect a production screenshot after implementation and perform another pass if it still reads as a wireframe/prototype;
+- use `skills/auction-hunter-visual-design/references/visual-review-checklist.md` for review.
 
 ## Non-negotiable engineering rules
 - Keep game/business rules out of Phaser rendering code when practical.
@@ -67,6 +84,7 @@ After editing:
 - Check mobile-sized layout for UI changes.
 - Verify user-facing copy follows localization conventions.
 - Explicitly reason about existing players for save/economy changes.
+- For visual/UI work, inspect the resulting screenshot itself; test success alone is not visual acceptance.
 
 ## Quality gates
 Required for functional changes:
@@ -103,4 +121,4 @@ Onboarding -> choose tier/daily lot -> inspect -> bid/pass -> reveal -> appraise
 - Gameplay systems: `docs/RESTORATION.md`, `docs/COLLECTIONS.md`, `docs/TIERS.md`, `docs/DAILY_SPECIAL.md`, `docs/FIRST_SESSION.md`
 - Save/platform: `docs/CLOUD_SAVE.md`, `docs/YANDEX_INTEGRATION.md`
 - Analytics: `docs/ANALYTICS.md`
-- Visual/QA: `docs/ART_DIRECTION.md`, `docs/QA.md`
+- Visual/QA: `docs/ART_DIRECTION.md`, `skills/auction-hunter-visual-design/SKILL.md`, `docs/QA.md`
