@@ -102,6 +102,7 @@ This pass is a product-quality priority, not optional decoration. Complete it be
 - [ ] Redesign Collection Book and Buyer Market with stronger collectible/buyer identity, set-progress visualization and premium-sale feedback.
 - [ ] Bring Business Office, contracts, achievements, statistics and secondary hubs onto the same visual system instead of generic panels.
 - [ ] Upgrade the most schematic lot/item SVGs with higher-fidelity authored raster/vector art while preserving semantic asset IDs and coverage tests.
+  - [x] First item-fidelity batch: nine high-visibility reveal/restoration finds upgraded with authored 512×360 vector art plus deterministic 3×3 CI visual review.
 - [ ] Add restrained game-feel polish across important actions: press/selection response, number tweens, reveal highlights, particles/reactions and staged transitions with reduced-motion support.
 - [ ] Add production screenshot review as an explicit acceptance step for each major screen family and keep desktop + mobile-landscape captures visually credible.
 
