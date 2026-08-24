@@ -58,7 +58,16 @@ Buy mysterious garage, estate and collector lots at competitive auctions. Read t
 
 Before bidding, study the visible clues and use Advanced Inspection when it is unlocked and worth the fee. During the auction, press Bid to raise the price or Pass when the risk is too high. After winning, reveal and appraise each item, spend the lot’s single restoration attempt carefully, then choose Sell or Keep. Build reputation to unlock stronger auction tiers, complete collection sets and invest profits into upgrades in the Office.
 
-## Visual material requirements
+## Promotional art
+
+The catalog icon and cover are generated deterministically from reviewed SVG sources:
+
+- `release/promotional/icon.svg` → `generated/icon.png` at exactly 512×512.
+- `release/promotional/cover.svg` → `generated/cover.png` at exactly 800×470.
+- `node scripts/render-yandex-promos.mjs` renders and validates both PNGs after Playwright Chromium is installed.
+- CI uploads `auction-hunter-yandex-promos-ci`; the release workflow uploads `auction-hunter-yandex-promos`.
+
+The icon contains no text. The cover is language-neutral except for the exact proper-name brand `Auction Hunter`, so the same composition can be used for RU and EN without an English-only slogan. Promotional art is authored artwork, not a raw gameplay screenshot.
 
 ### Required icon
 - 512 × 512 px.
@@ -70,7 +79,7 @@ Before bidding, study the visible clues and use Advanced Inspection when it is u
 - 800 × 470 px.
 - PNG.
 - Do not submit a raw gameplay screenshot as the cover.
-- Name/branding shown on the cover, if any, must use `Auction Hunter` exactly and must be localized consistently with the selected draft language.
+- Name/branding shown on the cover uses `Auction Hunter` exactly.
 
 ### Optional hero image
 - 1560 × 520 px.
@@ -100,9 +109,10 @@ For initial submission, capture at least two clean desktop frames and two clean 
 - Confirm the age rating matches the actual non-violent content.
 - Set the exact declared platform/orientation values above.
 - Upload the current release-candidate ZIP, not an older local build.
+- Upload the generated icon and cover from the same release candidate.
 - Add the real Yandex Metrica counter ID to the GitHub Actions variable `YANDEX_METRICA_ID` before the final telemetry-enabled archive build if custom telemetry is desired at launch.
 - Run `docs/QA.md`, `docs/MODERATION.md` and `docs/CONTENT_DURATION.md` against the actual Draft before submitting for moderation.
 
 ## Automated guard
 
-`node scripts/validate-yandex-draft.mjs` validates the current text limits, title casing/consistency, non-duplication basics and visual specification constants. CI and the release archive workflow both run it before build/release gates.
+`node scripts/validate-yandex-draft.mjs` validates the current text limits, title casing/consistency, non-duplication basics and visual specification constants. `node scripts/render-yandex-promos.mjs` verifies promotional text policy and exact PNG output dimensions. CI and the release archive workflow run these gates before artifacts are published.
