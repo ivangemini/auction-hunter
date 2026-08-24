@@ -15,7 +15,8 @@ Fast navigation map for humans and coding agents.
 - `release/yandex-draft-metadata.json` — machine-readable RU/EN draft copy and current visual-field constraints.
 - `release/promotional/` — reviewed SVG sources for the Yandex catalog icon/cover; `generated/` is produced by CI/release rather than committed.
 - `release/screenshots/generated/` — generated RU/EN desktop/mobile production screenshots; CI/release output only.
-- `release/screenshots/review/` — temporary screen-family and asset visual-review captures used by CI; includes restoration mode/timing evidence and the deterministic item-art contact sheet, intentionally excluded from Yandex submission assets.
+- `release/screenshots/review/` — temporary screen-family visual-review captures used by CI; currently restoration mode/timing evidence and intentionally excluded from Yandex submission assets.
+- `release/screenshots/item-review/generated/` — deterministic 3×3 contact sheets for every accepted P7 item-fidelity batch; CI keeps earlier sheets when a new batch is added.
 - `release/screenshots/debug/` — temporary capture diagnostics created only when the production screenshot flow needs failure evidence; CI may upload them with short retention.
 - `release/submission/generated/` — assembled Draft submission tree; CI/release output only.
 - `scripts/validate-yandex-draft.mjs` — release metadata length/casing/consistency/spec validator, including package/release version parity.
@@ -23,7 +24,7 @@ Fast navigation map for humans and coding agents.
 - `scripts/render-yandex-promos.mjs` — deterministic 512×512 icon and 800×470 cover PNG renderer/validator.
 - `scripts/capture-yandex-screenshots.mjs` — production-build RU/EN gameplay capture plus non-blank art-region checks; core-loop navigation is analytics-event-driven and asserts one committed lot choice remains stable through the auction before reveal/appraisal capture.
 - `scripts/capture-restoration-review.mjs` — drives a production build through the real auction/reveal/appraisal path, then captures RU/EN restoration mode-picker and timing-stage evidence with transition-difference assertions.
-- `scripts/capture-item-art-review.mjs` — deterministically renders the first P7 high-fidelity item batch into a 3×3 1280×720 contact sheet and validates every reviewed SVG against the 512×360 asset contract.
+- `scripts/capture-item-art-review.mjs` — deterministically renders every accepted P7 item-fidelity batch as its own 3×3 1280×720 contact sheet, validates the 512×360 SVG viewBox contract and verifies browser decode.
 - `scripts/build-yandex-submission.mjs` — assembles game ZIP, promo art, screenshots and metadata with SHA-256 manifests.
 
 ## Documentation
@@ -97,8 +98,8 @@ Static content/tuning inputs.
 - `config.ts`, `lifecycle.ts` — rendering/runtime infrastructure.
 
 ### `public/assets/`
-- `items/` — direct SVG for every one of the 36 catalog item IDs plus defensive `fallback.svg`; the first P7 fidelity batch upgrades nine high-visibility identities while preserving their semantic IDs and 512×360 contract.
-- `lots/` — nine authored lot environments: three Garage, three Estate and three Collector archetypes.
+- `items/` — direct SVG for every one of the 36 catalog item IDs plus defensive `fallback.svg`; P7 fidelity Batch 01 + Batch 02 now upgrade 18 high-visibility identities while preserving semantic IDs and the 512×360 viewBox contract.
+- `lots/` — nine semantic lot environments: three Garage, three Estate and three Collector archetypes; Estate currently has the higher-fidelity raster pass while Garage/Collector remain future P7 work.
 
 ### `src/platform/`
 - `yandex.ts` — Yandex Games SDK/Player integration plus gameplay-activity notifications for platform policies.
@@ -123,7 +124,7 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 - Other `tests/*.spec.ts` cover system contracts used by Playwright QA.
 - `scripts/capture-yandex-screenshots.mjs` doubles as a production-build core-loop smoke test: it verifies a single lot selection remains stable through a legitimate auction win, advances reveal/appraisal by observed analytics events and rejects visually blank lot/item art.
 - `scripts/capture-restoration-review.mjs` is the restoration screen-family visual gate: it follows the same production core loop and verifies the mode/timing screens visibly replace their preceding states before CI uploads the four RU/EN review captures.
-- `scripts/capture-item-art-review.mjs` is the first fidelity-batch asset gate: it verifies all nine reviewed SVGs load at the expected dimensions and emits a deterministic contact sheet for human visual review.
+- `scripts/capture-item-art-review.mjs` is the persistent item-fidelity asset gate: it validates every accepted batch, preserves earlier review sheets, verifies 512×360 SVG viewBox contracts and emits deterministic contact sheets for human visual review.
 
 ## Where to make common changes
 - Add/tune lots and clue signals: `src/data/catalog.ts` + `docs/CONTENT_MODEL.md`.
@@ -134,7 +135,7 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 - Change active bidding/win/reveal/appraisal presentation without changing auction rules: `src/game/scenes/PolishedAuctionSceneV2.ts`.
 - Change restoration mode difficulty/reward rules: `src/domain/restoration.ts`; change restoration choice/timing presentation in `src/game/restorationUi.ts`; update visual evidence through `scripts/capture-restoration-review.mjs`.
 - Change Dealer Memory aggregation: `src/domain/history.ts`; change its polished lot-card presentation in `src/game/scenes/PolishedAuctionScene.ts`.
-- Add/change catalog art: `public/assets/`, `src/data/artManifest.ts`, lot `artId` assignments and `src/data/artCoverage.test.ts`; update deterministic fidelity evidence in `scripts/capture-item-art-review.mjs` when the reviewed batch changes.
+- Add/change catalog art: `public/assets/`, `src/data/artManifest.ts`, lot `artId` assignments and `src/data/artCoverage.test.ts`; append new fidelity batches to `scripts/capture-item-art-review.mjs` without removing previously accepted review batches.
 - Change Yandex icon/cover: `release/promotional/*.svg` + `scripts/render-yandex-promos.mjs`; never hand-edit generated PNGs.
 - Change Yandex gameplay screenshot scenarios: `scripts/capture-yandex-screenshots.mjs`; keep them on the production build, real scene transitions and analytics-confirmed state changes.
 - Change submission-bundle structure/checksums: `scripts/build-yandex-submission.mjs` + both GitHub workflows.
