@@ -58,6 +58,16 @@ for (const locale of locales) {
 
 assert(titles.size === 1, 'Title must be identical across RU/EN materials');
 
+const canonicalTitle = metadata.locales.en.title;
+const i18nSource = fs.readFileSync(path.join(root, 'src', 'i18n.ts'), 'utf8');
+const inGameTitles = [...i18nSource.matchAll(/^\s+title:\s*'([^']+)'/gm)].map((match) => match[1]);
+assert(inGameTitles.length === locales.length, `Expected ${locales.length} localized in-game title entries, found ${inGameTitles.length}`);
+assert(inGameTitles.every((title) => title === canonicalTitle), 'In-game localized title must match draft metadata exactly');
+
+const htmlSource = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const htmlTitle = htmlSource.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim();
+assert(htmlTitle === canonicalTitle, `index.html title must be exactly ${canonicalTitle}`);
+
 const visuals = metadata.visualRequirements;
 assert(visuals?.icon?.width === 512 && visuals.icon.height === 512 && visuals.icon.format === 'png', 'Icon requirement must remain 512x512 PNG');
 assert(visuals?.cover?.width === 800 && visuals.cover.height === 470 && visuals.cover.format === 'png', 'Cover requirement must remain 800x470 PNG');
@@ -68,4 +78,5 @@ assert(visuals?.screenshots?.minimumPerSelectedPlatform >= 2, 'At least two scre
 for (const row of report) {
   console.log(`${row.locale}: title=${row.titleLength}, seo=${row.seoLength}, short=${row.shortLength}, description=${row.descriptionLength}, howToPlay=${row.howLength}`);
 }
+console.log(`Brand consistency OK: ${canonicalTitle}`);
 console.log('Yandex draft metadata validation OK');
