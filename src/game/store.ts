@@ -103,6 +103,16 @@ export class GameStore {
     this.persist();
   }
 
+  payInspectionFee(amount: number): boolean {
+    const fee = this.cleanCashAmount(amount);
+    if (fee <= 0) return false;
+    this.sync();
+    if (this.state.cash < fee) return false;
+    this.state.cash -= fee;
+    this.persist();
+    return true;
+  }
+
   claimSetReward(setId: string, reward: number, requiredItemIds: readonly string[]): boolean {
     this.sync();
     if (this.state.claimedSetRewards.includes(setId)) return false;
