@@ -25,6 +25,15 @@ function pngDimensions(buffer) {
   return { width: buffer.readUInt32BE(16), height: buffer.readUInt32BE(20) };
 }
 
+const iconSvg = fs.readFileSync(path.join(sourceDir, 'icon.svg'), 'utf8');
+assert(!/<text\b/i.test(iconSvg), 'Icon must not contain text');
+
+const coverSvg = fs.readFileSync(path.join(sourceDir, 'cover.svg'), 'utf8');
+const coverText = [...coverSvg.matchAll(/<text\b[^>]*>([^<]*)<\/text>/gi)]
+  .map((match) => match[1].trim())
+  .filter(Boolean);
+assert(coverText.join(' ') === 'Auction Hunter', `Cover text must be language-neutral and contain only the canonical title; found: ${coverText.join(' | ')}`);
+
 const browser = await chromium.launch({ headless: true });
 try {
   for (const target of targets) {
