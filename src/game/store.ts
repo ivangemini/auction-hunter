@@ -11,7 +11,14 @@ import {
   nextUpgradeCost,
   setRewardValue,
 } from '../domain/meta';
-import type { AuctionHistoryEntry, BusinessUpgradeId, ContractMetric, PlayerSave } from '../domain/types';
+import type {
+  AuctionHistoryEntry,
+  BusinessUpgradeId,
+  CollectionItem,
+  ContractMetric,
+  PlayerSave,
+  RevealedItem,
+} from '../domain/types';
 import { scheduleCloudSave } from '../platform/cloudSave';
 import { loadLocalSave, writeLocalSave } from './save';
 
@@ -74,13 +81,15 @@ export class GameStore {
     trackEvent('item_dispositioned', { disposition: 'sell', itemId, value: saleValue, source: 'round' });
   }
 
-  keepItem(itemId: string): void {
+  keepItem(item: string | RevealedItem): void {
     this.sync();
     this.resetDailyContractsIfNeeded(localDayKey());
-    this.state.collection.push(itemId);
+    const collectionItem = this.toCollectionItem(item);
+    this.state.collection.push(collectionItem.itemId);
+    this.collectionItems().push(collectionItem);
     this.addContractProgress('itemsKept', 1);
     this.persist();
-    trackEvent('item_dispositioned', { disposition: 'keep', itemId, source: 'round' });
+    trackEvent('item_dispositioned', { disposition: 'keep', itemId: collectionItem.itemId, source: 'round' });
   }
 
   sellCollectionItem(itemId: string, value: number): boolean {
@@ -89,10 +98,19 @@ export class GameStore {
 
     this.sync();
     this.resetDailyContractsIfNeeded(localDayKey());
-    const index = this.state.collection.indexOf(itemId);
-    if (index < 0) return false;
+    const collectionIndex = this.state.collection.indexOf(itemId);
+    if (collectionIndex < 0) return false;
 
-    this.state.collection.splice(index, 1);
+    const instances = this.collectionItems();
+    const instance = instances
+      .filter((candidate) => candidate.itemId === itemId)
+      .sort((left, right) => left.appraisedValue - right.appraisedValue || left.acquiredAt - right.acquiredAt)[0];
+    if (instance) {
+      const instanceIndex = instances.findIndex((candidate) => candidate.id === instance.id);
+      if (instanceIndex >= 0) instances.splice(instanceIndex, 1);
+    }
+
+    this.state.collection.splice(collectionIndex, 1);
     this.state.cash += saleValue;
     this.state.lifetimeSales += saleValue;
     this.addContractProgress('itemsSold', 1);
@@ -103,41 +121,57 @@ export class GameStore {
     return true;
   }
 
-  sellToBuyer(buyerId: string, itemId: string, dayKey = localDayKey()): number {
+  sellToBuyer(buyerId: string, itemKey: string, dayKey = localDayKey()): number {
     this.sync();
     this.resetDailyContractsIfNeeded(dayKey);
     this.resetBuyerMarketIfNeeded(dayKey);
 
     if (this.state.claimedBuyerOfferIds.includes(buyerId)) return 0;
     const offer = dailyBuyerOffersForDay(dayKey).find((candidate) => candidate.id === buyerId);
-    const item = ITEM_BY_ID.get(itemId);
-    if (!offer || !item || !buyerOfferMatches(item, offer)) return 0;
+    if (!offer) return 0;
 
-    const index = this.state.collection.indexOf(itemId);
-    if (index < 0) return 0;
+    const candidates = this.collectionItems()
+      .filter((instance) => instance.id === itemKey || instance.itemId === itemKey)
+      .map((instance) => {
+        const item = ITEM_BY_ID.get(instance.itemId);
+        if (!item || !buyerOfferMatches(item, offer, instance.traitIds)) return null;
+        return {
+          instance,
+          item,
+          value: buyerOfferValue(item, offer, instance.appraisedValue, instance.traitIds),
+        };
+      })
+      .filter((candidate): candidate is NonNullable<typeof candidate> => candidate !== null)
+      .sort((left, right) => right.value - left.value);
 
-    const saleValue = buyerOfferValue(item, offer);
-    if (saleValue <= 0) return 0;
+    const best = candidates[0];
+    if (!best || best.value <= 0) return 0;
 
-    this.state.collection.splice(index, 1);
+    const collectionIndex = this.state.collection.indexOf(best.item.id);
+    if (collectionIndex < 0) return 0;
+    const instanceIndex = this.collectionItems().findIndex((candidate) => candidate.id === best.instance.id);
+    if (instanceIndex < 0) return 0;
+
+    this.state.collection.splice(collectionIndex, 1);
+    this.collectionItems().splice(instanceIndex, 1);
     this.state.claimedBuyerOfferIds.push(offer.id);
-    this.state.cash += saleValue;
-    this.state.lifetimeSales += saleValue;
+    this.state.cash += best.value;
+    this.state.lifetimeSales += best.value;
     this.addContractProgress('itemsSold', 1);
-    this.addContractProgress('salesValue', saleValue);
+    this.addContractProgress('salesValue', best.value);
     this.updateHighestCash();
     this.persist();
 
     trackEvent('buyer_sale_completed', {
       buyerId: offer.id,
-      itemId,
+      itemId: best.item.id,
       dayKey,
-      value: saleValue,
+      value: best.value,
       premiumMultiplier: offer.multiplier,
-      traitIds: itemTraitsFor(itemId),
+      traitIds: [...best.instance.traitIds],
     });
-    trackEvent('item_dispositioned', { disposition: 'sell', itemId, value: saleValue, source: 'collection' });
-    return saleValue;
+    trackEvent('item_dispositioned', { disposition: 'sell', itemId: best.item.id, value: best.value, source: 'collection' });
+    return best.value;
   }
 
   grantBonusCash(amount: number): void {
@@ -236,6 +270,44 @@ export class GameStore {
     this.state.onboardingComplete = true;
     this.persist();
     trackEvent('onboarding_completed', {});
+  }
+
+  private collectionItems(): CollectionItem[] {
+    this.state.collectionItems ??= [];
+    return this.state.collectionItems;
+  }
+
+  private toCollectionItem(item: string | RevealedItem): CollectionItem {
+    if (typeof item === 'string') {
+      const definition = ITEM_BY_ID.get(item);
+      return {
+        id: this.createInventoryId(item),
+        itemId: item,
+        appraisedValue: Math.max(1, definition?.baseValue ?? 1),
+        condition: 1,
+        restored: false,
+        traitIds: itemTraitsFor(item),
+        acquiredAt: Date.now(),
+      };
+    }
+
+    return {
+      id: this.createInventoryId(item.definition.id),
+      itemId: item.definition.id,
+      appraisedValue: this.cleanCashAmount(item.appraisedValue),
+      condition: Math.min(1, Math.max(0, item.condition)),
+      restored: item.restored,
+      traitIds: [...(item.traitIds ?? itemTraitsFor(item.definition.id))],
+      acquiredAt: Date.now(),
+      ...(item.restorationGrade ? { restorationGrade: item.restorationGrade } : {}),
+    };
+  }
+
+  private createInventoryId(itemId: string): string {
+    const randomId = typeof globalThis.crypto?.randomUUID === 'function'
+      ? globalThis.crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    return `item-${itemId}-${randomId}`;
   }
 
   private sync(): void {
