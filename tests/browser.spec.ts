@@ -35,6 +35,17 @@ test('game boots and canvas stays inside the viewport', async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test('portrait phones show the landscape interaction guard', async ({ page }, testInfo) => {
+  await page.goto('/');
+  const guard = page.locator('#orientation-guard');
+  if (testInfo.project.name === 'mobile-portrait') {
+    await expect(guard).toBeVisible();
+    await expect(page.locator('#orientation-title')).not.toHaveText('');
+  } else {
+    await expect(guard).toBeHidden();
+  }
+});
+
 test('long-press context menu is suppressed inside the game', async ({ page }) => {
   await page.goto('/');
   const canvas = page.locator('canvas');

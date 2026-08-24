@@ -1,11 +1,12 @@
 import { getYandexSdk } from './yandex';
 
-type PauseReason = 'yandex' | 'visibility' | 'blur';
+type PauseReason = 'yandex' | 'visibility' | 'blur' | 'orientation';
 type PauseListener = (paused: boolean) => void;
 
 const pauseReasons = new Set<PauseReason>();
 const listeners = new Set<PauseListener>();
 let initialized = false;
+let portraitQuery: MediaQueryList | null = null;
 
 export function initializePlatformLifecycle(): void {
   if (initialized) return;
@@ -19,7 +20,11 @@ export function initializePlatformLifecycle(): void {
   window.addEventListener('blur', handleWindowBlur);
   window.addEventListener('focus', handleWindowFocus);
 
-  if (document.visibilityState === 'hidden') setPauseReason('visibility', true);
+  portraitQuery = window.matchMedia('(orientation: portrait) and (max-width: 900px)');
+  portraitQuery.addEventListener('change', handleOrientationChange);
+
+  setPauseReason('visibility', document.visibilityState === 'hidden');
+  setPauseReason('orientation', portraitQuery.matches);
 }
 
 export function isPlatformPaused(): boolean {
@@ -31,25 +36,12 @@ export function subscribePlatformPause(listener: PauseListener): () => void {
   return () => listeners.delete(listener);
 }
 
-function handleYandexPause(): void {
-  setPauseReason('yandex', true);
-}
-
-function handleYandexResume(): void {
-  setPauseReason('yandex', false);
-}
-
-function handleVisibilityChange(): void {
-  setPauseReason('visibility', document.visibilityState === 'hidden');
-}
-
-function handleWindowBlur(): void {
-  setPauseReason('blur', true);
-}
-
-function handleWindowFocus(): void {
-  setPauseReason('blur', false);
-}
+function handleYandexPause(): void { setPauseReason('yandex', true); }
+function handleYandexResume(): void { setPauseReason('yandex', false); }
+function handleVisibilityChange(): void { setPauseReason('visibility', document.visibilityState === 'hidden'); }
+function handleWindowBlur(): void { setPauseReason('blur', true); }
+function handleWindowFocus(): void { setPauseReason('blur', false); }
+function handleOrientationChange(event: MediaQueryListEvent): void { setPauseReason('orientation', event.matches); }
 
 function setPauseReason(reason: PauseReason, active: boolean): void {
   const wasPaused = isPlatformPaused();

@@ -5,19 +5,10 @@ export const ANALYTICS_SCHEMA_VERSION = 1 as const;
 export const ANALYTICS_DOM_EVENT = 'auction-hunter:analytics';
 
 export interface AnalyticsEventMap {
-  session_started: {
-    locale: Locale;
-  };
+  session_started: { locale: Locale };
   onboarding_completed: Record<string, never>;
-  tier_selected: {
-    tierId: AuctionTierId;
-    reputationXp: number;
-  };
-  daily_special_activated: {
-    dayKey: string;
-    tierId: AuctionTierId;
-    lotId: string;
-  };
+  tier_selected: { tierId: AuctionTierId; reputationXp: number };
+  daily_special_activated: { dayKey: string; tierId: AuctionTierId; lotId: string };
   auction_started: {
     auctionNumber: number;
     lotId?: string;
@@ -25,13 +16,7 @@ export interface AnalyticsEventMap {
     daily?: boolean;
     openingBid?: number;
   };
-  bid_placed: {
-    lotId: string;
-    tierId: AuctionTierId;
-    bid: number;
-    cash: number;
-    daily: boolean;
-  };
+  bid_placed: { lotId: string; tierId: AuctionTierId; bid: number; cash: number; daily: boolean };
   auction_won: {
     finalBid: number;
     reputationGain: number;
@@ -40,21 +25,9 @@ export interface AnalyticsEventMap {
     tierId?: AuctionTierId;
     daily: boolean;
   };
-  auction_passed: {
-    lotId: string;
-    tierId: AuctionTierId;
-    currentBid: number;
-    daily: boolean;
-  };
-  item_revealed: {
-    itemId: string;
-    rarity: string;
-  };
-  item_appraised: {
-    itemId: string;
-    value: number;
-    condition: number;
-  };
+  auction_passed: { lotId: string; tierId: AuctionTierId; currentBid: number; daily: boolean };
+  item_revealed: { itemId: string; rarity: string };
+  item_appraised: { itemId: string; value: number; condition: number };
   restoration_completed: {
     itemId: string;
     grade: RestorationGrade;
@@ -66,31 +39,22 @@ export interface AnalyticsEventMap {
     disposition: 'sell' | 'keep';
     itemId?: string;
     value?: number;
+    source?: 'round' | 'collection';
   };
-  collection_set_reward_claimed: {
-    setId: string;
-    reward: number;
-  };
-  daily_special_completed: {
-    dayKey: string;
-    reputationGain: number;
-  };
+  collection_set_reward_claimed: { setId: string; reward: number };
+  daily_special_completed: { dayKey: string; reputationGain: number };
   round_completed: {
     lotId: string;
     tierId: AuctionTierId;
     cost: number;
     sales: number;
     kept: number;
+    keptValue?: number;
+    totalEstimatedResult?: number;
     daily: boolean;
   };
-  rewarded_ad_requested: {
-    placement: 'round_summary';
-    reward: number;
-  };
-  rewarded_ad_rewarded: {
-    placement: 'round_summary';
-    reward: number;
-  };
+  rewarded_ad_requested: { placement: 'round_summary'; reward: number };
+  rewarded_ad_rewarded: { placement: 'round_summary'; reward: number };
   rewarded_ad_closed: {
     placement: 'round_summary';
     reward: number;
@@ -98,10 +62,7 @@ export interface AnalyticsEventMap {
     wasShown: boolean;
     outcome: 'rewarded' | 'closed' | 'unavailable' | 'error';
   };
-  interstitial_ad_requested: {
-    placement: 'between_auctions';
-    auctionNumber: number;
-  };
+  interstitial_ad_requested: { placement: 'between_auctions'; auctionNumber: number };
   interstitial_ad_closed: {
     placement: 'between_auctions';
     auctionNumber: number;

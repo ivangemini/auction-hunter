@@ -38,14 +38,30 @@ export class GameStore {
     this.state.cash += value;
     this.state.lifetimeSales += value;
     this.persist();
-    trackEvent('item_dispositioned', { disposition: 'sell', itemId, value });
+    trackEvent('item_dispositioned', { disposition: 'sell', itemId, value, source: 'round' });
   }
 
   keepItem(itemId: string): void {
     this.sync();
     this.state.collection.push(itemId);
     this.persist();
-    trackEvent('item_dispositioned', { disposition: 'keep', itemId });
+    trackEvent('item_dispositioned', { disposition: 'keep', itemId, source: 'round' });
+  }
+
+  sellCollectionItem(itemId: string, value: number): boolean {
+    const saleValue = Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0;
+    if (saleValue <= 0) return false;
+
+    this.sync();
+    const index = this.state.collection.indexOf(itemId);
+    if (index < 0) return false;
+
+    this.state.collection.splice(index, 1);
+    this.state.cash += saleValue;
+    this.state.lifetimeSales += saleValue;
+    this.persist();
+    trackEvent('item_dispositioned', { disposition: 'sell', itemId, value: saleValue, source: 'collection' });
+    return true;
   }
 
   grantBonusCash(amount: number): void {

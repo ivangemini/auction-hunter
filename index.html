@@ -12,6 +12,13 @@
   </head>
   <body>
     <div id="game"></div>
+    <div id="orientation-guard" role="status" aria-live="polite">
+      <div class="orientation-card">
+        <div class="orientation-icon" aria-hidden="true">↻</div>
+        <h1 id="orientation-title"></h1>
+        <p id="orientation-body"></p>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,21 +1,11 @@
 import Phaser from 'phaser';
 
 const ITEM_IDS = [
-  'toolbox',
-  'cassette-player',
-  'vinyl-box',
-  'toy-robot',
-  'brass-clock',
-  'film-camera',
-  'telescope',
-  'signed-poster',
-  'silver-ring',
-  'arcade-handheld',
-  'pocket-watch',
-  'prototype-toy',
+  'toolbox', 'cassette-player', 'vinyl-box', 'toy-robot', 'brass-clock', 'film-camera',
+  'telescope', 'signed-poster', 'silver-ring', 'arcade-handheld', 'pocket-watch', 'prototype-toy',
 ] as const;
 
-const LOT_IDS = ['garage-17', 'estate-42', 'collector-8'] as const;
+const LOT_ART_IDS = ['garage-17', 'estate-42', 'collector-8'] as const;
 
 export function preloadArt(scene: Phaser.Scene): void {
   for (const id of ITEM_IDS) {
@@ -26,7 +16,7 @@ export function preloadArt(scene: Phaser.Scene): void {
   const fallbackKey = itemTextureKey('fallback');
   if (!scene.textures.exists(fallbackKey)) scene.load.svg(fallbackKey, 'assets/items/fallback.svg');
 
-  for (const id of LOT_IDS) {
+  for (const id of LOT_ART_IDS) {
     const key = lotTextureKey(id);
     if (!scene.textures.exists(key)) scene.load.svg(key, `assets/lots/${id}.svg`);
   }
