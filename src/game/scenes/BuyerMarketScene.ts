@@ -8,8 +8,10 @@ import { t } from '../../i18n';
 import { getPlatformLocale, setGameplayActive } from '../../platform/yandex';
 import { resolveItemTexture } from '../art';
 import { playFeedbackCue } from '../feedback';
+import { enterWithStagger, MOTION, prefersReducedMotion } from '../motion';
 import { GameStore } from '../store';
 import { button } from '../ui';
+import { addAtmosphere, addChip, addSurface, VISUAL } from '../visual';
 
 const WIDTH = 1280;
 const HEIGHT = 720;
@@ -31,9 +33,9 @@ export class BuyerMarketScene extends Phaser.Scene {
 
   private renderMarket(): void {
     this.children.removeAll(true);
-    this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x101216);
-    this.add.rectangle(1060, HEIGHT / 2, 440, HEIGHT, 0x63d28d, 0.018);
-    this.add.rectangle(WIDTH / 2, 116, WIDTH - 120, 1, 0x2b3038);
+    addAtmosphere(this, WIDTH, HEIGHT, VISUAL.copper, 980);
+    this.add.rectangle(WIDTH / 2, 116, WIDTH - 110, 1, VISUAL.copper, 0.2);
+    this.add.rectangle(44, 25, 5, 74, VISUAL.copper, 0.9).setOrigin(0);
 
     const copy = this.copy();
     const dayKey = localDayKey();
@@ -41,92 +43,208 @@ export class BuyerMarketScene extends Phaser.Scene {
     const save = this.store.snapshot;
     const offers = dailyBuyerOffersForDay(dayKey);
 
-    this.label(70, 40, copy.title, 30, '#f7f8fa', 'bold');
-    this.label(70, 78, copy.subtitle, 15, '#737b88');
-    this.label(760, 44, `${t(this.locale, 'cash')}: ${this.money(save.cash)}`, 18, '#63d28d', 'bold');
-    this.label(760, 76, copy.resetHint, 13, '#737b88');
+    this.label(64, 30, copy.title, 31, VISUAL.text, 'bold');
+    this.label(64, 70, copy.subtitle, 14, VISUAL.muted).setWordWrapWidth(650);
+    addChip(this, 112, 105, this.locale === 'ru' ? 'ЧАСТНЫЙ СПРОС' : 'PRIVATE DEMAND', VISUAL.copper, {
+      width: 140,
+      filled: true,
+      fontSize: 10,
+    });
 
-    button(this, 1130, 70, t(this.locale, 'backToCollection'), () => this.scene.start('collection'), {
-      width: 210,
-      height: 46,
-      background: 0x61a8ff,
+    const cashPlate = addSurface(this, 760, 35, 190, 62, {
+      accent: VISUAL.success,
+      fill: VISUAL.panelDeep,
+      strokeAlpha: 0.2,
+      glowAlpha: 0.012,
+    });
+    cashPlate.add(this.label(14, 10, this.locale === 'ru' ? 'БАЛАНС' : 'CASH', 9, VISUAL.faint, 'bold'));
+    cashPlate.add(this.label(14, 29, this.money(save.cash), 18, '#63d28d', 'bold'));
+
+    const resetPlate = addSurface(this, 966, 35, 126, 62, {
+      accent: VISUAL.steel,
+      fill: VISUAL.panelDeep,
+      strokeAlpha: 0.15,
+      glowAlpha: 0.006,
+    });
+    resetPlate.add(this.label(12, 10, this.locale === 'ru' ? 'СБРОС' : 'REFRESH', 9, VISUAL.faint, 'bold'));
+    resetPlate.add(this.label(12, 29, this.locale === 'ru' ? 'Ежедневно' : 'Daily', 15, '#d9dee5', 'bold'));
+
+    button(this, 1175, 68, t(this.locale, 'backToCollection'), () => this.scene.start('collection'), {
+      width: 160,
+      height: 48,
+      background: VISUAL.rare,
+      fontSize: this.locale === 'ru' ? 12 : 13,
     });
 
     offers.forEach((offer, index) => this.renderOfferCard(offer, index, dayKey));
 
-    this.centerLabel(640, 675, copy.footer, 13, '#737b88').setWordWrapWidth(1060);
+    this.centerLabel(640, 690, copy.footer, 11, VISUAL.faint).setWordWrapWidth(1100);
   }
 
   private renderOfferCard(offer: BuyerOfferDefinition, index: number, dayKey: string): void {
     const copy = this.copy();
-    const x = 75 + index * 390;
-    const y = 165;
-    const width = 350;
-    const height = 455;
+    const x = 48 + index * 405;
+    const y = 144;
+    const width = 382;
+    const height = 518;
     const save = this.store.snapshot;
     const claimed = save.claimedBuyerOfferIds.includes(offer.id);
     const match = claimed
       ? null
       : bestBuyerMatch(save.collection, ITEM_BY_ID, offer, save.collectionItems ?? []);
+    const accent = this.offerAccent(offer, index);
+    const cardAccent = claimed ? VISUAL.success : accent;
+    const card = this.add.container(x, y);
 
-    this.add.rectangle(x, y, width, height, 0x171a20, 1)
-      .setOrigin(0)
-      .setStrokeStyle(1, claimed ? 0x63d28d : 0xffffff, claimed ? 0.42 : 0.09);
+    card.add(addSurface(this, 0, 0, width, height, {
+      accent: cardAccent,
+      fill: VISUAL.panel,
+      strokeAlpha: claimed ? 0.38 : 0.22,
+      glowAlpha: claimed ? 0.02 : 0.014,
+    }));
 
-    this.label(x + 22, y + 20, offer.name[this.locale], 22, '#f7f8fa', 'bold').setWordWrapWidth(306);
-    this.label(x + 22, y + 58, offer.description[this.locale], 14, '#aeb5c0')
-      .setWordWrapWidth(306)
-      .setLineSpacing(3);
-    this.label(x + 22, y + 120, `${copy.premium}: +${Math.round((offer.multiplier - 1) * 100)}%`, 15, '#e9b949', 'bold');
+    const medallionGlow = this.add.circle(54, 58, 38, accent, 0.09).setStrokeStyle(1, accent, 0.24);
+    const medallion = this.add.circle(54, 58, 29, VISUAL.panelDeep, 1).setStrokeStyle(2, accent, 0.72);
+    const monogram = this.centerLabel(54, 58, this.buyerMonogram(offer.name[this.locale]), 17, this.hex(accent), 'bold');
+    card.add([medallionGlow, medallion, monogram]);
+
+    card.add(this.label(98, 25, offer.name[this.locale], 20, VISUAL.text, 'bold').setWordWrapWidth(185));
+    card.add(addChip(this, 307, 47, `+${Math.round((offer.multiplier - 1) * 100)}%`, VISUAL.warm, {
+      width: 90,
+      height: 32,
+      filled: true,
+      fontSize: 13,
+      foreground: '#fff0c2',
+    }));
+    card.add(this.label(98, 77, offer.description[this.locale], 12, '#b0b7c0')
+      .setWordWrapWidth(250)
+      .setLineSpacing(3));
+    card.add(addChip(this, 106, 133, this.demandLabel(offer), accent, {
+      width: 188,
+      height: 29,
+      filled: false,
+      fontSize: 9,
+    }));
+    card.add(this.label(221, 124, `${copy.premium}: +${Math.round((offer.multiplier - 1) * 100)}%`, 11, '#e9b949', 'bold'));
+    card.add(this.add.rectangle(20, 157, width - 40, 1, accent, 0.18).setOrigin(0));
 
     if (claimed) {
-      this.centerLabel(x + width / 2, y + 280, copy.completed, 18, '#63d28d', 'bold').setWordWrapWidth(290);
-      this.centerLabel(x + width / 2, y + 320, copy.comeBack, 13, '#8b93a1');
+      const stamp = this.add.circle(width / 2, 280, 68, VISUAL.success, 0.075).setStrokeStyle(2, VISUAL.success, 0.42);
+      const check = this.centerLabel(width / 2, 274, '✓', 48, '#63d28d', 'bold');
+      const done = this.centerLabel(width / 2, 350, copy.completed, 18, '#63d28d', 'bold').setWordWrapWidth(300);
+      const again = this.centerLabel(width / 2, 395, copy.comeBack, 12, VISUAL.muted).setWordWrapWidth(290);
+      card.add([stamp, check, done, again]);
+      card.add(addChip(this, width / 2, 469, this.locale === 'ru' ? 'СДЕЛКА ЗАКРЫТА' : 'DEAL CLOSED', VISUAL.success, {
+        width: 170,
+        height: 30,
+        filled: true,
+        fontSize: 10,
+      }));
+      enterWithStagger(this, card, y, index);
       return;
     }
 
     if (!match) {
-      this.centerLabel(x + width / 2, y + 270, copy.noMatch, 17, '#8b93a1', 'bold').setWordWrapWidth(290);
-      this.centerLabel(x + width / 2, y + 315, copy.keepHunting, 13, '#737b88').setWordWrapWidth(285);
+      const searchRing = this.add.circle(width / 2, 276, 58, VISUAL.steel, 0.16).setStrokeStyle(2, accent, 0.28);
+      const question = this.centerLabel(width / 2, 272, '?', 38, this.hex(accent), 'bold');
+      const noMatch = this.centerLabel(width / 2, 351, copy.noMatch, 17, '#a8b0ba', 'bold').setWordWrapWidth(295);
+      const keep = this.centerLabel(width / 2, 399, copy.keepHunting, 12, VISUAL.muted).setWordWrapWidth(302);
+      card.add([searchRing, question, noMatch, keep]);
+      card.add(addChip(this, width / 2, 469, this.locale === 'ru' ? 'ЖДЁТ НАХОДКУ' : 'WAITING FOR A FIND', accent, {
+        width: 182,
+        height: 30,
+        fontSize: 10,
+      }));
+      enterWithStagger(this, card, y, index);
       return;
     }
 
     const item = ITEM_BY_ID.get(match.itemId);
     if (!item) return;
 
-    this.add.rectangle(x + width / 2, y + 225, 190, 130, 0xe9b949, 0.035)
-      .setStrokeStyle(1, 0xffffff, 0.08);
-    this.add.image(x + width / 2, y + 225, resolveItemTexture(this, item.id)).setDisplaySize(175, 118);
-    this.centerLabel(x + width / 2, y + 310, item.name[this.locale], 17, '#f7f8fa', 'bold').setWordWrapWidth(300);
+    const hero = addSurface(this, 28, 176, 326, 173, {
+      accent,
+      fill: VISUAL.panelDeep,
+      strokeAlpha: 0.24,
+      glowAlpha: 0.018,
+    });
+    hero.add(this.add.ellipse(163, 77, 240, 126, accent, 0.045));
+    hero.add(this.add.image(163, 78, resolveItemTexture(this, item.id)).setDisplaySize(210, 142));
+    hero.add(addChip(this, 66, 148, item.rarity.toUpperCase(), accent, { width: 112, filled: true, fontSize: 9 }));
+    if (match.condition !== undefined) {
+      hero.add(addChip(this, 248, 148, `${Math.round(match.condition * 100)}%`, VISUAL.rare, { width: 72, fontSize: 10 }));
+    }
+    card.add(hero);
 
+    card.add(this.centerLabel(width / 2, 366, item.name[this.locale], 17, VISUAL.text, 'bold').setWordWrapWidth(315));
     const traits = match.traitIds
       ? itemTraitNamesForIds(match.traitIds, this.locale)
       : itemTraitNames(item.id, this.locale);
     const traitText = traits.length > 0 ? traits.join(' · ') : copy.categoryMatch;
-    this.centerLabel(x + width / 2, y + 340, traitText, 11, traits.length > 0 ? '#61a8ff' : '#8b93a1', 'bold')
-      .setWordWrapWidth(300);
+    card.add(this.centerLabel(width / 2, 391, traitText, 10, traits.length > 0 ? '#61a8ff' : VISUAL.muted, 'bold')
+      .setWordWrapWidth(315));
 
     if (match.appraisedValue !== undefined) {
-      const condition = match.condition !== undefined ? ` · ${Math.round(match.condition * 100)}%` : '';
       const restored = match.restored ? ` · ${copy.restored}` : '';
-      this.centerLabel(
-        x + width / 2,
-        y + 367,
-        `${copy.appraised}: ${this.money(match.appraisedValue)}${condition}${restored}`,
-        12,
-        '#aeb5c0',
-        'bold',
-      ).setWordWrapWidth(305);
+      card.add(this.centerLabel(width / 2, 416, `${copy.appraised}: ${this.money(match.appraisedValue)}${restored}`, 11, '#b7c0c9', 'bold')
+        .setWordWrapWidth(315));
     }
 
-    this.centerLabel(x + width / 2, y + 393, `${copy.offer}: ${this.money(match.value)}`, 19, '#63d28d', 'bold');
-    if (match.copies > 1) this.centerLabel(x + width / 2, y + 416, `${copy.copies}: ${match.copies}`, 12, '#8b93a1');
+    card.add(this.centerLabel(width / 2, 445, `${copy.offer}: ${this.money(match.value)}`, 21, '#63d28d', 'bold'));
+    if (match.copies > 1) card.add(addChip(this, 72, 474, `${copy.copies}: ${match.copies}`, VISUAL.steel, { width: 105, height: 26, fontSize: 9 }));
 
-    button(this, x + width / 2, y + 442, `${copy.sell} · ${this.money(match.value)}`, () => {
+    const sellButton = button(this, width / 2, 488, `${copy.sell} · ${this.money(match.value)}`, () => {
       const sold = this.store.sellToBuyer(offer.id, match.instanceId ?? match.itemId, dayKey);
       if (sold > 0) playFeedbackCue(this, 'sell');
-      this.renderMarket();
-    }, { width: 280, height: 44, background: 0xc4773a, feedback: false });
+      if (sold > 0 && !prefersReducedMotion()) {
+        this.tweens.add({
+          targets: card,
+          scaleX: 1.025,
+          scaleY: 1.025,
+          alpha: 0.68,
+          duration: MOTION.selectMs,
+          ease: 'Cubic.Out',
+          onComplete: () => this.renderMarket(),
+        });
+      } else {
+        this.renderMarket();
+      }
+    }, { width: 292, height: 42, background: VISUAL.copper, accent: VISUAL.warm, feedback: false, fontSize: this.locale === 'ru' ? 11 : 12 });
+    card.add(sellButton);
+
+    enterWithStagger(this, card, y, index);
+  }
+
+  private offerAccent(offer: BuyerOfferDefinition, index: number): number {
+    if (offer.traitIds && offer.traitIds.length > 0) return VISUAL.purple;
+    switch (offer.category) {
+      case 'watches': return VISUAL.warm;
+      case 'electronics': return VISUAL.rare;
+      case 'toys': return VISUAL.copper;
+      case 'art': return VISUAL.purple;
+      case 'tools': return 0x9aa5af;
+      case 'collectibles': return VISUAL.success;
+      default: return index === 2 ? VISUAL.purple : VISUAL.copper;
+    }
+  }
+
+  private demandLabel(offer: BuyerOfferDefinition): string {
+    if (offer.category) {
+      const ru: Record<string, string> = {
+        watches: 'ЧАСЫ', electronics: 'ЭЛЕКТРОНИКА', toys: 'ИГРУШКИ', art: 'ИСКУССТВО', tools: 'ИНСТРУМЕНТЫ', collectibles: 'РЕДКОСТИ',
+      };
+      return this.locale === 'ru' ? `КАТЕГОРИЯ · ${ru[offer.category] ?? offer.category.toUpperCase()}` : `CATEGORY · ${offer.category.toUpperCase()}`;
+    }
+    return this.locale === 'ru' ? 'СПЕЦИАЛИСТ · ПРИЗНАКИ' : 'SPECIALIST · TRAITS';
+  }
+
+  private buyerMonogram(name: string): string {
+    return name
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join('');
   }
 
   private copy(): {
@@ -196,6 +314,10 @@ export class BuyerMarketScene extends Phaser.Scene {
 
   private centerLabel(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
     return this.label(x, y, text, size, color, style).setOrigin(0.5);
+  }
+
+  private hex(value: number): string {
+    return `#${value.toString(16).padStart(6, '0')}`;
   }
 
   private money(value: number): string {

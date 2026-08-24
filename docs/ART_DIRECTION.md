@@ -1,4 +1,4 @@
-# Auction Hunter — Art Direction v0.7
+# Auction Hunter — Art Direction v0.8
 
 ## Visual thesis
 Auction Hunter should feel like a late-evening storage auction: warm tungsten light, cold industrial shadows, dusty surfaces, taped cardboard, worn paint and small flashes of valuable metal or electronics.
@@ -42,6 +42,19 @@ A catalog batch must not read as nine variations of one rendering recipe. Change
 - Rare cool accent: `#61A8FF`
 
 Rarity colors remain UI accents. They should not recolor the whole object.
+
+## Shared UI language
+Player-facing P7 screens should reuse `src/game/visual.ts` rather than inventing new rectangle styling per scene.
+
+The shared layer provides:
+- atmospheric background washes with a restrained contextual accent;
+- raised/deep surfaces with consistent shadow, border and top-edge treatment;
+- compact chips for rarity, state, category, traits and completion;
+- progress bars for set/meta progress;
+- hover-lift treatment that respects reduced motion;
+- shared palette tokens that complement the existing animated `button()` and `MOTION` timing layer.
+
+Shared helpers are a baseline, not a requirement that every card look identical. Lot cards, collection-set showcases and buyer dossiers must still express different purposes through composition, imagery and hierarchy.
 
 ## Screen composition standard
 Every major screen needs one dominant visual idea and at least three levels of hierarchy.
@@ -91,6 +104,12 @@ Lot/item/buyer cards should combine a subset of:
 
 Card types should differ according to purpose. A storage lot, rival dealer and inventory collectible should not feel like the same component with different text.
 
+### Collection Book
+Collection sets should read as display cases or archival boards rather than spreadsheet rows. Set progress is visual, item slots have rarity/ownership hierarchy, reward state has its own area and concrete-copy inspection opens as a hero card rather than a small utility modal.
+
+### Buyer Market
+Daily buyers should read as distinct dossiers/clients. Buyer identity and demand come first, premium is immediately scannable, and a matching concrete item becomes the hero visual. Completed/no-match/match states must be visually different without relying only on copy. Category buyers and specialist buyers may share the card shell but should not collapse into identical visual accents.
+
 ## Composition rules
 - Lot art: dense but controlled foreground clutter, a darker back wall, one primary warm light source and 2–3 readable clue silhouettes.
 - Garage lot art: practical storage depth, stronger floor perspective and mixed cardboard/wood/steel materials.
@@ -98,6 +117,8 @@ Card types should differ according to purpose. A storage lot, rival dealer and i
 - Item art: single object, three-quarter view where practical, transparent/neutral background, strong silhouette.
 - Reveal state: object occupies most of the card/screen and receives a subtle rarity halo.
 - Appraisal state: value UI becomes brighter than the object; the artwork should not compete with the price.
+- Collection sets: progress/reward hierarchy should remain scannable even when an item row contains several identities.
+- Buyer Market: the daily offer value and matched concrete item must visually outweigh descriptive buyer copy.
 - Use empty space deliberately. Large unused areas that carry neither atmosphere nor decision context should be redesigned.
 
 ## Game feel and motion
@@ -105,11 +126,14 @@ Visual feedback should reinforce causality and importance.
 
 Preferred lightweight treatments:
 - short press/selection scale or elevation changes;
+- staggered entrance for grouped decision/display cards;
+- hover lift for inspectable collection items;
 - bid/value number tweening;
 - staged reveal/appraisal transitions;
 - subtle highlight sweeps/glows;
 - restrained dust/spark/light particles on high-value events;
 - rival reaction motion;
+- short completion/sale acknowledgement before a market state rerenders;
 - small camera/container impulses for auction win/loss where appropriate.
 
 Effects must respect the reduced-motion accessibility setting. Motion is for input acknowledgement, state transition, causality and emphasis, not constant decoration.
@@ -169,5 +193,7 @@ Changes must keep `artManifest.ts`, loader behavior and coverage tests consisten
 
 ## Visual acceptance
 For material player-facing changes, run the browser capture flow and inspect the resulting image. Passing functional/browser tests does not by itself establish visual quality.
+
+Collection Book and Buyer Market use `scripts/capture-collection-market-review.mjs` as a dedicated production-build review path. It reaches both scenes through real canvas navigation, captures RU/EN states and verifies Buyer Market visibly replaces Collection Book before CI uploads the four review images.
 
 Use `skills/auction-hunter-visual-design/SKILL.md`, `skills/auction-hunter-animation-game-feel/SKILL.md` and the visual review checklist. If a screenshot still reads primarily as black rectangles, borders, small schematic art and equal-weight text, the visual task is not complete.

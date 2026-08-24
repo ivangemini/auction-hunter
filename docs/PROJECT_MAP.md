@@ -10,7 +10,7 @@ Fast navigation map for humans and coding agents.
 - `index.html` — browser shell, Yandex SDK script and portrait orientation guard.
 - `vite.config.ts` — relative build configuration; production source maps are disabled so release archives do not ship source maps.
 - `playwright.config.ts` — desktop/landscape/portrait browser QA.
-- `.github/workflows/ci.yml` — CI gates, draft/archive validation, candidate ZIP, promo/screenshots and unified submission artifacts; also uploads dedicated restoration, item-art and environment visual-review captures without changing the Yandex submission screenshot set.
+- `.github/workflows/ci.yml` — CI gates, draft/archive validation, candidate ZIP, promo/screenshots and unified submission artifacts; also uploads dedicated restoration, item-art, environment and Collection/Buyer Market visual-review captures without changing the Yandex submission screenshot set.
 - `.github/workflows/yandex-release.yml` — moderation-ready release workflow; produces the game ZIP plus a single submission bundle and injects optional `YANDEX_METRICA_ID` into the release build.
 - `release/yandex-draft-metadata.json` — machine-readable RU/EN draft copy and current visual-field constraints.
 - `release/promotional/` — reviewed SVG sources for the Yandex catalog icon/cover; `generated/` is produced by CI/release rather than committed.
@@ -18,6 +18,7 @@ Fast navigation map for humans and coding agents.
 - `release/screenshots/review/` — temporary screen-family visual-review captures used by CI; currently restoration mode/timing evidence and intentionally excluded from Yandex submission assets.
 - `release/screenshots/item-review/generated/` — deterministic 3×3 contact sheets for every accepted P7 item-fidelity batch; CI keeps earlier sheets when a new batch is added.
 - `release/screenshots/environment-review/generated/` — deterministic 3×2 Garage/Collector environment fidelity contact sheet; CI-only visual evidence, excluded from Yandex submission assets.
+- `release/screenshots/collection-market-review/` — RU/EN production-build Collection Book and Buyer Market visual-review captures reached through real canvas navigation; CI-only evidence.
 - `release/screenshots/debug/` — temporary capture diagnostics created only when the production screenshot flow needs failure evidence; CI may upload them with short retention.
 - `release/submission/generated/` — assembled Draft submission tree; CI/release output only.
 - `scripts/validate-yandex-draft.mjs` — release metadata length/casing/consistency/spec validator, including package/release version parity.
@@ -27,6 +28,7 @@ Fast navigation map for humans and coding agents.
 - `scripts/capture-restoration-review.mjs` — drives a production build through the real auction/reveal/appraisal path, then captures RU/EN restoration mode-picker and timing-stage evidence with transition-difference assertions.
 - `scripts/capture-item-art-review.mjs` — deterministically renders every accepted P7 item-fidelity batch as its own 3×3 1280×720 contact sheet, validates the 512×360 SVG viewBox contract and verifies browser decode.
 - `scripts/capture-environment-art-review.mjs` — validates the six Garage/Collector SVG environments for 512×360 source contract/no embedded text and renders a deterministic 3×2 1280×720 review sheet.
+- `scripts/capture-collection-market-review.mjs` — boots the production build with a broad deterministic inventory, navigates lot selection -> Collection -> Buyer Market through real canvas controls, captures RU/EN states and asserts the screen transition is visually substantial.
 - `scripts/build-yandex-submission.mjs` — assembles game ZIP, promo art, screenshots and metadata with SHA-256 manifests.
 
 ## Documentation
@@ -86,8 +88,8 @@ Static content/tuning inputs.
 - `lotMarket.ts` — normal-auction tier validation, three-choice generation, visible modifier application and page-session market-cycle cache.
 - `lotMarket.test.ts` — deterministic tier fallback/distinct-choice/cache regression coverage.
 - `restorationUi.ts` — P7 restoration workbench presentation: Safe/Pro/Risky decision cards with visible speed/window/reward tradeoffs, persistent item condition/value context, explicit Good/Perfect timing bands, dominant STOP control and one-shot input guards; formula/reward truth remains in `src/domain/restoration.ts`.
-- `scenes/CollectionScene.ts` — paged collection sets, concrete-copy appraisal/condition/trait display, Buyer Market navigation and lowest-value-first inventory quick sale.
-- `scenes/BuyerMarketScene.ts` — three deterministic daily buyers, exact-copy premium inventory matching and one completed sale per offer/day.
+- `scenes/CollectionScene.ts` — P7 archival/showcase Collection Book: visual set progress, reward state, larger inspectable item slots, concrete-copy hero modal, Buyer Market navigation and lowest-value-first quick sale; collection/set/save rules remain outside presentation.
+- `scenes/BuyerMarketScene.ts` — P7 buyer-dossier presentation for the three deterministic daily buyers: demand/premium hierarchy, concrete-copy hero match, claimed/no-match/match states and sale feedback while exact-copy pricing/one-sale-per-day behavior remains unchanged.
 - `scenes/OfficeScene.ts` — contracts, upgrades, achievements, stats, recent auction history and accessibility settings.
 - `scenes/OnboardingScene.ts` — first-session onboarding.
 - `store.ts`, `save.ts` — gameplay mutation and persistence boundaries, including concrete `collectionItems`, legacy collection reconciliation, Buyer Market day/claim state and exact-copy transactions.
@@ -96,6 +98,7 @@ Static content/tuning inputs.
 - `feedback.ts` — lightweight Web Audio cues and motion-aware camera juice.
 - `motion.ts` — shared interaction/reveal/value timing tokens and reduced-motion-aware scene motion helpers.
 - `ui.ts` — shared buttons with mobile hit slop, fixed hit targets, feedback/motion options and locale-specific font-size overrides where a compact action needs them.
+- `visual.ts` — shared P7 palette, atmosphere, layered surface, chip, progress-bar and reduced-motion-aware hover-lift helpers used to stop major scenes from inventing unrelated panel styling.
 - `art.ts` — preloads direct catalog item art and declared lot environments, rasterizing SVG at explicit 512×360 dimensions; Estate semantic IDs route to WebP while Garage/Collector route to authored SVG without presentation code branching on file format.
 - `config.ts`, `lifecycle.ts` — rendering/runtime infrastructure.
 
@@ -128,12 +131,15 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 - `scripts/capture-restoration-review.mjs` is the restoration screen-family visual gate: it follows the same production core loop and verifies the mode/timing screens visibly replace their preceding states before CI uploads the four RU/EN review captures.
 - `scripts/capture-item-art-review.mjs` is the persistent item-fidelity asset gate: it validates every accepted batch, preserves earlier review sheets, verifies 512×360 SVG viewBox contracts and emits deterministic contact sheets for human visual review.
 - `scripts/capture-environment-art-review.mjs` is the Garage/Collector environment asset gate: it verifies all six SVGs keep the 512×360 contract, rejects embedded text and emits a deterministic 3×2 contact sheet.
+- `scripts/capture-collection-market-review.mjs` is the Collection/Buyer Market screen-family gate: it uses the production build and real navigation, captures RU/EN at 1280×720 and asserts the two scene states visibly differ.
 
 ## Where to make common changes
 - Add/tune lots and clue signals: `src/data/catalog.ts` + `docs/CONTENT_MODEL.md`.
 - Add/change stable or randomized collectible traits: `src/data/itemTraits.ts` + `src/domain/auction.ts` + `docs/BUYER_MARKET.md`.
 - Change concrete owned-copy persistence: `src/game/save.ts` + `src/game/store.ts` + migration tests. Keep `collection: string[]` synchronized while legacy set/progression logic depends on it.
-- Change Buyer Market buyers/premiums/matching: `src/data/buyers.ts`; transaction semantics live in `src/game/store.ts`; presentation lives in `src/game/scenes/BuyerMarketScene.ts`.
+- Change Buyer Market buyers/premiums/matching: `src/data/buyers.ts`; transaction semantics live in `src/game/store.ts`; presentation lives in `src/game/scenes/BuyerMarketScene.ts` and visual evidence in `scripts/capture-collection-market-review.mjs`.
+- Change Collection Book presentation: `src/game/scenes/CollectionScene.ts`; preserve collection/set/resale behavior in domain/data/store and update the dedicated Collection/Buyer Market visual review.
+- Change shared P7 surface/chip/progress/atmosphere language: `src/game/visual.ts`; shared button motion remains in `src/game/ui.ts` + `src/game/motion.ts`.
 - Change normal-auction option sampling/cache behavior: `src/domain/lotSelection.ts` + `src/game/lotMarket.ts`; change polished selection presentation in `src/game/scenes/PolishedAuctionScene.ts`.
 - Change active bidding/win/reveal/appraisal presentation without changing auction rules: `src/game/scenes/PolishedAuctionSceneV2.ts`.
 - Change restoration mode difficulty/reward rules: `src/domain/restoration.ts`; change restoration choice/timing presentation in `src/game/restorationUi.ts`; update visual evidence through `scripts/capture-restoration-review.mjs`.
