@@ -89,19 +89,28 @@ async function clickGame(page, gameX, gameY) {
   );
 }
 
-async function installSeed(page) {
-  await page.addInitScript(({ key, save }) => {
+async function installSeed(page, platformLocale) {
+  await page.addInitScript(({ key, save, lang }) => {
+    window.YaGames = {
+      init: async () => ({
+        environment: { i18n: { lang } },
+        features: {
+          LoadingAPI: { ready() {} },
+          GameplayAPI: { start() {}, stop() {} },
+        },
+      }),
+    };
     localStorage.setItem(key, JSON.stringify(save));
     window.__auctionHunterScreenshotEvents = [];
     window.addEventListener('auction-hunter:analytics', (event) => {
       window.__auctionHunterScreenshotEvents.push(event.detail);
     });
-  }, { key: SAVE_KEY, save: seedSave });
+  }, { key: SAVE_KEY, save: seedSave, lang: platformLocale });
 }
 
-async function bootPage(context) {
+async function bootPage(context, platformLocale) {
   const page = await context.newPage();
-  await installSeed(page);
+  await installSeed(page, platformLocale);
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.locator('canvas').waitFor({ state: 'visible' });
   await page.waitForTimeout(650);
@@ -148,7 +157,7 @@ async function captureLocale(browser, localeCode, locale) {
     deviceScaleFactor: 1,
   });
   try {
-    const page = await bootPage(desktop);
+    const page = await bootPage(desktop, localeCode);
     await saveViewport(page, path.join(desktopDir, '01-lot-lobby.png'));
     await clickGame(page, 1038, 620);
     await page.waitForTimeout(300);
@@ -167,7 +176,7 @@ async function captureLocale(browser, localeCode, locale) {
     userAgent: 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0.0.0 Mobile Safari/537.36',
   });
   try {
-    const revealPage = await bootPage(mobile);
+    const revealPage = await bootPage(mobile, localeCode);
     await winCurrentAuction(revealPage);
     await pageWaitAndClick(revealPage, 640, 560, 250); // Open lot.
     await pageWaitAndClick(revealPage, 640, 555, 260); // Reveal first item.
@@ -176,7 +185,7 @@ async function captureLocale(browser, localeCode, locale) {
     await saveViewport(revealPage, path.join(mobileDir, '01-appraised-find.png'));
     await revealPage.close();
 
-    const officePage = await bootPage(mobile);
+    const officePage = await bootPage(mobile, localeCode);
     await pageWaitAndClick(officePage, 1038, 520, 260); // Collection Book.
     await pageWaitAndClick(officePage, 875, 72, 350); // Office.
     await saveViewport(officePage, path.join(mobileDir, '02-office-progression.png'));
