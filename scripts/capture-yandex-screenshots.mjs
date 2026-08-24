@@ -145,6 +145,16 @@ async function eventSeen(page, eventName) {
   return page.evaluate((name) => window.__auctionHunterScreenshotEvents?.some((event) => event?.eventName === name) ?? false, eventName);
 }
 
+async function tapUntilEvent(page, x, y, eventName, attempts = 5, waitMs = 240) {
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (await eventSeen(page, eventName)) return;
+    await clickGame(page, x, y);
+    await page.waitForTimeout(waitMs);
+    if (await eventSeen(page, eventName)) return;
+  }
+  throw new Error(`${eventName} was not observed after ${attempts} interaction attempts`);
+}
+
 async function winCurrentAuction(page) {
   // Use the real Garage tier tab for a shorter deterministic submission capture while
   // preserving the production selection -> bidding -> win -> reveal path.
@@ -271,10 +281,10 @@ async function captureLocale(browser, localeCode, locale) {
     const revealSeed = { ...seedSave, cash: 500000, highestCash: 500000 };
     const revealPage = await bootPage(mobile, localeCode, revealSeed);
     await winCurrentAuction(revealPage);
-    await pageWaitAndClick(revealPage, 640, 592, 250); // Open won lot.
-    await pageWaitAndClick(revealPage, 640, 600, 320); // Reveal first item.
-    await pageWaitAndClick(revealPage, 1016, 560, 520); // Appraise first item.
-    assert(await eventSeen(revealPage, 'item_appraised'), 'Appraisal event was not observed before screenshot');
+    await pageWaitAndClick(revealPage, 640, 592, 220); // Open won lot.
+    await tapUntilEvent(revealPage, 640, 600, 'item_revealed', 5, 260);
+    await tapUntilEvent(revealPage, 1016, 560, 'item_appraised', 5, 300);
+    await page.waitForTimeout(420); // Let appraisal value count-up settle for the production capture.
     await saveViewport(
       revealPage,
       path.join(mobileDir, '01-appraised-find.png'),
