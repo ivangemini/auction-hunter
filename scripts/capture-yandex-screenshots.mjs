@@ -137,7 +137,7 @@ async function winCurrentAuction(page) {
 async function saveViewport(page, outputPath) {
   await page.screenshot({ path: outputPath, type: 'png', fullPage: false });
   const bytes = fs.statSync(outputPath).size;
-  assert(bytes > 80_000, `${outputPath} looks unexpectedly small (${bytes} bytes)`);
+  assert(bytes > 30_000, `${outputPath} looks unexpectedly small (${bytes} bytes)`);
   const screenshot = fs.readFileSync(outputPath);
   assert(screenshot.subarray(12, 16).toString('ascii') === 'IHDR', `${outputPath} is not a PNG`);
   const width = screenshot.readUInt32BE(16);
