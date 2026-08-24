@@ -6,7 +6,6 @@ import { uniqueCollectionCount } from '../../data/collections';
 import { getDailySpecial, localDayKey, type DailySpecialDefinition } from '../../data/daily';
 import { ADVANCED_INSPECTION_COST, ADVANCED_INSPECTION_MIN_REP } from '../../data/inspection';
 import { itemTraitNamesForIds, itemTraitValueMultiplier } from '../../data/itemTraits';
-import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from '../../data/lotModifiers';
 import { MONETIZATION_POLICY } from '../../data/monetization';
 import { AUCTION_TIERS, getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../../data/tiers';
 import {
@@ -21,34 +20,27 @@ import type { AuctionOpponent, BidderTell } from '../../domain/auction';
 import { summarizeLotHistory } from '../../domain/history';
 import { inspectLot, type InspectionConditionBand, type InspectionReport } from '../../domain/inspection';
 import {
-  applyLotModifier,
   modifierConditionRange,
   modifierMarketMultiplier,
-  selectLotModifier,
   type LotModifierDefinition,
 } from '../../domain/lotModifier';
-import { chooseDistinctRandom } from '../../domain/lotSelection';
 import { rewardedSummaryBonus, shouldRequestInterstitial } from '../../domain/monetization';
-import { applyRestoration } from '../../domain/restoration';
+import { applyRestoration, baseRestorationTargetHalfWidth, type RestorationMode } from '../../domain/restoration';
 import type { Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
 import { t } from '../../i18n';
 import { isAdvertisingAvailable, showInterstitialAd, showRewardedAd } from '../../platform/ads';
 import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platform/yandex';
 import { preloadArt, resolveItemTexture, resolveLotTexture } from '../art';
 import { playFeedbackCue } from '../feedback';
+import { prepareLotMarket, type LotChoice } from '../lotMarket';
+import { renderRestorationModePicker, renderRestorationTimingGame } from '../restorationUi';
 import { GameStore } from '../store';
 import { button } from '../ui';
 
 type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
 
-interface LotChoice {
-  lot: LotTemplate;
-  modifier: LotModifierDefinition | null;
-}
-
 const WIDTH = 1280;
 const HEIGHT = 720;
-const LOT_CHOICE_COUNT = 3;
 
 const RARITY_COLORS: Record<Rarity, number> = {
   common: 0xaeb5c0,
@@ -66,9 +58,6 @@ const TELL_COLORS: Record<BidderTell, string> = {
 };
 
 export class AuctionScene extends Phaser.Scene {
-  private static lotChoiceCycle = -1;
-  private static readonly lotChoiceCache = new Map<AuctionTierId, LotChoice[]>();
-
   private readonly store = new GameStore();
   private locale: Locale = 'en';
   private lot!: LotTemplate;
@@ -95,8 +84,6 @@ export class AuctionScene extends Phaser.Scene {
   private transitionAdPending = false;
   private restorationUsed = false;
   private notice = '';
-  private restorationTargetCenter = 0.5;
-  private restorationTargetHalfWidth = 0.1;
 
   constructor() {
     super('auction');
@@ -119,38 +106,13 @@ export class AuctionScene extends Phaser.Scene {
 
   private prepareLotChoices(): void {
     const save = this.store.snapshot;
-    let tier = getAuctionTier(this.currentTierId);
-    if (save.reputationXp < tier.minReputationXp) {
-      tier = highestUnlockedAuctionTier(save.reputationXp);
-      this.currentTierId = tier.id;
-    }
-
-    if (AuctionScene.lotChoiceCycle !== save.auctionsPlayed) {
-      AuctionScene.lotChoiceCycle = save.auctionsPlayed;
-      AuctionScene.lotChoiceCache.clear();
-    }
-
-    const cachedChoices = AuctionScene.lotChoiceCache.get(this.currentTierId);
-    if (cachedChoices) {
-      this.lotChoices = cachedChoices;
-      this.trackLotOptionsPresented();
-      return;
-    }
-
-    const tierLots = tier.lotIds
-      .map((lotId) => LOTS.find((candidate) => candidate.id === lotId))
-      .filter((candidate): candidate is LotTemplate => Boolean(candidate));
-    const baseLots = chooseDistinctRandom(tierLots, LOT_CHOICE_COUNT);
-    if (baseLots.length === 0) throw new Error(`No lot templates configured for tier ${tier.id}`);
-
-    this.lotChoices = baseLots.map((baseLot) => {
-      const modifier = selectLotModifier(LOT_MODIFIERS, LOT_MODIFIER_CHANCE);
-      return {
-        lot: applyLotModifier(baseLot, modifier),
-        modifier,
-      };
+    const market = prepareLotMarket({
+      requestedTierId: this.currentTierId,
+      reputationXp: save.reputationXp,
+      auctionsPlayed: save.auctionsPlayed,
     });
-    AuctionScene.lotChoiceCache.set(this.currentTierId, this.lotChoices);
+    this.currentTierId = market.tierId;
+    this.lotChoices = market.choices;
     this.trackLotOptionsPresented();
   }
 
@@ -747,52 +709,36 @@ export class AuctionScene extends Phaser.Scene {
     if (!item || item.restored || this.restorationUsed) return;
 
     this.revealStage = 'restoring';
-    this.restorationTargetHalfWidth = this.targetHalfWidth(item.definition.rarity);
-    const edge = this.restorationTargetHalfWidth + 0.08;
-    this.restorationTargetCenter = Phaser.Math.FloatBetween(edge, 1 - edge);
-    this.renderRestoration();
-  }
-
-  private renderRestoration(): void {
-    const item = this.items[this.revealIndex];
-    if (!item) return;
-
-    this.resetCanvas();
-    this.renderHeader();
-    this.panel(180, 145, 920, 500);
-    this.centerLabel(640, 190, t(this.locale, 'restorationTitle'), 34, '#e9b949', 'bold');
-
-    this.add.image(380, 315, resolveItemTexture(this, item.definition.id)).setDisplaySize(300, 210);
-    this.centerLabel(380, 433, `${t(this.locale, 'condition')}: ${Math.round(item.condition * 100)}%`, 18, '#d7dbe2', 'bold');
-
-    this.label(565, 255, t(this.locale, 'restorationHelp'), 18, '#d7dbe2').setWordWrapWidth(420);
-
-    const barX = 320;
-    const barY = 500;
-    const barWidth = 640;
-    const targetX = barX + barWidth * this.restorationTargetCenter;
-    const targetWidth = barWidth * this.restorationTargetHalfWidth * 2;
-
-    this.add.rectangle(barX, barY, barWidth, 26, 0x2b3038).setOrigin(0, 0.5).setStrokeStyle(1, 0xffffff, 0.12);
-    this.add.rectangle(targetX, barY, targetWidth, 26, 0x63d28d, 0.52).setStrokeStyle(2, 0x63d28d, 0.9);
-    const marker = this.add.rectangle(barX, barY, 8, 54, 0xf7f8fa).setOrigin(0.5);
-    const tween = this.tweens.add({
-      targets: marker,
-      x: barX + barWidth,
-      duration: 900,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.inOut',
+    renderRestorationModePicker({
+      scene: this,
+      locale: this.locale,
+      item,
+      prepareFrame: () => {
+        this.resetCanvas();
+        this.renderHeader();
+      },
+      onChoose: (mode) => this.beginRestoration(mode),
     });
-
-    button(this, 640, 585, t(this.locale, 'restorationStop'), () => {
-      const markerPosition = Phaser.Math.Clamp((marker.x - barX) / barWidth, 0, 1);
-      tween.stop();
-      this.finishRestoration(markerPosition);
-    }, { width: 260, height: 60, background: 0xc4773a });
   }
 
-  private finishRestoration(markerPosition: number): void {
+  private beginRestoration(mode: RestorationMode): void {
+    const item = this.items[this.revealIndex];
+    if (!item || item.restored || this.restorationUsed) return;
+
+    renderRestorationTimingGame({
+      scene: this,
+      locale: this.locale,
+      item,
+      mode,
+      prepareFrame: () => {
+        this.resetCanvas();
+        this.renderHeader();
+      },
+      onStop: (markerPosition, targetCenter) => this.finishRestoration(markerPosition, targetCenter, mode),
+    });
+  }
+
+  private finishRestoration(markerPosition: number, targetCenter: number, mode: RestorationMode): void {
     const item = this.items[this.revealIndex];
     if (!item || this.restorationUsed) return;
 
@@ -800,12 +746,14 @@ export class AuctionScene extends Phaser.Scene {
       item.appraisedValue,
       item.condition,
       markerPosition,
-      this.restorationTargetCenter,
-      this.restorationTargetHalfWidth,
+      targetCenter,
+      baseRestorationTargetHalfWidth(item.definition.rarity),
+      mode,
     );
 
     trackEvent('restoration_completed', {
       itemId: item.definition.id,
+      mode: outcome.mode,
       grade: outcome.grade,
       conditionBefore: outcome.conditionBefore,
       conditionAfter: outcome.conditionAfter,
@@ -1087,16 +1035,6 @@ export class AuctionScene extends Phaser.Scene {
     if (condition < 0.7) return 0xe9b949;
     if (condition < 0.86) return 0x63d28d;
     return 0x61a8ff;
-  }
-
-  private targetHalfWidth(rarity: Rarity): number {
-    switch (rarity) {
-      case 'common': return 0.14;
-      case 'uncommon': return 0.12;
-      case 'rare': return 0.105;
-      case 'epic': return 0.09;
-      case 'legendary': return 0.075;
-    }
   }
 
   private signedMoney(value: number): string {
