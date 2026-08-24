@@ -12,6 +12,7 @@ interface ButtonOptions {
   feedback?: boolean;
   accent?: number;
   motion?: boolean;
+  fontSize?: number;
 }
 
 export function button(
@@ -31,6 +32,7 @@ export function button(
   const accent = options.accent ?? background;
   const hitSlop = Math.max(0, options.hitSlop ?? 14);
   const motionEnabled = options.motion !== false && !prefersReducedMotion();
+  const fontSize = options.fontSize ?? Math.min(20, Math.max(12, Math.round(height * 0.44)));
 
   const shadow = scene.add.rectangle(0, 4, width + 4, height + 4, 0x000000, options.disabled ? 0.18 : 0.34)
     .setStrokeStyle(1, accent, 0.08);
@@ -41,11 +43,11 @@ export function button(
   const topHighlight = scene.add.rectangle(0, -height / 2 + 2, Math.max(24, width - 10), 2, 0xffffff, options.disabled ? 0.03 : 0.16);
   const text = scene.add.text(0, 0, label, {
     fontFamily: 'Arial, sans-serif',
-    fontSize: '20px',
+    fontSize: `${fontSize}px`,
     fontStyle: 'bold',
     color: foreground,
     align: 'center',
-    wordWrap: { width: Math.max(80, width - 24) },
+    wordWrap: { width: Math.max(80, width - 20) },
   }).setOrigin(0.5);
 
   // The visual shell animates independently. The outer container and hit target stay fixed,
