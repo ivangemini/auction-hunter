@@ -110,7 +110,7 @@ test('normal auction flow presents stable unique lots and counts one impression 
   await page.waitForTimeout(150);
   expect((await presentedPayloads(page)).length).toBe(2); // Same cached Collector market is not a new impression.
 
-  await clickGame(page, 240, 625); // Old button coordinate remains inside the Dealer Memory layout's hit target.
+  await clickGame(page, 240, 625); // First polished lot CTA.
   await expect.poll(async () => (await selectedPayloads(page)).length).toBe(1);
   const selected = (await selectedPayloads(page))[0];
   expect(selected?.tierId).toBe('collector');
@@ -133,7 +133,7 @@ test('normal auction flow presents stable unique lots and counts one impression 
     return events.filter((event: any) => event?.eventName === 'auction_started').length;
   })).toBe(1);
 
-  await clickGame(page, 560, 555); // Pass immediately.
+  await clickGame(page, 580, 626); // Pass immediately in the polished auction layout.
   await expect.poll(() => page.evaluate(() => {
     const events = (window as any).__lotSelectionEvents ?? [];
     return events.filter((event: any) => event?.eventName === 'auction_passed').length;
