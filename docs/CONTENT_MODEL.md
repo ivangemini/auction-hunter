@@ -14,42 +14,42 @@ Rules:
 ## Item definition responsibilities
 An item definition owns or references:
 - stable ID;
-- localized display name;
-- category;
+- localized display name/description;
+- category/set;
 - rarity;
-- baseline value;
-- runtime art ID/asset;
-- auction availability through lot pools.
+- baseline value/tuning range;
+- art/asset reference or temporary visual archetype alias;
+- restoration/condition metadata when implemented;
+- discovery/auction availability tags.
 
 Do not put runtime ownership, appraised outcome or player-specific condition directly in static definitions.
 
 ## Lot template responsibilities
 A lot template describes generation inputs, not one player's generated lot:
-- stable ID and optional reusable `artId`;
-- localized title/location;
-- reserve price and bid increment;
-- item pool and item count;
-- clue definitions.
-
-### Clue contract
-A clue is no longer decorative copy. Each clue contains localized text plus a machine-readable signal (`categories` or explicit `itemIds`). During lot generation, every clue attempts to reserve one unique matching find before the remaining slots are filled randomly.
-
-This creates partial but truthful pre-auction information: the player does not know the exact item, condition or market factor, but can reason about the kinds of value hidden in the lot.
-
-New clues must always have at least one eligible match in the owning lot's item pool.
+- stable ID;
+- localized title/location/clues;
+- reserve/bid tuning;
+- eligible item pools/tags;
+- item-count range;
+- tier/availability requirements;
+- truthful clue signals;
+- future rarity/condition biases.
 
 ## Runtime instances
-Generated lot/item instances reference stable definitions and carry runtime outcomes separately. Condition, appraisal, restoration outcome and sale/keep decisions are runtime state, not catalog identity.
+Generated lot/item instances reference stable definitions and carry runtime outcome values separately. This lets balance/content definitions evolve without mutating historical identity.
 
 ## Localization
 Display copy is content, not identity. IDs must not depend on English/Russian names.
 
+## Current scale
+The v1 content pass contains 24 item identities, 18 lot templates and 8 collection sets. The 12 original items have dedicated SVG art. The 12 added identities intentionally reuse related original visual archetypes through `src/game/art.ts`; this is an interim art strategy, not final asset completion.
+
 ## Scale safeguards
-Before large content imports, add automated checks for:
-- duplicate IDs;
-- missing locale strings;
-- invalid rarity/category references;
-- impossible value ranges;
-- broken asset references;
+Automated tests check:
+- duplicate item/lot IDs;
+- missing tier lot references;
 - lot pools referencing missing items;
-- clue signals with no eligible item in the owning lot.
+- clue signals that cannot match anything in their lot pool;
+- v1 target counts for items/lots/tier variants;
+- collection coverage for every catalog item;
+- RU/EN localization parity through the i18n gate.
