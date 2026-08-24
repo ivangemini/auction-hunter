@@ -13,6 +13,7 @@ export interface AnalyticsEventMap {
     tierId: AuctionTierId;
     lotIds: string[];
     modifierIds: Array<string | null>;
+    marketCycle?: number;
   };
   lot_option_selected: {
     tierId: AuctionTierId;
@@ -21,6 +22,7 @@ export interface AnalyticsEventMap {
     reservePrice: number;
     itemCount: number;
     modifierId?: string;
+    marketCycle?: number;
   };
   daily_special_activated: { dayKey: string; tierId: AuctionTierId; lotId: string };
   auction_started: {
@@ -114,12 +116,30 @@ export type AnalyticsSink = (event: AnalyticsEnvelope) => void;
 
 const sessionId = createId('session');
 let sequence = 0;
+let marketCycle = 1;
+const presentedTiersInMarketCycle = new Set<AuctionTierId>();
 const sinks = new Set<AnalyticsSink>();
 
 export function trackEvent<K extends AnalyticsEventName>(
   eventName: K,
   payload: AnalyticsEventMap[K],
 ): AnalyticsEnvelope<K> {
+  let effectivePayload = payload;
+  let shouldDispatch = true;
+
+  if (eventName === 'lot_options_presented') {
+    const selectionPayload = payload as AnalyticsEventMap['lot_options_presented'];
+    effectivePayload = { ...selectionPayload, marketCycle } as AnalyticsEventMap[K];
+    if (presentedTiersInMarketCycle.has(selectionPayload.tierId)) {
+      shouldDispatch = false;
+    } else {
+      presentedTiersInMarketCycle.add(selectionPayload.tierId);
+    }
+  } else if (eventName === 'lot_option_selected') {
+    const selectionPayload = payload as AnalyticsEventMap['lot_option_selected'];
+    effectivePayload = { ...selectionPayload, marketCycle } as AnalyticsEventMap[K];
+  }
+
   sequence += 1;
   const event: AnalyticsEnvelope<K> = {
     schemaVersion: ANALYTICS_SCHEMA_VERSION,
@@ -128,13 +148,20 @@ export function trackEvent<K extends AnalyticsEventName>(
     sessionId,
     sequence,
     occurredAt: new Date().toISOString(),
-    payload,
+    payload: effectivePayload,
   };
 
-  for (const sink of sinks) sink(event as AnalyticsEnvelope);
+  if (shouldDispatch) {
+    for (const sink of sinks) sink(event as AnalyticsEnvelope);
 
-  if (typeof window !== 'undefined' && typeof window.CustomEvent !== 'undefined') {
-    window.dispatchEvent(new CustomEvent(ANALYTICS_DOM_EVENT, { detail: event }));
+    if (typeof window !== 'undefined' && typeof window.CustomEvent !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(ANALYTICS_DOM_EVENT, { detail: event }));
+    }
+  }
+
+  if (eventName === 'auction_started') {
+    marketCycle += 1;
+    presentedTiersInMarketCycle.clear();
   }
 
   return event;
