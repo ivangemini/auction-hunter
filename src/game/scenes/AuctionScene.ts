@@ -763,7 +763,7 @@ export class AuctionScene extends Phaser.Scene {
 
   private finishRestoration(markerPosition: number): void {
     const item = this.items[this.revealIndex];
-    if (!item) return;
+    if (!item || this.restorationUsed) return;
 
     const outcome = applyRestoration(
       item.appraisedValue,
