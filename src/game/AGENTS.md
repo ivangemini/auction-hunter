@@ -22,7 +22,7 @@ If a scene becomes difficult to navigate or test, split by responsibility rather
 - Never make closing an ad or losing focus count as a gameplay failure.
 
 ## Presentation
-For player-facing scene work, read `../../skills/auction-hunter-visual-design/SKILL.md` and `../../docs/ART_DIRECTION.md` before implementation.
+For player-facing scene work, read `../../skills/auction-hunter-visual-design/SKILL.md`, `../../skills/auction-hunter-animation-game-feel/SKILL.md` and `../../docs/ART_DIRECTION.md` before implementation.
 
 - Prefer reusable UI helpers/components for repeated visual patterns.
 - Keep layout constants/tokens centralized as the visual system matures.
@@ -32,7 +32,9 @@ For player-facing scene work, read `../../skills/auction-hunter-visual-design/SK
 - Use hierarchy, atmosphere, imagery and feedback to make the scene feel like part of the auction world rather than a dashboard.
 - Important interactions must show hover/touch/press/selected/disabled feedback as appropriate.
 - Important gameplay events should receive proportionate visual feedback while respecting reduced-motion accessibility.
-- When the same visual treatment appears across 3+ scenes, extract or extend a shared helper/token rather than copy-pasting styles and coordinates.
+- Use the timing/state-safety/performance rules from the animation skill for tweens, transitions, particles, reveals and value changes.
+- Motion must present state, never become the source of auction/economy/save truth.
+- When the same visual or motion treatment appears across 3+ scenes, extract or extend a shared helper/token rather than copy-pasting styles and coordinates.
 - For material UI changes, inspect a browser screenshot after implementation and review it against `../../skills/auction-hunter-visual-design/references/visual-review-checklist.md`.
 - Browser QA passing is necessary but not sufficient for visual acceptance.
 
