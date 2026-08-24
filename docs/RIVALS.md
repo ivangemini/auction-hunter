@@ -10,9 +10,9 @@ The initial roster is intentionally small and persistent:
 
 | Dealer | Visible behavior | Specialty | Specialty value premium |
 | --- | --- | --- | ---: |
-| Victor | cautious reseller | electronics + tools | 18% |
-| Mira | margin-focused | watches + art | 24% |
-| Anton | pushes auctions hard | toys + collectibles | 28% |
+| Victor | cautious reseller | electronics + tools | 8% |
+| Mira | margin-focused | watches + art | 10% |
+| Anton | pushes auctions hard | toys + collectibles | 12% |
 
 The same dealer ID always keeps the same specialty. This makes repeated exposure useful knowledge.
 
@@ -38,6 +38,7 @@ This is the intended learning loop: the player knows what a rival likes, sees tr
 
 ## Economy guardrails
 - Specialty multipliers are additive only on matching item value, not the whole lot.
+- The launch premiums are deliberately modest (8–12%) so personality creates relative pressure without breaking the existing force-win economy envelope.
 - Domain code clamps specialty multipliers to a maximum of 2× as a defensive bound.
 - Profiles without a specialty preserve the old valuation behavior exactly.
 - No save migration is required: dealer identities/specialties are content definitions, not player-owned state.
@@ -47,4 +48,5 @@ Domain tests protect both compatibility and specialty behavior:
 - old profiles without specialties produce the same budgets as before;
 - a matching category increases rival valuation;
 - an unrelated specialty does not alter lot valuation;
-- resulting budgets still use the existing bid-increment rounding and eligibility rules.
+- resulting budgets still use the existing bid-increment rounding and eligibility rules;
+- the full economy simulation remains a required CI gate after specialty tuning.
