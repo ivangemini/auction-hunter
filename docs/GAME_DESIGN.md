@@ -1,42 +1,41 @@
-# Auction Hunter — Game Design v0.1
+# Auction Hunter — Game Design v0.2
 
 ## Product thesis
-Auction Hunter combines uncertain-value auctions, item reveals, appraisal, restoration and collection. The primary retention hook is curiosity: the player never knows the exact value of a lot before buying it.
+Auction Hunter combines uncertain-value auctions, truthful visual clues, item reveals, appraisal, selective restoration and collection. The retention hook is curiosity plus judgment: the player has partial information before risking bankroll, but never exact value.
 
 ## Core loop
-1. Inspect a storage lot and visible clues.
-2. Bid against NPC buyers under bankroll pressure.
-3. Win or pass on the lot.
-4. Reveal hidden items one by one.
+1. Inspect a lot and read clue-backed signals.
+2. Decide how much those signals justify risking.
+3. Bid against NPC buyers or pass before overpaying.
+4. Win and reveal hidden items one by one.
 5. Appraise each item.
-6. Sell for cash or keep rare items in the collection.
-7. Use the stronger bankroll to access better auctions.
+6. Spend the lot's single restoration attempt on the find where it matters most, or save it for a later reveal.
+7. Sell for immediate cash or keep for collection/set progress.
+8. Review cash result plus estimated kept value, then continue into another varied lot.
 
 ## Player fantasy
 Start as a small garage reseller and grow into a high-end auction/antique business.
 
+## Decision quality principles
+- Clues must be truthful enough to reward attention.
+- Blindly winning every auction must not be the dominant strategy.
+- Keeping items must have opportunity cost without creating irreversible bankroll failure.
+- Restoration must be scarce enough to require prioritization.
+- Collection and monetization incentives must not contradict each other.
+
 ## Retention layers
-- Seconds: next NPC bid / next reveal.
-- Minutes: did the lot make a profit?
-- Session: unlock a better auction tier.
-- Days: daily special lot, collection completion, business upgrades.
-- Long term: rare sets, prestige-like reputation tiers and high-value auction houses.
+- Seconds: next NPC bid / reveal / restoration timing.
+- Minutes: did the lot create total value and did the player overpay?
+- Session: unlock another tier and discover different lot templates.
+- Days: Daily Special and set completion.
+- Long term: rare sets, prestige-like reputation tiers and future business progression.
 
 ## Monetization principles
-Rewarded ads should trade optional information or convenience for attention, for example an extra pre-auction clue, an expert appraisal, or a temporary sale boost. Interstitials should only appear at natural session breaks. No monetization mechanic should make the base loop intentionally frustrating.
+Rewarded ads trade optional attention for bounded bonus value. The launch summary reward uses total round appraisal rather than only sold value so keeping a collectible is not monetization-negative. Interstitials only appear at natural transitions.
 
-## MVP scope
-- One complete auction/reveal/appraise/sell-or-keep loop.
-- Data-driven item catalog and lot templates.
-- NPC bidders with different budgets.
-- Bankroll and collection persistence.
-- RU/EN UI foundation.
-- Yandex Games SDK initialization and Game Ready signal.
-
-## Post-MVP
-- Restoration mini-games and condition grades.
-- Collection book with category completion.
-- Reputation and auction tiers.
-- Daily auction.
-- Rewarded ads and cloud saves.
-- Analytics events for funnel, auction decisions, session value and retention cohorts.
+## Current content scope
+- 12 collectible item definitions.
+- 9 lot templates: 3 Garage, 3 Estate and 3 Collector variants.
+- 3 auction tiers.
+- 4 collection sets.
+- Daily Special, local/cloud save, analytics and policy-compliant ads.

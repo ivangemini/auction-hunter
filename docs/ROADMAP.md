@@ -20,6 +20,14 @@
 - [x] First-session onboarding and 30-minute progression curve.
 - [x] Event analytics schema.
 - [x] Yandex cloud save.
+- [x] Clue-backed lot generation: visible clues correspond to real hidden categories/items.
+- [x] Auction risk rebalance so forcing every win is not safely optimal.
+- [x] Anti-soft-lock collection resale.
+- [x] One strategic restoration attempt per won lot.
+- [x] Three lot variants per auction tier.
+- [x] Landscape-first mobile guard and expanded touch hit areas.
+- [x] Lightweight sound/game-feel feedback without external audio dependencies.
+- [x] Round summary values kept inventory and rewarded ads no longer penalize collecting.
 
 ## P2 — Monetization and release
 - [x] Rewarded ad placements based on optional value.

@@ -12,30 +12,34 @@ Rules:
 - do not rename after release without migration/alias support.
 
 ## Item definition responsibilities
-An item definition should eventually own or reference:
+An item definition owns or references:
 - stable ID;
-- localized display name/description;
-- category/set;
+- localized display name;
+- category;
 - rarity;
-- baseline value/tuning range;
-- art/asset reference;
-- restoration/condition metadata when implemented;
-- discovery/auction availability tags.
+- baseline value;
+- runtime art ID/asset;
+- auction availability through lot pools.
 
 Do not put runtime ownership, appraised outcome or player-specific condition directly in static definitions.
 
 ## Lot template responsibilities
-A lot template should describe generation inputs, not one player's generated lot:
-- stable ID;
-- localized title/location/clues;
-- reserve/bid tuning;
-- eligible item pools/tags;
-- item-count range;
-- tier/availability requirements;
-- future rarity/condition biases.
+A lot template describes generation inputs, not one player's generated lot:
+- stable ID and optional reusable `artId`;
+- localized title/location;
+- reserve price and bid increment;
+- item pool and item count;
+- clue definitions.
+
+### Clue contract
+A clue is no longer decorative copy. Each clue contains localized text plus a machine-readable signal (`categories` or explicit `itemIds`). During lot generation, every clue attempts to reserve one unique matching find before the remaining slots are filled randomly.
+
+This creates partial but truthful pre-auction information: the player does not know the exact item, condition or market factor, but can reason about the kinds of value hidden in the lot.
+
+New clues must always have at least one eligible match in the owning lot's item pool.
 
 ## Runtime instances
-Generated lot/item instances should reference stable definitions and carry runtime outcome values separately. This lets balance/content definitions evolve without mutating historical identity.
+Generated lot/item instances reference stable definitions and carry runtime outcomes separately. Condition, appraisal, restoration outcome and sale/keep decisions are runtime state, not catalog identity.
 
 ## Localization
 Display copy is content, not identity. IDs must not depend on English/Russian names.
@@ -47,4 +51,5 @@ Before large content imports, add automated checks for:
 - invalid rarity/category references;
 - impossible value ranges;
 - broken asset references;
-- lot pools referencing missing items.
+- lot pools referencing missing items;
+- clue signals with no eligible item in the owning lot.

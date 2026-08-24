@@ -1,16 +1,39 @@
 # Economy and retention guardrails
 
-This document defines design constraints, not final balance numbers. Real tuning should be driven by telemetry after release.
+This document defines design constraints and current pre-release tuning. Real tuning must be driven by telemetry after release.
 
 ## Retention thesis
-The primary hook is uncertainty followed by reveal: inspect partial information, risk bankroll, discover hidden items, then decide whether to realize value or keep collection progress.
+The primary hook is uncertainty followed by reveal: inspect truthful partial information, risk bankroll, discover hidden items, then decide whether to realize value or keep collection progress.
 
 Nested loops:
 - seconds: next bid / next reveal;
 - minutes: lot profit or loss;
 - session: bankroll/reputation progress and unlocks;
-- daily: special lot, collection goals and future daily tasks;
-- long term: rare sets, business progression and high-tier auction access.
+- daily: special lot and collection goals;
+- long term: rare sets, higher-value tiers and future business progression.
+
+## Auction skill model
+Visible clues are machine-backed signals. Each clue guarantees a matching type of find when the lot pool can satisfy it, while exact item, condition and market factor remain hidden.
+
+NPC willingness-to-pay is intentionally much closer to hidden value than in the original vertical slice:
+- cautious profile: 45–65% of generated appraisal;
+- competitive profile: 60–85%;
+- aggressive profile: 75–102%.
+
+The player should not be able to profit safely by forcing every auction to completion. Pre-release Monte Carlo checks on the tuned pools target a meaningful minority of losing forced wins while keeping early Garage lots affordable often enough for first-session progress. Live telemetry remains the authority after release.
+
+## Liquidity / anti-soft-lock
+Collection inventory can be quick-sold at 65% of catalog base value. This is deliberately conservative: keeping a collectible has opportunity cost, but a player who spent most of the bankroll and kept the finds can recover enough liquidity to continue playing.
+
+Set rewards remain one-time. Selling a last copy after claiming a set does not revoke the already-claimed reward and cannot make it claimable twice.
+
+## Restoration economy
+Condition still creates resale uplift, but restoration is now a lot-level scarce action: one restoration attempt per won lot. The timing game itself remains non-destructive for the first retention test; the strategic cost is choosing which find receives the one attempt.
+
+## Rewarded monetization
+The completed-round rewarded cash bonus remains 25% with a 150 ₽ floor and 600 ₽ cap, but its basis is now the total appraised value disposed during the round (`sales + kept appraisal`), not sales alone. Choosing collection progress therefore no longer reduces the offered ad reward.
+
+Interstitials remain only at natural breaks. Never interrupt a bid, reveal interaction, restoration mini-game or transactional decision.
 
 ## Economy goals
 - Early players must recover from ordinary mistakes.
@@ -18,36 +41,27 @@ Nested loops:
 - Skill/information should matter alongside randomness.
 - Better tiers should increase opportunity and variance, not only inflate every number.
 - Keeping a collectible should create a meaningful opportunity cost versus selling it.
-- Rare jackpots should feel exceptional without making normal lots feel pointless.
+- Rare jackpots should feel exceptional without making normal lots pointless.
 
 ## Tuning rules for agents
-Do not change reserve prices, value ranges, NPC bid factors, rarity rates or progression requirements casually. For material changes:
+For material economy changes:
 1. state the target behavior/metric;
 2. change the narrowest relevant parameters;
-3. avoid simultaneous changes to several economy systems unless intentionally running a full rebalance;
+3. avoid simultaneous unrelated tuning;
 4. preserve save compatibility;
-5. update this document if the economy model itself changes.
+5. update deterministic tests and this document when the model changes.
 
-## Monetization guardrails
-Rewarded ads may offer optional value such as extra information, expert assistance or post-lot bonuses, but the free loop must remain complete and non-frustrating.
-
-The launch rewarded placement is deliberately bounded: the completed-round cash bonus is 25% of that round's sales, with a 150 ₽ floor and 600 ₽ cap. This gives low-bankroll players meaningful recovery value without allowing high-tier jackpots to scale ad rewards without limit.
-
-Interstitials belong only at natural breaks. The launch client requests one after auction #2 and then every 3 auctions, only when the player chooses to continue to the next auction. Yandex frequency controls may reduce actual impressions further.
-
-Never interrupt a bid, reveal interaction, restoration mini-game or transactional decision. Do not increase ad cadence or reward size based on revenue alone; use retention and economy telemetry.
-
-## Metrics to design for
-When analytics exist, evaluate at least:
+## Metrics to evaluate after release
 - tutorial/core-loop completion;
 - time to first bid/win/reveal;
-- session length;
-- auctions per session;
-- return behavior (D1/D7 where available);
-- bankruptcy/near-bankruptcy frequency;
+- pass rate by lot/tier;
+- winning bid / generated value ratio;
 - lot profitability distribution;
+- near-bankruptcy and collection-resale frequency;
+- restoration usage and selected-item value;
 - collection engagement;
-- rewarded-ad opt-in and completion;
+- auctions/session and D1/D7 return behavior;
+- rewarded opt-in/completion;
 - ARPDAU/LTV only alongside retention and player experience.
 
 Do not optimize ad impressions in isolation from retention.

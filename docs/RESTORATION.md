@@ -1,32 +1,32 @@
-# Restoration v0.1
+# Restoration v0.2
 
 ## Purpose
-Restoration inserts a short skill beat between appraisal and sale. It turns item condition into a visible value lever without blocking players who prefer the faster reveal → sell loop.
+Restoration is a short skill beat after appraisal, but it must create a decision rather than a mandatory click on every item.
 
-The economy/formula source of truth is `src/domain/restoration.ts`. Phaser owns only the interaction/timing layer.
+The economy/formula source of truth is `src/domain/restoration.ts`. Phaser owns interaction/timing and the lot-level usage allowance.
 
 ## Condition
-Each generated find receives a condition score between 42% and 92%. Condition modifies the item's market appraisal; otherwise identical finds can therefore have meaningfully different values. The generation ranges live in `src/data/balance.ts`.
+Each generated find receives a condition score between 42% and 92%. Condition modifies appraisal through `0.4 + condition × 0.7`.
 
 Condition bands:
-- Poor: below 55%
-- Fair: 55–69%
-- Good: 70–85%
-- Excellent: 86%+
+- Poor: below 55%;
+- Fair: 55–69%;
+- Good: 70–85%;
+- Excellent: 86%+.
+
+## One attempt per lot
+A won lot grants exactly one restoration attempt across all of its finds. Once used, later items show restoration as spent and cannot launch the mini-game.
+
+This makes the decision strategic: spend the attempt early on a damaged item, or save it in case a rarer/high-value find appears later.
+
+The allowance resets only when a new lot is prepared.
 
 ## Mini-game
-After appraisal the player may sell, keep, or restore once.
+The player stops a moving marker inside a target zone. Rarer items use narrower target zones.
 
-The restoration screen shows a moving marker and a green target zone. The player presses STOP. Rarer items use a narrower target zone.
-
-Results:
-- Perfect: +24 percentage points of condition, capped at 100%.
-- Good: +14 points.
+Results remain:
+- Perfect: +24 condition points, capped at 100%;
+- Good: +14 points;
 - Rough: +6 points.
 
-Restoration never decreases value in v0.1. This is intentional for the first retention test; cost, failure risk, consumables, and rewarded-ad assists should only be added after telemetry shows the interaction itself is worth keeping.
-
-## Economy
-Condition uses a multiplier of `0.4 + condition × 0.7`. At 100% the item is worth 1.10× its condition-neutral market basis; lower-condition finds are discounted. Restoration recalculates the appraisal by the ratio between the old and new condition multipliers.
-
-Economy-affecting changes require corresponding domain unit-test updates.
+Restoration still never reduces value in this pre-release version. Failure costs and consumables should only be considered after telemetry proves the interaction is worth retaining.
