@@ -5,10 +5,10 @@ Fast navigation map for humans and coding agents.
 ## Root
 - `AGENTS.md` — canonical agent policy.
 - `README.md` — entry point and commands.
-- `package.json` — scripts/dependencies.
+- `package.json` — scripts/dependencies and canonical repository release version; validated against Yandex Draft metadata.
 - `.env.example` — optional local Yandex Metrica counter configuration.
 - `index.html` — browser shell, Yandex SDK script and portrait orientation guard.
-- `vite.config.ts` — relative build configuration.
+- `vite.config.ts` — relative build configuration; production source maps are disabled so release archives do not ship source maps.
 - `playwright.config.ts` — desktop/landscape/portrait browser QA.
 - `.github/workflows/ci.yml` — CI gates, draft/archive validation, candidate ZIP, promo/screenshots and unified submission artifacts.
 - `.github/workflows/yandex-release.yml` — moderation-ready release workflow; produces the game ZIP plus a single submission bundle and injects optional `YANDEX_METRICA_ID` into the release build.
@@ -16,8 +16,8 @@ Fast navigation map for humans and coding agents.
 - `release/promotional/` — reviewed SVG sources for the Yandex catalog icon/cover; `generated/` is produced by CI/release rather than committed.
 - `release/screenshots/generated/` — generated RU/EN desktop/mobile production screenshots; CI/release output only.
 - `release/submission/generated/` — assembled Draft submission tree; CI/release output only.
-- `scripts/validate-yandex-draft.mjs` — release metadata length/casing/consistency/spec validator.
-- `scripts/validate-yandex-archive.mjs` — built archive root/path/size/SDK/title validator.
+- `scripts/validate-yandex-draft.mjs` — release metadata length/casing/consistency/spec validator, including package/release version parity.
+- `scripts/validate-yandex-archive.mjs` — built archive root/path/size/SDK/title validator; rejects production source maps.
 - `scripts/render-yandex-promos.mjs` — deterministic 512×512 icon and 800×470 cover PNG renderer/validator.
 - `scripts/capture-yandex-screenshots.mjs` — production-build RU/EN gameplay capture plus non-blank art-region checks.
 - `scripts/build-yandex-submission.mjs` — assembles game ZIP, promo art, screenshots and metadata with SHA-256 manifests.
@@ -54,7 +54,7 @@ Static content/tuning inputs.
 - `catalog.ts` — 24 items and 18 clue-backed lot templates, including their lot `artId` assignments.
 - `artManifest.ts` — direct item-art IDs and the nine allowed lot-environment art IDs.
 - `artCoverage.test.ts` — prevents catalog item art aliases/fallback and enforces the v1 lot-environment floor.
-- `balance.ts` — condition/market ranges, bidder profiles and tell text.
+- `balance.ts` — condition/market ranges and bidder profiles and tell text.
 - `collections.ts` — 8 sets and resale-rate tuning.
 - `tiers.ts` — reputation/tier definitions and 6 lots per tier.
 - `lotModifiers.ts` — rare visible lot events and their probability.
