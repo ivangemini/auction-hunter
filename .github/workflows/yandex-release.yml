@@ -2,9 +2,16 @@ name: Yandex Release Archive
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - release/yandex-candidate
 
 permissions:
   contents: read
+
+concurrency:
+  group: yandex-release-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   archive:
@@ -51,3 +58,4 @@ jobs:
           name: auction-hunter-yandex
           path: auction-hunter-yandex.zip
           if-no-files-found: error
+          retention-days: 14
