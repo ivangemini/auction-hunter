@@ -120,6 +120,7 @@ export function markGameReady(): void {
 
 export function subscribeGameplayActivity(listener: GameplayActivityListener): () => void {
   gameplayActivityListeners.add(listener);
+  listener(gameplayActive);
   return () => gameplayActivityListeners.delete(listener);
 }
 

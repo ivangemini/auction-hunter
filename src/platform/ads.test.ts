@@ -102,7 +102,7 @@ describe('Yandex advertising adapter', () => {
     await expect(resultPromise).resolves.toEqual({ status: 'closed', wasShown: true });
   });
 
-  test('shows sticky ads outside gameplay and hides them while gameplay is active', async () => {
+  test('shows sticky ads immediately outside gameplay and hides them while gameplay is active', async () => {
     const showBannerAdv = vi.fn().mockResolvedValue({ stickyAdvIsShowing: true });
     const hideBannerAdv = vi.fn().mockResolvedValue({ stickyAdvIsShowing: false });
     const ads = await loadAds({ showBannerAdv, hideBannerAdv });
@@ -112,7 +112,6 @@ describe('Yandex advertising adapter', () => {
     ads.initializeStickyBannerPolicy();
     ads.initializeStickyBannerPolicy();
 
-    yandex.setGameplayActive(false);
     await vi.waitFor(() => expect(showBannerAdv).toHaveBeenCalledOnce());
 
     yandex.setGameplayActive(true);
