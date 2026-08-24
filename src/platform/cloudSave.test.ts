@@ -58,7 +58,8 @@ async function installHarness(options: HarnessOptions) {
 }
 
 function save(overrides: Partial<PlayerSave>): PlayerSave {
-  return { ...createDefaultSave(), ...overrides };
+  const next = { ...createDefaultSave(), ...overrides };
+  return { ...next, highestCash: Math.max(next.highestCash, next.cash) };
 }
 
 describe('Yandex cloud-save adapter', () => {
