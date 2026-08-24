@@ -18,6 +18,7 @@ For economy, content, save/cloud, analytics or platform work also read the match
 For any player-facing UI, art, layout, animation, game-feel or presentation work, **also read and apply**:
 - `docs/ART_DIRECTION.md`
 - `skills/auction-hunter-visual-design/SKILL.md`
+- `skills/auction-hunter-animation-game-feel/SKILL.md`
 
 Do not treat functional UI as visually complete merely because browser tests pass.
 
@@ -41,6 +42,11 @@ For material presentation changes:
 - add proportionate interaction/state feedback while respecting reduced-motion settings;
 - inspect a production screenshot after implementation and perform another pass if it still reads as a wireframe/prototype;
 - use `skills/auction-hunter-visual-design/references/visual-review-checklist.md` for review.
+
+For animation/game-feel changes:
+- motion must acknowledge input, clarify causality, direct attention, build tension or communicate reward/value;
+- use the timing, reduced-motion, state-safety and performance rules in `skills/auction-hunter-animation-game-feel/SKILL.md`;
+- animation must never become the source of economy/gameplay truth or introduce double-submit paths.
 
 ## Non-negotiable engineering rules
 - Keep game/business rules out of Phaser rendering code when practical.
@@ -121,4 +127,4 @@ Onboarding -> choose tier/daily lot -> inspect -> bid/pass -> reveal -> appraise
 - Gameplay systems: `docs/RESTORATION.md`, `docs/COLLECTIONS.md`, `docs/TIERS.md`, `docs/DAILY_SPECIAL.md`, `docs/FIRST_SESSION.md`
 - Save/platform: `docs/CLOUD_SAVE.md`, `docs/YANDEX_INTEGRATION.md`
 - Analytics: `docs/ANALYTICS.md`
-- Visual/QA: `docs/ART_DIRECTION.md`, `skills/auction-hunter-visual-design/SKILL.md`, `docs/QA.md`
+- Visual/QA: `docs/ART_DIRECTION.md`, `skills/auction-hunter-visual-design/SKILL.md`, `skills/auction-hunter-animation-game-feel/SKILL.md`, `docs/QA.md`

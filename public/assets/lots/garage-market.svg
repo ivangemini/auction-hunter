@@ -1,1 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360"><rect width="512" height="360" fill="#16191d"/><path fill="#30343b" d="M0 208h512v152H0z"/><path fill="#493a30" d="M20 65h472v143H20z"/><path fill="#25282e" d="M46 94h420v95H46z"/><path fill="#8b8172" d="M42 224h132v76H42zM194 244h112v64H194zM329 218h142v89H329z"/><path fill="#c4773a" d="m58 208 18-56h78l14 56z"/><path fill="#e9b949" fill-opacity=".45" d="M213 226h58v18h-58zM359 199h78v19h-78z"/><path d="M0 312 512 232" stroke="#e9b949" stroke-width="28" stroke-opacity=".07"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360">
+  <defs>
+    <linearGradient id="marketBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#30251f"/><stop offset=".5" stop-color="#1b1d20"/><stop offset="1" stop-color="#0e1115"/></linearGradient>
+    <linearGradient id="carton" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#b08158"/><stop offset="1" stop-color="#73513a"/></linearGradient>
+    <radialGradient id="marketGlow" cx="55%" cy="12%" r="72%"><stop stop-color="#e9b949" stop-opacity=".27"/><stop offset="1" stop-color="#e9b949" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="512" height="360" fill="url(#marketBg)"/>
+  <ellipse cx="278" cy="105" rx="230" ry="145" fill="url(#marketGlow)"/>
+  <rect x="18" y="34" width="476" height="181" rx="5" fill="#302923" stroke="#5c493b" stroke-width="6"/>
+  <rect x="34" y="54" width="444" height="144" fill="#191c20"/>
+  <g stroke="#5a5149" stroke-width="5"><path d="M46 100h420M46 150h420"/></g>
+  <g fill="#795237" stroke="#2b2019" stroke-width="3"><rect x="58" y="64" width="82" height="31" rx="4"/><rect x="155" y="64" width="67" height="31" rx="4"/><rect x="364" y="64" width="83" height="31" rx="4"/></g>
+  <g transform="translate(286 82)"><rect x="-42" y="-20" width="84" height="40" rx="5" fill="#25313b" stroke="#70808d" stroke-width="4"/><rect x="-29" y="-8" width="42" height="15" rx="3" fill="#d7a850"/><circle cx="27" cy="0" r="8" fill="#101419" stroke="#8c99a4" stroke-width="3"/></g>
+  <g transform="translate(94 127)"><path d="M-33 17V-18h66v35z" fill="#2a3138" stroke="#707b84" stroke-width="4"/><circle cx="-15" cy="0" r="8" fill="#0e1115"/><path d="M4-9h17M4 0h17M4 9h17" stroke="#d0a14d" stroke-width="3"/></g>
+  <g transform="translate(187 126)"><rect x="-37" y="-18" width="74" height="36" rx="4" fill="#5f4030" stroke="#b87945" stroke-width="3"/><g stroke="#e0c49a" stroke-width="3"><path d="M-26-9h51M-26 0h42M-26 9h47"/></g></g>
+  <g transform="translate(400 126)"><rect x="-42" y="-22" width="84" height="44" rx="5" fill="#25313b" stroke="#657783" stroke-width="4"/><path d="M-29 12V-10h58v22z" fill="#12181e"/><path d="M-18 5 0-11 19 5z" fill="#b576ff" opacity=".65"/></g>
+  <rect y="214" width="512" height="146" fill="#2b2d31"/>
+  <g transform="translate(96 271)"><rect x="-67" y="-46" width="134" height="92" rx="4" fill="url(#carton)" stroke="#3b2d23" stroke-width="6"/><path d="M-56-14h112M-56 17h112" stroke="#d3a16f" stroke-width="4"/><path d="M-18-40v80" stroke="#5e4432" stroke-width="5"/><text x="4" y="35" font-family="Arial,sans-serif" font-size="13" font-weight="700" fill="#493324" transform="rotate(-7 4 35)">COLLECTION</text></g>
+  <g transform="translate(254 286)"><rect x="-61" y="-38" width="122" height="76" rx="4" fill="#8c694f" stroke="#3d3027" stroke-width="6"/><g fill="#d6c5a7"><rect x="-46" y="-23" width="29" height="45"/><rect x="-11" y="-21" width="25" height="43"/><rect x="21" y="-24" width="25" height="46"/></g><g stroke="#7a5a44" stroke-width="3"><path d="M-42-15h21M-42-4h21M-7-14h17M-7-3h17M25-15h17M25-4h17"/></g></g>
+  <g transform="translate(413 270)"><rect x="-71" y="-47" width="142" height="94" rx="5" fill="url(#carton)" stroke="#3a2a21" stroke-width="6"/><path d="M-60-14h120M-60 17h120" stroke="#ce965c" stroke-width="4"/><g transform="translate(0 -20)"><circle r="30" fill="#101319" stroke="#474c52" stroke-width="4"/><circle r="10" fill="#c24732"/><circle r="3" fill="#e0c69e"/></g></g>
+  <path d="M0 334 512 301v20L0 356z" fill="#101317" opacity=".62"/>
+</svg>
