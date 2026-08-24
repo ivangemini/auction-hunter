@@ -1,6 +1,8 @@
 import Phaser from 'phaser';
+import { LOTS } from '../../data/catalog';
 import { COLLECTION_SETS } from '../../data/collections';
 import { localDayKey } from '../../data/daily';
+import { LOT_MODIFIERS } from '../../data/lotModifiers';
 import {
   ACHIEVEMENTS,
   BUSINESS_UPGRADE_ORDER,
@@ -15,18 +17,26 @@ import {
 import type { Locale } from '../../domain/types';
 import { t } from '../../i18n';
 import { getPlatformLocale } from '../../platform/yandex';
+import {
+  applyAccessibilityPreferences,
+  loadAccessibilityPreferences,
+  setAccessibilityPreference,
+  type AccessibilityPreferenceKey,
+} from '../preferences';
 import { GameStore } from '../store';
 import { button } from '../ui';
 
-type OfficeTab = 'contracts' | 'upgrades' | 'achievements' | 'stats';
+type OfficeTab = 'contracts' | 'upgrades' | 'achievements' | 'stats' | 'history' | 'settings';
 
 const WIDTH = 1280;
 const HEIGHT = 720;
+const HISTORY_PAGE_SIZE = 5;
 
 export class OfficeScene extends Phaser.Scene {
   private readonly store = new GameStore();
   private locale: Locale = 'en';
   private tab: OfficeTab = 'contracts';
+  private historyPage = 0;
 
   constructor() {
     super('office');
@@ -35,6 +45,7 @@ export class OfficeScene extends Phaser.Scene {
   create(): void {
     this.locale = getPlatformLocale();
     this.store.prepareDailyContracts();
+    applyAccessibilityPreferences();
     this.render();
   }
 
@@ -64,24 +75,28 @@ export class OfficeScene extends Phaser.Scene {
       case 'upgrades': this.renderUpgrades(); break;
       case 'achievements': this.renderAchievements(); break;
       case 'stats': this.renderStats(); break;
+      case 'history': this.renderHistory(); break;
+      case 'settings': this.renderSettings(); break;
     }
   }
 
   private renderTabs(): void {
-    const tabs: Array<{ id: OfficeTab; key: 'contracts' | 'upgrades' | 'achievements' | 'stats' }> = [
+    const tabs: Array<{ id: OfficeTab; key: 'contracts' | 'upgrades' | 'achievements' | 'stats' | 'history' | 'settings' }> = [
       { id: 'contracts', key: 'contracts' },
       { id: 'upgrades', key: 'upgrades' },
       { id: 'achievements', key: 'achievements' },
       { id: 'stats', key: 'stats' },
+      { id: 'history', key: 'history' },
+      { id: 'settings', key: 'settings' },
     ];
 
     tabs.forEach((tab, index) => {
       const selected = this.tab === tab.id;
-      button(this, 205 + index * 290, 151, t(this.locale, tab.key), () => {
+      button(this, 145 + index * 198, 151, t(this.locale, tab.key), () => {
         this.tab = tab.id;
         this.render();
       }, {
-        width: 245,
+        width: 178,
         height: 44,
         background: selected ? 0xe9b949 : 0x2c313a,
         hitSlop: 8,
@@ -215,6 +230,92 @@ export class OfficeScene extends Phaser.Scene {
     });
   }
 
+  private renderHistory(): void {
+    const history = this.store.snapshot.auctionHistory;
+    const pageCount = Math.max(1, Math.ceil(history.length / HISTORY_PAGE_SIZE));
+    this.historyPage = Phaser.Math.Clamp(this.historyPage, 0, pageCount - 1);
+    const start = this.historyPage * HISTORY_PAGE_SIZE;
+    const entries = history.slice(start, start + HISTORY_PAGE_SIZE);
+
+    this.label(100, 220, t(this.locale, 'recentAuctions'), 24, '#f7f8fa', 'bold');
+    this.label(100, 253, t(this.locale, 'historyHint'), 14, '#737b88');
+
+    if (entries.length === 0) {
+      this.centerLabel(640, 410, t(this.locale, 'historyEmpty'), 18, '#8b93a1');
+      return;
+    }
+
+    entries.forEach((entry, index) => {
+      const y = 285 + index * 60;
+      const lot = LOTS.find((candidate) => candidate.id === entry.lotId);
+      const modifier = entry.modifierId
+        ? LOT_MODIFIERS.find((candidate) => candidate.id === entry.modifierId)
+        : undefined;
+      const won = entry.outcome === 'won';
+      const status = won ? t(this.locale, 'historyWon') : t(this.locale, 'historyPassed');
+      const statusColor = won ? '#63d28d' : '#aeb5c0';
+      const result = won
+        ? `${t(this.locale, 'historyResult')}: ${this.signedMoney(entry.estimatedResult)}`
+        : `${t(this.locale, 'currentBid')}: ${this.money(entry.finalBid)}`;
+      const lotName = lot?.name[this.locale] ?? entry.lotId;
+      const modifierSuffix = modifier ? ` · ★ ${modifier.name[this.locale]}` : '';
+
+      this.add.rectangle(100, y, 1080, 50, 0x1a1e25, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.07);
+      this.label(118, y + 9, `${lotName}${modifierSuffix}`, 15, '#f7f8fa', 'bold').setWordWrapWidth(430);
+      this.label(575, y + 9, status, 14, statusColor, 'bold');
+      this.label(705, y + 9, result, 14, won && entry.estimatedResult < 0 ? '#ff8d85' : won ? '#63d28d' : '#d7dbe2', 'bold');
+      const flags = [entry.daily ? t(this.locale, 'historyDaily') : '', this.formatHistoryDate(entry.occurredAt)].filter(Boolean).join(' · ');
+      this.label(1160, y + 9, flags, 12, '#737b88').setOrigin(1, 0);
+      if (won) {
+        this.label(705, y + 29, `${t(this.locale, 'paid')}: ${this.money(entry.finalBid)} · ${t(this.locale, 'sales')}: ${this.money(entry.sales)}`, 11, '#8b93a1');
+      }
+    });
+
+    if (pageCount > 1) {
+      button(this, 510, 610, t(this.locale, 'previousPage'), () => {
+        this.historyPage = Math.max(0, this.historyPage - 1);
+        this.render();
+      }, { width: 170, height: 42, background: 0x2c313a, disabled: this.historyPage === 0 });
+      this.centerLabel(640, 610, t(this.locale, 'historyPage', { current: this.historyPage + 1, total: pageCount }), 13, '#aeb5c0');
+      button(this, 770, 610, t(this.locale, 'nextPage'), () => {
+        this.historyPage = Math.min(pageCount - 1, this.historyPage + 1);
+        this.render();
+      }, { width: 170, height: 42, background: 0x2c313a, disabled: this.historyPage >= pageCount - 1 });
+    }
+  }
+
+  private renderSettings(): void {
+    const preferences = loadAccessibilityPreferences();
+    const rows: Array<{
+      key: AccessibilityPreferenceKey;
+      title: 'soundFeedback' | 'reducedMotion' | 'highContrast';
+      description: 'soundFeedbackDesc' | 'reducedMotionDesc' | 'highContrastDesc';
+    }> = [
+      { key: 'soundFeedback', title: 'soundFeedback', description: 'soundFeedbackDesc' },
+      { key: 'reducedMotion', title: 'reducedMotion', description: 'reducedMotionDesc' },
+      { key: 'highContrast', title: 'highContrast', description: 'highContrastDesc' },
+    ];
+
+    this.label(100, 220, t(this.locale, 'accessibilitySettings'), 24, '#f7f8fa', 'bold');
+    this.label(100, 253, t(this.locale, 'accessibilityLocalHint'), 14, '#737b88');
+
+    rows.forEach((row, index) => {
+      const y = 295 + index * 100;
+      const enabled = preferences[row.key];
+      this.add.rectangle(100, y, 1080, 82, 0x1a1e25, 1).setOrigin(0).setStrokeStyle(1, enabled ? 0x63d28d : 0xffffff, enabled ? 0.25 : 0.07);
+      this.label(125, y + 16, t(this.locale, row.title), 18, '#f7f8fa', 'bold');
+      this.label(125, y + 45, t(this.locale, row.description), 13, '#8b93a1').setWordWrapWidth(700);
+      button(this, 1040, y + 41, enabled ? t(this.locale, 'enabled') : t(this.locale, 'disabled'), () => {
+        setAccessibilityPreference(row.key, !enabled);
+        this.render();
+      }, {
+        width: 190,
+        height: 46,
+        background: enabled ? 0x3f7a5a : 0x2c313a,
+      });
+    });
+  }
+
   private label(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
     return this.add.text(x, y, text, {
       fontFamily: 'Arial, sans-serif',
@@ -231,5 +332,20 @@ export class OfficeScene extends Phaser.Scene {
   private money(value: number): string {
     const formatted = new Intl.NumberFormat(this.locale === 'ru' ? 'ru-RU' : 'en-US', { maximumFractionDigits: 0 }).format(value);
     return `${formatted} ₽`;
+  }
+
+  private signedMoney(value: number): string {
+    return `${value >= 0 ? '+' : ''}${this.money(value)}`;
+  }
+
+  private formatHistoryDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat(this.locale === 'ru' ? 'ru-RU' : 'en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
   }
 }

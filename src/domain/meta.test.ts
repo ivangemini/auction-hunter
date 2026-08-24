@@ -27,6 +27,7 @@ const save: PlayerSave = {
   claimedContractRewards: [],
   claimedAchievements: [],
   businessUpgrades: { warehouse: 0, contractsDesk: 0, showroom: 0 },
+  auctionHistory: [],
 };
 
 describe('meta progression domain', () => {

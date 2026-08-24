@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import './styles.css';
 import { trackEvent } from './analytics';
 import { gameConfig } from './game/config';
+import { installAuctionHistoryTracking } from './game/historyTracking';
 import { installGameLifecycle } from './game/lifecycle';
+import { applyAccessibilityPreferences } from './game/preferences';
 import { t } from './i18n';
 import { initializeCloudSave } from './platform/cloudSave';
 import { initializePlatformLifecycle } from './platform/lifecycle';
@@ -23,11 +25,13 @@ function localizeOrientationGuard(locale: Locale): void {
 
 async function bootstrap(): Promise<void> {
   installBrowserGuards();
+  applyAccessibilityPreferences();
   await initYandexSdk();
   const locale = getPlatformLocale();
   localizeOrientationGuard(locale);
   initializePlatformLifecycle();
   await initializeCloudSave();
+  installAuctionHistoryTracking();
   trackEvent('session_started', { locale });
   const game = new Phaser.Game(gameConfig);
   installGameLifecycle(game);

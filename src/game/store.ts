@@ -1,13 +1,14 @@
 import { trackEvent } from '../analytics';
 import { localDayKey } from '../data/daily';
 import { ACHIEVEMENTS, BUSINESS_UPGRADES, dailyContractsForDay } from '../data/meta';
+import { appendAuctionHistory } from '../domain/history';
 import {
   achievementMetricValue,
   contractRewardValue,
   nextUpgradeCost,
   setRewardValue,
 } from '../domain/meta';
-import type { BusinessUpgradeId, ContractMetric, PlayerSave } from '../domain/types';
+import type { AuctionHistoryEntry, BusinessUpgradeId, ContractMetric, PlayerSave } from '../domain/types';
 import { scheduleCloudSave } from '../platform/cloudSave';
 import { loadLocalSave, writeLocalSave } from './save';
 
@@ -165,6 +166,12 @@ export class GameStore {
     this.persist();
     trackEvent('business_upgrade_purchased', { upgradeId: id, level: currentLevel + 1, cost });
     return true;
+  }
+
+  recordAuctionHistory(entry: AuctionHistoryEntry): void {
+    this.sync();
+    this.state.auctionHistory = appendAuctionHistory(this.state.auctionHistory, entry);
+    this.persist();
   }
 
   completeOnboarding(): void {

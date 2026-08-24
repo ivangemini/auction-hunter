@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import { isPlatformPaused } from '../platform/lifecycle';
+import { loadAccessibilityPreferences } from './preferences';
 
 export type FeedbackCue = 'ui' | 'bid' | 'npc-bid' | 'pass' | 'win' | 'reveal' | 'appraise' | 'restore-perfect' | 'restore-good' | 'restore-rough' | 'sell' | 'keep' | 'reward';
 
@@ -9,9 +10,10 @@ export function playFeedbackCue(scene: Phaser.Scene, cue: FeedbackCue): void {
   if (isPlatformPaused()) return;
 
   try {
-    playCueAudio(cue);
-    if (cue === 'win') scene.cameras.main.shake(110, 0.0022);
-    if (cue === 'restore-perfect') scene.cameras.main.shake(70, 0.0012);
+    const preferences = loadAccessibilityPreferences();
+    if (preferences.soundFeedback) playCueAudio(cue);
+    if (!preferences.reducedMotion && cue === 'win') scene.cameras.main.shake(110, 0.0022);
+    if (!preferences.reducedMotion && cue === 'restore-perfect') scene.cameras.main.shake(70, 0.0012);
   } catch {
     // Feedback is deliberately best-effort; game input must never depend on audio/juice support.
   }
