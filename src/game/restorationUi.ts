@@ -17,7 +17,7 @@ interface RestorationBaseOptions {
   locale: Locale;
   item: RevealedItem;
   prepareFrame: () => void;
-  formatMoney: (value: number) => string;
+  formatMoney?: (value: number) => string;
 }
 
 interface RestorationModePickerOptions extends RestorationBaseOptions {
@@ -47,10 +47,11 @@ const GRADE_COLORS: Record<RestorationGrade, number> = {
 };
 
 export function renderRestorationModePicker(options: RestorationModePickerOptions): void {
-  const { scene, locale, item, prepareFrame, formatMoney, onChoose } = options;
+  const { scene, locale, item, prepareFrame, onChoose } = options;
+  const money = options.formatMoney ?? ((value: number) => formatMoney(locale, value));
   prepareFrame();
   renderBackdrop(scene);
-  renderWorkbenchHeader(scene, locale, item, formatMoney);
+  renderWorkbenchHeader(scene, locale, item, money);
 
   const itemPanel = scene.add.container(44, 144);
   itemPanel.add([
@@ -67,7 +68,7 @@ export function renderRestorationModePicker(options: RestorationModePickerOption
   const conditionTrack = scene.add.rectangle(30, 413, 296, 12, 0x2b3038, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.08);
   const conditionFill = scene.add.rectangle(30, 413, 296 * item.condition, 12, hexColorToNumber(conditionColor(item.condition)), 0.88).setOrigin(0);
   const appraisalLabel = label(scene, 30, 447, t(locale, 'estimatedValue').toUpperCase(), 9, '#7f8996', 'bold');
-  const appraisalValue = label(scene, 326, 441, formatMoney(item.appraisedValue), 22, '#63d28d', 'bold').setOrigin(1, 0);
+  const appraisalValue = label(scene, 326, 441, money(item.appraisedValue), 22, '#63d28d', 'bold').setOrigin(1, 0);
   const warning = centerLabel(scene, 178, 486, t(locale, 'restorationAttemptWarning'), 10, '#d8a46c', 'bold')
     .setWordWrapWidth(300)
     .setAlign('center');
@@ -118,7 +119,7 @@ export function renderRestorationModePicker(options: RestorationModePickerOption
       scene,
       24,
       325,
-      `+${Math.round(rules.perfectConditionGain * 100)} / +${Math.round(rules.goodConditionGain * 100)} п.п.`,
+      `+${Math.round(rules.perfectConditionGain * 100)} / +${Math.round(rules.goodConditionGain * 100)}`,
       18,
       hexColor(color),
       'bold',
@@ -158,13 +159,14 @@ export function renderRestorationModePicker(options: RestorationModePickerOption
 }
 
 export function renderRestorationTimingGame(options: RestorationTimingOptions): void {
-  const { scene, locale, item, prepareFrame, formatMoney, mode, onStop } = options;
+  const { scene, locale, item, prepareFrame, mode, onStop } = options;
+  const money = options.formatMoney ?? ((value: number) => formatMoney(locale, value));
   prepareFrame();
   renderBackdrop(scene);
-  renderWorkbenchHeader(scene, locale, item, formatMoney, mode);
+  renderWorkbenchHeader(scene, locale, item, money, mode);
 
   surface(scene, 42, 148, 476, 492, MODE_COLORS[mode]);
-  const artFrame = scene.add.rectangle(66, 173, 428, 310, 0x0b0f14, 1).setOrigin(0).setStrokeStyle(1, MODE_COLORS[mode], 0.26);
+  scene.add.rectangle(66, 173, 428, 310, 0x0b0f14, 1).setOrigin(0).setStrokeStyle(1, MODE_COLORS[mode], 0.26);
   const halo = scene.add.circle(280, 326, 168, MODE_COLORS[mode], 0.035).setStrokeStyle(2, MODE_COLORS[mode], 0.12);
   const image = scene.add.image(280, 322, resolveItemTexture(scene, item.definition.id)).setDisplaySize(392, 274);
   label(scene, 72, 511, t(locale, 'condition').toUpperCase(), 9, '#7f8996', 'bold');
@@ -172,7 +174,7 @@ export function renderRestorationTimingGame(options: RestorationTimingOptions): 
   scene.add.rectangle(72, 545, 418, 12, 0x2b3038, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.08);
   scene.add.rectangle(72, 545, 418 * item.condition, 12, hexColorToNumber(conditionColor(item.condition)), 0.88).setOrigin(0);
   label(scene, 72, 580, t(locale, 'estimatedValue').toUpperCase(), 9, '#7f8996', 'bold');
-  label(scene, 490, 572, formatMoney(item.appraisedValue), 23, '#63d28d', 'bold').setOrigin(1, 0);
+  label(scene, 490, 572, money(item.appraisedValue), 23, '#63d28d', 'bold').setOrigin(1, 0);
 
   surface(scene, 542, 148, 696, 492, MODE_COLORS[mode]);
   const color = MODE_COLORS[mode];
@@ -242,10 +244,11 @@ export function renderRestorationTimingGame(options: RestorationTimingOptions): 
 }
 
 export function renderRestorationResult(options: RestorationResultOptions): void {
-  const { scene, locale, item, prepareFrame, formatMoney, outcome, onContinue } = options;
+  const { scene, locale, item, prepareFrame, outcome, onContinue } = options;
+  const money = options.formatMoney ?? ((value: number) => formatMoney(locale, value));
   prepareFrame();
   renderBackdrop(scene);
-  renderWorkbenchHeader(scene, locale, item, formatMoney, outcome.mode);
+  renderWorkbenchHeader(scene, locale, item, money, outcome.mode);
 
   const accent = GRADE_COLORS[outcome.grade];
   surface(scene, 96, 154, 1088, 486, accent);
@@ -271,7 +274,7 @@ export function renderRestorationResult(options: RestorationResultOptions): void
     630,
     390,
     t(locale, 'estimatedValue'),
-    `${formatMoney(outcome.valueBefore)} → ${formatMoney(outcome.valueAfter)}`,
+    `${money(outcome.valueBefore)} → ${money(outcome.valueAfter)}`,
     outcome.valueGain > 0 ? 0x63d28d : 0xaeb5c0,
   );
 
@@ -282,7 +285,7 @@ export function renderRestorationResult(options: RestorationResultOptions): void
     scene,
     650,
     489,
-    t(locale, 'restorationGain', { amount: formatMoney(outcome.valueGain) }),
+    t(locale, 'restorationGain', { amount: money(outcome.valueGain) }),
     17,
     outcome.valueGain > 0 ? '#7ee0a0' : '#d8a46c',
     'bold',
@@ -323,7 +326,7 @@ function renderWorkbenchHeader(
   scene: Phaser.Scene,
   locale: Locale,
   item: RevealedItem,
-  formatMoney: (value: number) => string,
+  money: (value: number) => string,
   mode?: RestorationMode,
 ): void {
   scene.add.rectangle(28, 20, 204, 82, 0x11151c, 0.98).setOrigin(0).setStrokeStyle(2, 0xc4773a, 0.48);
@@ -337,7 +340,7 @@ function renderWorkbenchHeader(
     label(scene, 665, 43, modeTitle(locale, mode).toUpperCase(), 10, hexColor(color), 'bold');
   }
   headerStat(scene, 832, t(locale, 'condition'), `${Math.round(item.condition * 100)}%`, conditionColor(item.condition));
-  headerStat(scene, 1010, t(locale, 'estimatedValue'), formatMoney(item.appraisedValue), '#63d28d');
+  headerStat(scene, 1010, t(locale, 'estimatedValue'), money(item.appraisedValue), '#63d28d');
 }
 
 function headerStat(scene: Phaser.Scene, x: number, title: string, value: string, color: string): void {
@@ -484,6 +487,11 @@ function conditionColor(condition: number): string {
   if (condition >= 0.7) return '#e9b949';
   if (condition >= 0.55) return '#d8a46c';
   return '#ff8d85';
+}
+
+function formatMoney(locale: Locale, value: number): string {
+  const language = locale === 'ru' ? 'ru-RU' : 'en-US';
+  return `${new Intl.NumberFormat(language, { maximumFractionDigits: 0 }).format(Math.round(value))} ₽`;
 }
 
 function label(
