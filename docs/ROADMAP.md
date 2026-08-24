@@ -59,6 +59,7 @@
 - [x] Selection cards expose opening price, item count, truthful clues and visible rare modifiers without revealing hidden value.
 - [x] Daily Special remains a fixed featured lot and bypasses normal selection after activation.
 - [x] Lot-selection funnel analytics and Metrica goal coverage.
+- [x] One lot-options impression per tier per page-session market cycle, with shared cycle context on presentation and selection events.
 - [x] Browser/Yandex contract and production screenshot automation updated for selection -> lobby -> auction.
 - [ ] Tune option mix/modifier frequency from post-launch choice and retention telemetry before promoting v1.1 to a release candidate.
 
