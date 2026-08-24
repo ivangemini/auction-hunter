@@ -99,18 +99,19 @@ async function stopPreview(preview) {
   }
 }
 
-async function clickGame(page, gameX, gameY) {
+async function clickGame(page, gameX, gameY, inputMode = 'auto') {
   const canvas = page.locator('canvas');
   const box = await canvas.boundingBox();
   assert(box, 'Game canvas has no bounding box');
   const pageX = box.x + (gameX / GAME_WIDTH) * box.width;
   const pageY = box.y + (gameY / GAME_HEIGHT) * box.height;
   const touchPoints = await page.evaluate(() => navigator.maxTouchPoints);
-  if (touchPoints > 0) {
-    await page.touchscreen.tap(pageX, pageY);
-  } else {
+
+  if (inputMode === 'mouse' || (inputMode === 'auto' && touchPoints <= 0)) {
     await page.mouse.click(pageX, pageY);
+    return;
   }
+  await page.touchscreen.tap(pageX, pageY);
 }
 
 async function installSeed(page, platformLocale, save = seedSave) {
@@ -145,10 +146,12 @@ async function eventSeen(page, eventName) {
   return page.evaluate((name) => window.__auctionHunterScreenshotEvents?.some((event) => event?.eventName === name) ?? false, eventName);
 }
 
-async function tapUntilEvent(page, x, y, eventName, attempts = 5, waitMs = 240) {
+async function activateUntilEvent(page, x, y, eventName, attempts = 10, waitMs = 280) {
+  const touchPoints = await page.evaluate(() => navigator.maxTouchPoints);
+  const modes = touchPoints > 0 ? ['mouse', 'touch'] : ['mouse'];
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     if (await eventSeen(page, eventName)) return;
-    await clickGame(page, x, y);
+    await clickGame(page, x, y, modes[attempt % modes.length]);
     await page.waitForTimeout(waitMs);
     if (await eventSeen(page, eventName)) return;
   }
@@ -281,9 +284,10 @@ async function captureLocale(browser, localeCode, locale) {
     const revealSeed = { ...seedSave, cash: 500000, highestCash: 500000 };
     const revealPage = await bootPage(mobile, localeCode, revealSeed);
     await winCurrentAuction(revealPage);
-    await pageWaitAndClick(revealPage, 640, 592, 220); // Open won lot.
-    await tapUntilEvent(revealPage, 640, 600, 'item_revealed', 5, 260);
-    await tapUntilEvent(revealPage, 1016, 560, 'item_appraised', 5, 300);
+    // The Open Lot and Reveal buttons overlap this safe center point across their two sequential screens.
+    // Alternate mouse/touch activation until the actual reveal analytics event confirms progression.
+    await activateUntilEvent(revealPage, 640, 596, 'item_revealed', 10, 280);
+    await activateUntilEvent(revealPage, 1016, 560, 'item_appraised', 10, 300);
     await page.waitForTimeout(420); // Let appraisal value count-up settle for the production capture.
     await saveViewport(
       revealPage,
