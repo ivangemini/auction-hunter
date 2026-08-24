@@ -25,6 +25,7 @@ import {
   selectLotModifier,
   type LotModifierDefinition,
 } from '../../domain/lotModifier';
+import { chooseDistinctRandom } from '../../domain/lotSelection';
 import { rewardedSummaryBonus, shouldRequestInterstitial } from '../../domain/monetization';
 import { applyRestoration } from '../../domain/restoration';
 import type { Locale, LotTemplate, Rarity, RestorationGrade, RevealedItem } from '../../domain/types';
@@ -38,8 +39,14 @@ import { button } from '../ui';
 
 type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
 
+interface LotChoice {
+  lot: LotTemplate;
+  modifier: LotModifierDefinition | null;
+}
+
 const WIDTH = 1280;
 const HEIGHT = 720;
+const LOT_CHOICE_COUNT = 3;
 
 const RARITY_COLORS: Record<Rarity, number> = {
   common: 0xaeb5c0,
@@ -60,6 +67,7 @@ export class AuctionScene extends Phaser.Scene {
   private readonly store = new GameStore();
   private locale: Locale = 'en';
   private lot!: LotTemplate;
+  private lotChoices: LotChoice[] = [];
   private lotModifier: LotModifierDefinition | null = null;
   private inspectionReport: InspectionReport | null = null;
   private items: RevealedItem[] = [];
@@ -97,57 +105,69 @@ export class AuctionScene extends Phaser.Scene {
     this.locale = getPlatformLocale();
     this.dailySpecial = null;
     this.currentTierId = highestUnlockedAuctionTier(this.store.snapshot.reputationXp).id;
-    this.prepareNextLot();
-    this.renderLobby();
+    this.prepareLotChoices();
+    this.renderLotSelection();
     markGameReady();
 
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => setGameplayActive(false));
   }
 
-  private prepareNextLot(): void {
+  private prepareLotChoices(): void {
     const save = this.store.snapshot;
-    const today = localDayKey();
-    if (this.dailySpecial && (this.dailySpecial.dayKey !== today || save.lastDailyCompletedDay === today)) {
-      this.dailySpecial = null;
-    }
-
     let tier = getAuctionTier(this.currentTierId);
-    let baseLot: LotTemplate | undefined;
-    let valueMultiplier = 1;
-
-    if (this.dailySpecial) {
-      tier = getAuctionTier(this.dailySpecial.tierId);
+    if (save.reputationXp < tier.minReputationXp) {
+      tier = highestUnlockedAuctionTier(save.reputationXp);
       this.currentTierId = tier.id;
-      baseLot = LOTS.find((candidate) => candidate.id === this.dailySpecial?.lotId);
-      valueMultiplier = this.dailySpecial.valueMultiplier;
-    } else {
-      if (save.reputationXp < tier.minReputationXp) {
-        tier = highestUnlockedAuctionTier(save.reputationXp);
-        this.currentTierId = tier.id;
-      }
-
-      const tierLots = tier.lotIds
-        .map((lotId) => LOTS.find((candidate) => candidate.id === lotId))
-        .filter((candidate): candidate is LotTemplate => Boolean(candidate));
-      baseLot = chooseRandom(tierLots);
     }
 
-    if (!baseLot) throw new Error(`No lot templates configured for tier ${tier.id}`);
+    const tierLots = tier.lotIds
+      .map((lotId) => LOTS.find((candidate) => candidate.id === lotId))
+      .filter((candidate): candidate is LotTemplate => Boolean(candidate));
+    const baseLots = chooseDistinctRandom(tierLots, LOT_CHOICE_COUNT);
+    if (baseLots.length === 0) throw new Error(`No lot templates configured for tier ${tier.id}`);
 
-    // Daily Special is already a special mode; normal auctions can roll one visible rare modifier.
-    this.lotModifier = this.dailySpecial ? null : selectLotModifier(LOT_MODIFIERS, LOT_MODIFIER_CHANCE);
-    this.lot = applyLotModifier(baseLot, this.lotModifier);
-    const conditionRange = modifierConditionRange(ITEM_CONDITION_RANGE, this.lotModifier);
-    valueMultiplier *= modifierMarketMultiplier(this.lotModifier);
+    this.lotChoices = baseLots.map((baseLot) => {
+      const modifier = selectLotModifier(LOT_MODIFIERS, LOT_MODIFIER_CHANCE);
+      return {
+        lot: applyLotModifier(baseLot, modifier),
+        modifier,
+      };
+    });
+
+    trackEvent('lot_options_presented', {
+      tierId: this.currentTierId,
+      lotIds: this.lotChoices.map((choice) => choice.lot.id),
+      modifierIds: this.lotChoices.map((choice) => choice.modifier?.id ?? null),
+    });
+  }
+
+  private prepareDailyLot(): void {
+    const daily = this.dailySpecial;
+    if (!daily) return;
+    const baseLot = LOTS.find((candidate) => candidate.id === daily.lotId);
+    if (!baseLot) throw new Error(`Daily lot template ${daily.lotId} is missing`);
+    this.currentTierId = daily.tierId;
+    this.prepareLot(baseLot, null, daily.valueMultiplier);
+  }
+
+  private prepareLot(lot: LotTemplate, modifier: LotModifierDefinition | null, valueMultiplier = 1): void {
+    this.lot = lot;
+    this.lotModifier = modifier;
+    const conditionRange = modifierConditionRange(ITEM_CONDITION_RANGE, modifier);
+    const marketMultiplier = valueMultiplier * modifierMarketMultiplier(modifier);
 
     this.items = createLotItems(
       this.lot,
       ITEM_BY_ID,
       conditionRange,
       MARKET_FACTOR_RANGE,
-      valueMultiplier,
+      marketMultiplier,
     );
     this.opponents = createAuctionOpponents(this.lot, this.items, BIDDER_PROFILES);
+    this.resetRoundState();
+  }
+
+  private resetRoundState(): void {
     this.inspectionReport = null;
     this.currentBid = this.lot.reservePrice;
     this.currentLeader = this.opponents[0]?.id ?? '';
@@ -167,6 +187,75 @@ export class AuctionScene extends Phaser.Scene {
     this.notice = '';
   }
 
+  private selectLotChoice(choice: LotChoice, optionIndex: number): void {
+    trackEvent('lot_option_selected', {
+      tierId: this.currentTierId,
+      lotId: choice.lot.id,
+      optionIndex,
+      reservePrice: choice.lot.reservePrice,
+      itemCount: choice.lot.itemCount,
+      modifierId: choice.modifier?.id,
+    });
+    this.lotChoices = [];
+    this.prepareLot(choice.lot, choice.modifier);
+    this.renderLobby();
+  }
+
+  private renderLotSelection(): void {
+    setGameplayActive(false);
+    this.resetCanvas();
+    this.renderHeader();
+    this.renderTierTabs();
+
+    this.label(70, 198, t(this.locale, 'chooseLotTitle'), 28, '#f7f8fa', 'bold');
+    this.label(70, 235, t(this.locale, 'chooseLotHint'), 14, '#8b93a1').setWordWrapWidth(680);
+
+    button(this, 940, 218, t(this.locale, 'collectionBook'), () => this.scene.start('collection'), {
+      width: 180,
+      height: 38,
+      background: 0x61a8ff,
+      hitSlop: 4,
+    });
+    this.renderDailyControl(218, 1140, 180);
+
+    const cardXs = [70, 445, 820];
+    this.lotChoices.forEach((choice, index) => {
+      const x = cardXs[index];
+      if (x === undefined) return;
+      const centerX = x + 170;
+      this.panel(x, 280, 340, 370, 0x15181e);
+      this.renderLotArtworkFor(choice.lot, centerX, 340, 300, 105);
+      this.centerLabel(centerX, 407, choice.lot.name[this.locale], 20, '#f7f8fa', 'bold').setWordWrapWidth(300);
+      this.centerLabel(centerX, 434, choice.lot.location[this.locale], 12, '#8b93a1');
+
+      this.label(x + 20, 462, t(this.locale, 'reservePrice'), 12, '#737b88');
+      this.label(x + 320, 458, this.money(choice.lot.reservePrice), 17, '#f7f8fa', 'bold').setOrigin(1, 0);
+      this.label(x + 20, 489, t(this.locale, 'itemsInside'), 12, '#737b88');
+      this.label(x + 320, 485, String(choice.lot.itemCount), 17, '#f7f8fa', 'bold').setOrigin(1, 0);
+
+      const eventText = choice.modifier
+        ? `${t(this.locale, 'event').toUpperCase()} · ${choice.modifier.name[this.locale]}`
+        : t(this.locale, 'noEvent');
+      this.label(x + 20, 516, eventText, 12, choice.modifier ? '#e9b949' : '#666e79', choice.modifier ? 'bold' : 'normal');
+      this.label(x + 20, 542, t(this.locale, 'visibleClues'), 11, '#8b93a1', 'bold');
+      choice.lot.clues.slice(0, 2).forEach((clue, clueIndex) => {
+        this.label(
+          x + 20,
+          562 + clueIndex * 21,
+          `• ${this.compactText(clue.text[this.locale], 48)}`,
+          11,
+          '#c3c8d0',
+        );
+      });
+
+      button(this, centerX, 625, t(this.locale, 'chooseLot'), () => this.selectLotChoice(choice, index), {
+        width: 250,
+        height: 42,
+        hitSlop: 6,
+      });
+    });
+  }
+
   private renderLobby(): void {
     this.resetCanvas();
     this.renderHeader();
@@ -179,7 +268,7 @@ export class AuctionScene extends Phaser.Scene {
     this.label(105, 284, `${t(this.locale, 'location')}: ${this.lot.location[this.locale]}`, 16, '#aeb5c0');
 
     if (this.lotModifier) {
-      this.label(105, 316, `EVENT · ${this.lotModifier.name[this.locale]}`, 14, '#e9b949', 'bold');
+      this.label(105, 316, `${t(this.locale, 'event').toUpperCase()} · ${this.lotModifier.name[this.locale]}`, 14, '#e9b949', 'bold');
       this.label(105, 340, this.lotModifier.description[this.locale], 13, '#aeb5c0').setWordWrapWidth(340);
       this.renderLotArtwork(285, 495, 360, 180);
     } else {
@@ -244,8 +333,8 @@ export class AuctionScene extends Phaser.Scene {
           trackEvent('tier_selected', { tierId: tier.id, reputationXp });
           this.dailySpecial = null;
           this.currentTierId = tier.id;
-          this.prepareNextLot();
-          this.renderLobby();
+          this.prepareLotChoices();
+          this.renderLotSelection();
         });
       }
     });
@@ -298,22 +387,22 @@ export class AuctionScene extends Phaser.Scene {
     this.renderLobby();
   }
 
-  private renderDailyControl(y = 540): void {
+  private renderDailyControl(y = 540, x = 1038, width = 270): void {
     const today = localDayKey();
     const completed = this.store.snapshot.lastDailyCompletedDay === today;
 
     if (completed) {
-      this.centerLabel(1038, y, t(this.locale, 'dailyComplete'), 12, '#63d28d', 'bold');
+      this.centerLabel(x, y, t(this.locale, 'dailyComplete'), 12, '#63d28d', 'bold').setWordWrapWidth(width);
       return;
     }
 
     if (this.dailySpecial?.dayKey === today) {
-      this.centerLabel(1038, y, t(this.locale, 'dailyActive'), 12, '#e9b949', 'bold');
+      this.centerLabel(x, y, t(this.locale, 'dailyActive'), 12, '#e9b949', 'bold').setWordWrapWidth(width);
       return;
     }
 
-    button(this, 1038, y, t(this.locale, 'dailySpecial'), () => this.activateDailySpecial(), {
-      width: 270,
+    button(this, x, y, t(this.locale, 'dailySpecial'), () => this.activateDailySpecial(), {
+      width,
       height: 38,
       background: 0xc4773a,
       hitSlop: 4,
@@ -332,7 +421,7 @@ export class AuctionScene extends Phaser.Scene {
       tierId: this.dailySpecial.tierId,
       lotId: this.dailySpecial.lotId,
     });
-    this.prepareNextLot();
+    this.prepareDailyLot();
     this.renderLobby();
   }
 
@@ -358,7 +447,7 @@ export class AuctionScene extends Phaser.Scene {
     this.renderHeader();
     this.label(80, 160, this.lot.name[this.locale], 28, '#f7f8fa', 'bold');
     this.label(80, 202, this.lot.location[this.locale], 16, '#8b93a1');
-    if (this.lotModifier) this.label(80, 225, `EVENT · ${this.lotModifier.name[this.locale]}`, 13, '#e9b949', 'bold');
+    if (this.lotModifier) this.label(80, 225, `${t(this.locale, 'event').toUpperCase()} · ${this.lotModifier.name[this.locale]}`, 13, '#e9b949', 'bold');
 
     this.panel(70, 245, 760, 370);
     this.renderLotArtwork(645, 342, 300, 150);
@@ -469,8 +558,12 @@ export class AuctionScene extends Phaser.Scene {
     this.centerLabel(640, 330, `${t(this.locale, 'currentBid')}: ${this.money(this.currentBid)}`, 22, '#aeb5c0');
     button(this, 640, 465, t(this.locale, 'nextAuction'), () => {
       this.continueAfterNaturalBreak(() => {
-        this.prepareNextLot();
-        this.renderLobby();
+        if (this.dailySpecial) {
+          this.dailySpecial = null;
+          this.currentTierId = highestUnlockedAuctionTier(this.store.snapshot.reputationXp).id;
+        }
+        this.prepareLotChoices();
+        this.renderLotSelection();
       });
     }, { width: 280, height: 64 });
   }
@@ -766,8 +859,8 @@ export class AuctionScene extends Phaser.Scene {
           this.dailySpecial = null;
           this.currentTierId = highestUnlockedAuctionTier(this.store.snapshot.reputationXp).id;
         }
-        this.prepareNextLot();
-        this.renderLobby();
+        this.prepareLotChoices();
+        this.renderLotSelection();
       });
     }, { width: 290, height: 60, disabled: this.transitionAdPending });
   }
@@ -854,7 +947,11 @@ export class AuctionScene extends Phaser.Scene {
   }
 
   private renderLotArtwork(x: number, y: number, width: number, height: number): void {
-    const texture = resolveLotTexture(this, this.lot.artId ?? this.lot.id);
+    this.renderLotArtworkFor(this.lot, x, y, width, height);
+  }
+
+  private renderLotArtworkFor(lot: LotTemplate, x: number, y: number, width: number, height: number): void {
+    const texture = resolveLotTexture(this, lot.artId ?? lot.id);
     if (!texture) {
       this.add.rectangle(x, y, width, height, 0x20242b).setStrokeStyle(1, 0xffffff, 0.08);
       return;
@@ -895,6 +992,11 @@ export class AuctionScene extends Phaser.Scene {
 
   private centerLabel(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
     return this.label(x, y, text, size, color, style).setOrigin(0.5);
+  }
+
+  private compactText(value: string, maxLength: number): string {
+    if (value.length <= maxLength) return value;
+    return `${value.slice(0, Math.max(1, maxLength - 1)).trimEnd()}…`;
   }
 
   private inspectionConditionLabel(band: InspectionConditionBand): string {
