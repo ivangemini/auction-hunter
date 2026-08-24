@@ -142,19 +142,20 @@ async function eventSeen(page, eventName) {
 }
 
 async function winCurrentAuction(page) {
-  // Use the real Garage tier tab for a shorter deterministic submission capture while
-  // preserving the production selection -> bidding -> win -> reveal path.
+  // Use the real Garage tier tab for a shorter production capture while preserving
+  // the production selection -> bidding -> win -> reveal path. Rival budgets are
+  // intentionally variable, so keep the loop comfortably above normal Garage length.
   await clickGame(page, 250, 151);
   await page.waitForTimeout(180);
-  await clickGame(page, 240, 625); // Choose the first Garage lot option.
+  await clickGame(page, 240, 625);
   await page.waitForTimeout(180);
-  await clickGame(page, 1038, 620); // Enter the chosen auction.
+  await clickGame(page, 1038, 620);
   await page.waitForTimeout(300);
 
-  for (let attempt = 0; attempt < 30; attempt += 1) {
+  for (let attempt = 0; attempt < 120; attempt += 1) {
     if (await eventSeen(page, 'auction_won')) return;
-    await clickGame(page, 226, 626); // Polished primary bid action.
-    await page.waitForTimeout(1_000);
+    await clickGame(page, 226, 626);
+    await page.waitForTimeout(750);
   }
 
   throw new Error('Unable to reach a legitimate Garage auction win while capturing screenshots');
@@ -242,8 +243,8 @@ async function captureLocale(browser, localeCode, locale) {
       path.join(desktopDir, '01-lot-selection.png'),
       { x: 90, y: 292, width: 300, height: 105 },
     );
-    await pageWaitAndClick(page, 240, 625, 180); // Choose first visible lot.
-    await pageWaitAndClick(page, 1038, 620, 300); // Enter auction.
+    await pageWaitAndClick(page, 240, 625, 180);
+    await pageWaitAndClick(page, 1038, 620, 300);
     await saveViewport(
       page,
       path.join(desktopDir, '02-active-bidding.png'),
@@ -265,9 +266,9 @@ async function captureLocale(browser, localeCode, locale) {
   try {
     const revealPage = await bootPage(mobile, localeCode);
     await winCurrentAuction(revealPage);
-    await pageWaitAndClick(revealPage, 640, 592, 250); // Open won lot.
-    await pageWaitAndClick(revealPage, 640, 600, 320); // Reveal first item.
-    await pageWaitAndClick(revealPage, 1016, 560, 520); // Appraise first item.
+    await pageWaitAndClick(revealPage, 640, 592, 250);
+    await pageWaitAndClick(revealPage, 640, 600, 320);
+    await pageWaitAndClick(revealPage, 1016, 560, 520);
     assert(await eventSeen(revealPage, 'item_appraised'), 'Appraisal event was not observed before screenshot');
     await saveViewport(
       revealPage,
@@ -277,8 +278,8 @@ async function captureLocale(browser, localeCode, locale) {
     await revealPage.close();
 
     const officePage = await bootPage(mobile, localeCode);
-    await pageWaitAndClick(officePage, 1000, 112, 260); // Collection Book from polished lot selection.
-    await pageWaitAndClick(officePage, 970, 72, 350); // Office.
+    await pageWaitAndClick(officePage, 1000, 112, 260);
+    await pageWaitAndClick(officePage, 970, 72, 350);
     await saveViewport(officePage, path.join(mobileDir, '02-office-progression.png'));
     await officePage.close();
   } finally {
