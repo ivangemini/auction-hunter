@@ -1,5 +1,6 @@
 import type { BusinessUpgradeId, ItemTraitId, Locale, RestorationGrade } from './domain/types';
 import type { InspectionConditionBand } from './domain/inspection';
+import type { RestorationMode } from './domain/restoration';
 import type { AuctionTierId } from './data/tiers';
 
 export const ANALYTICS_SCHEMA_VERSION = 1 as const;
@@ -62,6 +63,7 @@ export interface AnalyticsEventMap {
   };
   restoration_completed: {
     itemId: string;
+    mode?: RestorationMode;
     grade: RestorationGrade;
     conditionBefore: number;
     conditionAfter: number;
