@@ -31,6 +31,14 @@ jobs:
           path: release/screenshots/review/**/*.png
           if-no-files-found: error
           retention-days: 7
+      - run: node scripts/capture-item-art-review.mjs
+      - name: Upload P7 item-art visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-item-art-review-ci
+          path: release/screenshots/item-review/generated/*.png
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload screenshot diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

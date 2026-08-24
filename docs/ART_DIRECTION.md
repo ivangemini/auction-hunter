@@ -129,6 +129,10 @@ Lot presentation keeps nine semantic environment identities: three Garage, three
 
 P7 has started the higher-fidelity raster replacement pass. The three Estate archetypes (`estate-42`, `estate-attic`, `estate-studio`) now use cleaned WebP environment art while preserving the same semantic Phaser texture keys. Garage and Collector archetypes still use their SVG implementations until their corresponding art pass is complete.
 
+The first P7 item-fidelity batch upgrades nine high-visibility finds while preserving their existing semantic IDs and 512×360 vector contract: `toolbox`, `toy-robot`, `film-camera`, `pocket-watch`, `porcelain-figurine`, `arcade-handheld`, `clockwork-automaton`, `art-deco-lamp` and `master-study`. These replacements use stronger silhouettes, authored perspective, material separation, controlled highlights and restrained gradients/shadows rather than schematic icon geometry. The remaining catalog SVGs are still valid direct art but remain candidates for the same fidelity pass.
+
+`scripts/capture-item-art-review.mjs` renders this batch deterministically into a 3×3 CI review sheet so fidelity changes are visually inspectable even when random auction screenshots do not happen to reveal one of these identities.
+
 This coverage is a correctness floor, not a quality ceiling. Existing simple SVGs should be replaced or augmented when they read as schematic placeholders in production screenshots.
 
 `src/data/artManifest.ts` remains the semantic asset manifest and `src/data/artCoverage.test.ts` prevents catalog items from silently falling back to aliases or the lot catalog from shrinking below the environment floor.
