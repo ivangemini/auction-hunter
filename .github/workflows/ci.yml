@@ -21,3 +21,15 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run qa:browser
+      - run: node scripts/validate-yandex-archive.mjs
+      - name: Build Yandex candidate ZIP
+        shell: bash
+        run: |
+          cd dist
+          zip -r ../auction-hunter-yandex.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-yandex-ci
+          path: auction-hunter-yandex.zip
+          if-no-files-found: error
+          retention-days: 7
