@@ -64,10 +64,14 @@ const TELL_COLORS: Record<BidderTell, string> = {
 };
 
 export class AuctionScene extends Phaser.Scene {
+  private static lotChoiceCycle = -1;
+  private static readonly lotChoiceCache = new Map<AuctionTierId, LotChoice[]>();
+
   private readonly store = new GameStore();
   private locale: Locale = 'en';
   private lot!: LotTemplate;
   private lotChoices: LotChoice[] = [];
+  private lotSelectionCommitted = false;
   private lotModifier: LotModifierDefinition | null = null;
   private inspectionReport: InspectionReport | null = null;
   private items: RevealedItem[] = [];
@@ -120,6 +124,19 @@ export class AuctionScene extends Phaser.Scene {
       this.currentTierId = tier.id;
     }
 
+    this.lotSelectionCommitted = false;
+    if (AuctionScene.lotChoiceCycle !== save.auctionsPlayed) {
+      AuctionScene.lotChoiceCycle = save.auctionsPlayed;
+      AuctionScene.lotChoiceCache.clear();
+    }
+
+    const cachedChoices = AuctionScene.lotChoiceCache.get(this.currentTierId);
+    if (cachedChoices) {
+      this.lotChoices = cachedChoices;
+      this.trackLotOptionsPresented();
+      return;
+    }
+
     const tierLots = tier.lotIds
       .map((lotId) => LOTS.find((candidate) => candidate.id === lotId))
       .filter((candidate): candidate is LotTemplate => Boolean(candidate));
@@ -133,7 +150,11 @@ export class AuctionScene extends Phaser.Scene {
         modifier,
       };
     });
+    AuctionScene.lotChoiceCache.set(this.currentTierId, this.lotChoices);
+    this.trackLotOptionsPresented();
+  }
 
+  private trackLotOptionsPresented(): void {
     trackEvent('lot_options_presented', {
       tierId: this.currentTierId,
       lotIds: this.lotChoices.map((choice) => choice.lot.id),
@@ -196,6 +217,7 @@ export class AuctionScene extends Phaser.Scene {
       itemCount: choice.lot.itemCount,
       modifierId: choice.modifier?.id,
     });
+    this.lotSelectionCommitted = true;
     this.lotChoices = [];
     this.prepareLot(choice.lot, choice.modifier);
     this.renderLobby();
@@ -292,13 +314,6 @@ export class AuctionScene extends Phaser.Scene {
 
     this.renderInspectionControl();
 
-    button(this, 1038, 520, t(this.locale, 'collectionBook'), () => this.scene.start('collection'), {
-      width: 270,
-      height: 38,
-      background: 0x61a8ff,
-      hitSlop: 4,
-    });
-    this.renderDailyControl(565);
     button(this, 1038, 620, this.dailySpecial ? t(this.locale, 'startDailyAuction') : t(this.locale, 'startAuction'), () => this.startAuction(), {
       width: 270,
       height: 48,
@@ -324,10 +339,10 @@ export class AuctionScene extends Phaser.Scene {
         : `${tier.name[this.locale]} · ${t(this.locale, 'lockedAtReputation', { xp: tier.minReputationXp })}`;
       this.centerLabel(x, 151, text, 14, selected ? this.hexColor(tier.accent) : unlocked ? '#d7dbe2' : '#666e79', selected ? 'bold' : 'normal');
 
-      if (unlocked && (!selected || this.dailySpecial)) {
+      if (unlocked && !this.lotSelectionCommitted && !selected) {
         rect.setInteractive({ useHandCursor: true });
         rect.on('pointerover', () => rect.setStrokeStyle(1, tier.accent, 0.6));
-        rect.on('pointerout', () => rect.setStrokeStyle(1, selected ? tier.accent : 0xffffff, selected ? 0.75 : 0.18));
+        rect.on('pointerout', () => rect.setStrokeStyle(1, 0xffffff, 0.18));
         rect.on('pointerup', () => {
           playFeedbackCue(this, 'ui');
           trackEvent('tier_selected', { tierId: tier.id, reputationXp });
@@ -416,6 +431,7 @@ export class AuctionScene extends Phaser.Scene {
 
     this.dailySpecial = getDailySpecial(today, save.reputationXp);
     this.currentTierId = this.dailySpecial.tierId;
+    this.lotSelectionCommitted = true;
     trackEvent('daily_special_activated', {
       dayKey: this.dailySpecial.dayKey,
       tierId: this.dailySpecial.tierId,
