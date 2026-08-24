@@ -98,7 +98,7 @@ This pass is a product-quality priority, not optional decoration. Complete it be
 - [x] Redesign lot selection first: larger authored environment art, stronger lot identity, physical auction-card language, compact clue/status treatment and richer selected/hover states.
 - [x] Redesign auction presentation: stronger current-bid focal point, visible rival presence/tells, environmental depth and bid/win/loss feedback.
 - [x] Redesign reveal + appraisal flow around the item as a hero visual with staged reveal, rarity/value feedback and less dashboard-like metadata.
-- [ ] Redesign restoration so condition, tool/strategy choice and result feel tactile rather than form-like.
+- [x] Redesign restoration so condition, tool/strategy choice and result feel tactile rather than form-like.
 - [ ] Redesign Collection Book and Buyer Market with stronger collectible/buyer identity, set-progress visualization and premium-sale feedback.
 - [ ] Bring Business Office, contracts, achievements, statistics and secondary hubs onto the same visual system instead of generic panels.
 - [ ] Upgrade the most schematic lot/item SVGs with higher-fidelity authored raster/vector art while preserving semantic asset IDs and coverage tests.

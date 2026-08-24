@@ -8,6 +8,7 @@ import {
 import type { Locale, RevealedItem } from '../domain/types';
 import { t } from '../i18n';
 import { resolveItemTexture } from './art';
+import { enterWithStagger, MOTION, prefersReducedMotion } from './motion';
 import { button } from './ui';
 
 interface RestorationBaseOptions {
@@ -15,6 +16,7 @@ interface RestorationBaseOptions {
   locale: Locale;
   item: RevealedItem;
   prepareFrame: () => void;
+  formatMoney?: (value: number) => string;
 }
 
 interface RestorationModePickerOptions extends RestorationBaseOptions {
@@ -34,78 +36,311 @@ const MODE_COLORS: Record<RestorationMode, number> = {
 
 export function renderRestorationModePicker(options: RestorationModePickerOptions): void {
   const { scene, locale, item, prepareFrame, onChoose } = options;
+  const money = options.formatMoney ?? ((value: number) => formatMoney(locale, value));
   prepareFrame();
+  renderBackdrop(scene);
+  renderWorkbenchHeader(scene, locale, item, money);
 
-  panel(scene, 120, 135, 1040, 525);
-  centerLabel(scene, 640, 178, t(locale, 'restorationChooseModeTitle'), 32, '#e9b949', 'bold');
-  centerLabel(scene, 640, 212, t(locale, 'restorationChooseModeHelp'), 14, '#aeb5c0').setWordWrapWidth(880);
+  const itemPanel = scene.add.container(44, 144);
+  itemPanel.add([
+    surface(scene, 0, 0, 356, 510, 0xe9b949),
+    scene.add.rectangle(20, 22, 316, 284, 0x0c1016, 1).setOrigin(0).setStrokeStyle(1, 0xe9b949, 0.2),
+  ]);
+  const itemHalo = scene.add.circle(178, 164, 126, 0xe9b949, 0.035).setStrokeStyle(1, 0xe9b949, 0.14);
+  const image = scene.add.image(178, 165, resolveItemTexture(scene, item.definition.id)).setDisplaySize(300, 210);
+  const itemTitle = centerLabel(scene, 178, 330, item.definition.name[locale], 20, '#f7f3e8', 'bold')
+    .setWordWrapWidth(300)
+    .setAlign('center');
+  const conditionLabel = label(scene, 30, 379, t(locale, 'condition').toUpperCase(), 9, '#7f8996', 'bold');
+  const conditionValue = label(scene, 326, 374, `${Math.round(item.condition * 100)}%`, 20, conditionColor(item.condition), 'bold').setOrigin(1, 0);
+  const conditionTrack = scene.add.rectangle(30, 413, 296, 12, 0x2b3038, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.08);
+  const conditionFill = scene.add.rectangle(30, 413, 296 * item.condition, 12, hexColorToNumber(conditionColor(item.condition)), 0.88).setOrigin(0);
+  const appraisalLabel = label(scene, 30, 447, t(locale, 'estimatedValue').toUpperCase(), 9, '#7f8996', 'bold');
+  const appraisalValue = label(scene, 326, 441, money(item.appraisedValue), 22, '#63d28d', 'bold').setOrigin(1, 0);
+  const warning = centerLabel(scene, 178, 486, t(locale, 'restorationAttemptWarning'), 10, '#d8a46c', 'bold')
+    .setWordWrapWidth(300)
+    .setAlign('center');
+  itemPanel.add([
+    itemHalo,
+    image,
+    itemTitle,
+    conditionLabel,
+    conditionValue,
+    conditionTrack,
+    conditionFill,
+    appraisalLabel,
+    appraisalValue,
+    warning,
+  ]);
 
-  scene.add.image(285, 355, resolveItemTexture(scene, item.definition.id)).setDisplaySize(270, 190);
-  centerLabel(scene, 285, 470, item.definition.name[locale], 18, '#f7f8fa', 'bold').setWordWrapWidth(280);
-  centerLabel(scene, 285, 503, `${t(locale, 'condition')}: ${Math.round(item.condition * 100)}%`, 14, '#aeb5c0');
-  centerLabel(scene, 285, 535, t(locale, 'restorationAttemptWarning'), 12, '#e9b949', 'bold').setWordWrapWidth(290);
+  if (!prefersReducedMotion()) {
+    image.setY(174).setAlpha(0.72);
+    scene.tweens.add({ targets: image, y: 165, alpha: 1, duration: MOTION.cardEnterMs, ease: 'Cubic.Out' });
+    scene.tweens.add({ targets: itemHalo, alpha: { from: 0.018, to: 0.055 }, duration: 1600, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+  }
 
+  let choicePending = false;
   const cards: Array<{ mode: RestorationMode; x: number }> = [
-    { mode: 'safe', x: 500 },
-    { mode: 'pro', x: 730 },
-    { mode: 'risky', x: 960 },
+    { mode: 'safe', x: 420 },
+    { mode: 'pro', x: 688 },
+    { mode: 'risky', x: 956 },
   ];
 
-  cards.forEach(({ mode, x }) => {
+  cards.forEach(({ mode, x }, index) => {
     const color = MODE_COLORS[mode];
-    scene.add.rectangle(x, 405, 205, 300, 0x171a20).setStrokeStyle(2, color, 0.58);
-    centerLabel(scene, x, 292, modeTitle(locale, mode), 20, hexColor(color), 'bold');
-    centerLabel(scene, x, 340, modeDescription(locale, mode), 12, '#c3c8d0').setWordWrapWidth(175);
-    centerLabel(scene, x, 430, modeTradeoff(locale, mode), 11, '#8b93a1', 'bold').setWordWrapWidth(175);
-    button(scene, x, 523, t(locale, 'restorationChooseMode'), () => onChoose(mode), {
-      width: 165,
-      height: 42,
+    const rules = RESTORATION_MODE_RULES[mode];
+    const card = scene.add.container(x, 170);
+    const shadow = scene.add.rectangle(5, 7, 248, 452, 0x000000, 0.34).setOrigin(0);
+    const body = scene.add.rectangle(0, 0, 248, 452, 0x11151c, 1)
+      .setOrigin(0)
+      .setStrokeStyle(2, color, mode === 'pro' ? 0.7 : 0.46);
+    const topBand = scene.add.rectangle(0, 0, 248, 62, color, mode === 'pro' ? 0.16 : 0.1).setOrigin(0);
+    const iconPlate = scene.add.rectangle(24, 19, 34, 34, color, 0.13).setOrigin(0).setStrokeStyle(1, color, 0.45);
+    const icon = centerLabel(scene, 41, 36, modeGlyph(mode), 18, hexColor(color), 'bold');
+    const title = label(scene, 72, 18, modeTitle(locale, mode), 20, '#f7f3e8', 'bold');
+    const speedPips = renderSpeedPips(scene, locale, 24, 86, mode, color);
+    const targetPreview = renderTargetPreview(scene, locale, 24, 126, mode, color);
+    const description = label(scene, 24, 177, modeDescription(locale, mode), 11, '#c2c8d1').setWordWrapWidth(200);
+    const divider = scene.add.rectangle(24, 284, 200, 1, 0xffffff, 0.08).setOrigin(0);
+    const rewardTitle = label(scene, 24, 304, `${perfectShort(locale)} / ${goodShort(locale)}`, 9, '#858e9a', 'bold');
+    const reward = label(
+      scene,
+      24,
+      325,
+      `+${Math.round(rules.perfectConditionGain * 100)} / +${Math.round(rules.goodConditionGain * 100)}`,
+      18,
+      hexColor(color),
+      'bold',
+    );
+    const tradeoff = label(scene, 24, 357, modeTradeoff(locale, mode), 9, '#8f98a4', 'bold').setWordWrapWidth(200);
+    const choose = button(scene, 124, 414, t(locale, 'restorationChooseMode'), () => {
+      if (choicePending) return;
+      choicePending = true;
+      onChoose(mode);
+    }, {
+      width: 200,
+      height: 46,
       background: color,
-      hitSlop: 4,
+      accent: color,
+      hitSlop: 5,
+      fontSize: 15,
     });
+    card.add([
+      shadow,
+      body,
+      topBand,
+      iconPlate,
+      icon,
+      title,
+      ...speedPips,
+      ...targetPreview,
+      description,
+      divider,
+      rewardTitle,
+      reward,
+      tradeoff,
+      choose,
+    ]);
+    installCardHover(scene, card, body, color);
+    enterWithStagger(scene, card, 170, index);
   });
 }
 
 export function renderRestorationTimingGame(options: RestorationTimingOptions): void {
   const { scene, locale, item, prepareFrame, mode, onStop } = options;
+  const money = options.formatMoney ?? ((value: number) => formatMoney(locale, value));
   prepareFrame();
+  renderBackdrop(scene);
+  renderWorkbenchHeader(scene, locale, item, money, mode);
 
-  panel(scene, 180, 145, 920, 500);
-  centerLabel(scene, 640, 190, `${t(locale, 'restorationTitle')} · ${modeTitle(locale, mode)}`, 32, '#e9b949', 'bold');
+  surface(scene, 42, 148, 476, 492, MODE_COLORS[mode]);
+  scene.add.rectangle(66, 173, 428, 310, 0x0b0f14, 1).setOrigin(0).setStrokeStyle(1, MODE_COLORS[mode], 0.26);
+  const halo = scene.add.circle(280, 326, 168, MODE_COLORS[mode], 0.035).setStrokeStyle(2, MODE_COLORS[mode], 0.12);
+  const image = scene.add.image(280, 322, resolveItemTexture(scene, item.definition.id)).setDisplaySize(392, 274);
+  label(scene, 72, 511, t(locale, 'condition').toUpperCase(), 9, '#7f8996', 'bold');
+  label(scene, 490, 504, `${Math.round(item.condition * 100)}%`, 22, conditionColor(item.condition), 'bold').setOrigin(1, 0);
+  scene.add.rectangle(72, 545, 418, 12, 0x2b3038, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.08);
+  scene.add.rectangle(72, 545, 418 * item.condition, 12, hexColorToNumber(conditionColor(item.condition)), 0.88).setOrigin(0);
+  label(scene, 72, 580, t(locale, 'estimatedValue').toUpperCase(), 9, '#7f8996', 'bold');
+  label(scene, 490, 572, money(item.appraisedValue), 23, '#63d28d', 'bold').setOrigin(1, 0);
 
-  scene.add.image(380, 315, resolveItemTexture(scene, item.definition.id)).setDisplaySize(300, 210);
-  centerLabel(scene, 380, 433, `${t(locale, 'condition')}: ${Math.round(item.condition * 100)}%`, 18, '#d7dbe2', 'bold');
+  surface(scene, 542, 148, 696, 492, MODE_COLORS[mode]);
+  const color = MODE_COLORS[mode];
+  scene.add.rectangle(572, 177, 142, 34, color, 0.13).setOrigin(0).setStrokeStyle(1, color, 0.45);
+  label(scene, 588, 186, modeTitle(locale, mode).toUpperCase(), 11, hexColor(color), 'bold');
+  label(scene, 572, 236, t(locale, 'restorationTimingHelp'), 15, '#f0f2f5', 'bold').setWordWrapWidth(622);
+  label(scene, 572, 292, modeTradeoff(locale, mode), 11, hexColor(color), 'bold').setWordWrapWidth(612);
 
-  label(scene, 565, 255, t(locale, 'restorationTimingHelp'), 17, '#d7dbe2').setWordWrapWidth(420);
-  label(scene, 565, 326, modeTradeoff(locale, mode), 13, hexColor(MODE_COLORS[mode]), 'bold').setWordWrapWidth(410);
-
-  const barX = 320;
-  const barY = 500;
-  const barWidth = 640;
+  const barX = 598;
+  const barY = 414;
+  const barWidth = 584;
   const baseHalfWidth = baseRestorationTargetHalfWidth(item.definition.rarity);
   const targetHalfWidth = restorationTargetHalfWidth(baseHalfWidth, mode);
+  const goodHalfWidth = targetHalfWidth + RESTORATION_MODE_RULES[mode].goodMargin;
   const edge = targetHalfWidth + 0.08;
   const targetCenter = Phaser.Math.FloatBetween(edge, 1 - edge);
   const targetX = barX + barWidth * targetCenter;
   const targetWidth = barWidth * targetHalfWidth * 2;
+  const goodLeft = Math.max(barX, targetX - barWidth * goodHalfWidth);
+  const goodRight = Math.min(barX + barWidth, targetX + barWidth * goodHalfWidth);
+  const goodWidth = Math.max(0, goodRight - goodLeft);
 
-  scene.add.rectangle(barX, barY, barWidth, 26, 0x2b3038).setOrigin(0, 0.5).setStrokeStyle(1, 0xffffff, 0.12);
-  scene.add.rectangle(targetX, barY, targetWidth, 26, 0x63d28d, 0.52).setStrokeStyle(2, 0x63d28d, 0.9);
-  const marker = scene.add.rectangle(barX, barY, 8, 54, 0xf7f8fa).setOrigin(0.5);
+  label(scene, barX, 352, goodShort(locale), 9, '#aeb5c0', 'bold');
+  scene.add.rectangle(barX + 70, 358, 14, 7, 0xe9b949, 0.5).setOrigin(0.5);
+  label(scene, barX + 101, 352, perfectShort(locale), 9, '#aeb5c0', 'bold');
+  scene.add.rectangle(barX + 205, 358, 14, 7, 0x63d28d, 0.72).setOrigin(0.5);
+
+  scene.add.rectangle(barX, barY, barWidth, 42, 0x20262e, 1).setOrigin(0, 0.5).setStrokeStyle(1, 0xffffff, 0.1);
+  scene.add.rectangle(goodLeft, barY, goodWidth, 42, 0xe9b949, 0.14).setOrigin(0, 0.5).setStrokeStyle(1, 0xe9b949, 0.32);
+  const target = scene.add.rectangle(targetX, barY, targetWidth, 42, 0x63d28d, 0.44).setStrokeStyle(2, 0x63d28d, 0.86);
+  scene.add.rectangle(targetX, barY, 2, 58, 0xffffff, 0.24);
+
+  const markerGlow = scene.add.rectangle(0, 0, 18, 78, 0xffffff, 0.08).setStrokeStyle(1, 0xffffff, 0.08);
+  const marker = scene.add.rectangle(0, 0, 8, 66, 0xf7f8fa, 1).setStrokeStyle(2, color, 0.75);
+  const markerContainer = scene.add.container(barX, barY, [markerGlow, marker]);
   const tween = scene.tweens.add({
-    targets: marker,
+    targets: markerContainer,
     x: barX + barWidth,
     duration: RESTORATION_MODE_RULES[mode].markerDurationMs,
     yoyo: true,
     repeat: -1,
-    ease: 'Sine.inOut',
+    ease: 'Sine.InOut',
   });
 
-  button(scene, 640, 585, t(locale, 'restorationStop'), () => {
-    const markerPosition = Phaser.Math.Clamp((marker.x - barX) / barWidth, 0, 1);
+  if (!prefersReducedMotion()) {
+    image.setScale(0.965).setAlpha(0.82);
+    scene.tweens.add({ targets: image, scaleX: 1, scaleY: 1, alpha: 1, duration: MOTION.cardEnterMs, ease: 'Cubic.Out' });
+    scene.tweens.add({ targets: halo, alpha: { from: 0.018, to: 0.055 }, duration: 1500, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    scene.tweens.add({ targets: target, alpha: { from: 0.72, to: 1 }, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+  }
+
+  let stopped = false;
+  button(scene, 890, 557, t(locale, 'restorationStop'), () => {
+    if (stopped) return;
+    stopped = true;
+    const markerPosition = Phaser.Math.Clamp((markerContainer.x - barX) / barWidth, 0, 1);
     tween.stop();
     onStop(markerPosition, targetCenter);
-  }, { width: 260, height: 60, background: MODE_COLORS[mode] });
+  }, {
+    width: 300,
+    height: 68,
+    background: color,
+    accent: color,
+    hitSlop: 8,
+    fontSize: 22,
+  });
+}
+
+function renderBackdrop(scene: Phaser.Scene): void {
+  scene.add.rectangle(0, 0, 1280, 720, 0x0b0e13, 1).setOrigin(0);
+  scene.add.rectangle(0, 0, 1280, 118, 0x10141a, 0.98).setOrigin(0);
+  scene.add.rectangle(0, 118, 1280, 602, 0x101216, 0.84).setOrigin(0);
+  scene.add.rectangle(0, 118, 420, 602, 0xe9b949, 0.018).setOrigin(0);
+  scene.add.rectangle(860, 118, 420, 602, 0x61a8ff, 0.014).setOrigin(0);
+  scene.add.rectangle(28, 116, 1224, 1, 0xffffff, 0.08).setOrigin(0);
+}
+
+function renderWorkbenchHeader(
+  scene: Phaser.Scene,
+  locale: Locale,
+  item: RevealedItem,
+  money: (value: number) => string,
+  mode?: RestorationMode,
+): void {
+  scene.add.rectangle(28, 20, 204, 82, 0x11151c, 0.98).setOrigin(0).setStrokeStyle(2, 0xc4773a, 0.48);
+  label(scene, 48, 33, 'RESTORATION', 19, '#d8a46c', 'bold');
+  label(scene, 82, 64, 'BENCH', 13, '#7f8996', 'bold');
+  label(scene, 266, 28, t(locale, 'restorationTitle'), 26, '#f7f3e8', 'bold');
+  label(scene, 266, 63, item.definition.name[locale], 12, '#8f98a4').setWordWrapWidth(380);
+  if (mode) {
+    const color = MODE_COLORS[mode];
+    scene.add.rectangle(650, 34, 142, 34, color, 0.12).setOrigin(0).setStrokeStyle(1, color, 0.4);
+    label(scene, 665, 43, modeTitle(locale, mode).toUpperCase(), 10, hexColor(color), 'bold');
+  }
+  headerStat(scene, 832, t(locale, 'condition'), `${Math.round(item.condition * 100)}%`, conditionColor(item.condition));
+  headerStat(scene, 1010, t(locale, 'estimatedValue'), money(item.appraisedValue), '#63d28d');
+}
+
+function headerStat(scene: Phaser.Scene, x: number, title: string, value: string, color: string): void {
+  scene.add.rectangle(x, 25, 164, 64, 0x11151c, 0.96).setOrigin(0).setStrokeStyle(1, hexColorToNumber(color), 0.28);
+  label(scene, x + 12, 34, title.toUpperCase(), 8, '#707985', 'bold');
+  label(scene, x + 12, 55, value, 17, color, 'bold');
+}
+
+function surface(scene: Phaser.Scene, x: number, y: number, width: number, height: number, accent: number): Phaser.GameObjects.Rectangle {
+  scene.add.rectangle(x + 5, y + 7, width, height, 0x000000, 0.34).setOrigin(0);
+  return scene.add.rectangle(x, y, width, height, 0x11151c, 0.98).setOrigin(0).setStrokeStyle(2, accent, 0.26);
+}
+
+function renderSpeedPips(
+  scene: Phaser.Scene,
+  locale: Locale,
+  x: number,
+  y: number,
+  mode: RestorationMode,
+  color: number,
+): Phaser.GameObjects.GameObject[] {
+  const count = mode === 'safe' ? 1 : mode === 'pro' ? 2 : 3;
+  const objects: Phaser.GameObjects.GameObject[] = [label(scene, x, y, speedLabel(locale), 8, '#69717d', 'bold')];
+  for (let index = 0; index < 3; index += 1) {
+    objects.push(scene.add.rectangle(x + 84 + index * 22, y + 5, 15, 6, index < count ? color : 0x303640, index < count ? 0.88 : 0.7));
+  }
+  return objects;
+}
+
+function renderTargetPreview(
+  scene: Phaser.Scene,
+  locale: Locale,
+  x: number,
+  y: number,
+  mode: RestorationMode,
+  color: number,
+): Phaser.GameObjects.GameObject[] {
+  const baseWidth = 180;
+  const halfWidth = restorationTargetHalfWidth(0.12, mode);
+  const targetWidth = Math.max(22, baseWidth * halfWidth * 2);
+  const labelText = label(scene, x, y, timingWindowLabel(locale), 8, '#69717d', 'bold');
+  const track = scene.add.rectangle(x, y + 27, baseWidth, 11, 0x2b3038, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.06);
+  const target = scene.add.rectangle(x + baseWidth / 2, y + 32.5, targetWidth, 11, color, 0.62).setStrokeStyle(1, color, 0.8);
+  return [labelText, track, target];
+}
+
+function installCardHover(
+  scene: Phaser.Scene,
+  card: Phaser.GameObjects.Container,
+  body: Phaser.GameObjects.Rectangle,
+  color: number,
+): void {
+  const hit = scene.add.rectangle(124, 226, 248, 452, 0xffffff, 0.001);
+  card.addAt(hit, 0);
+  hit.setInteractive({ useHandCursor: true });
+  const reduced = prefersReducedMotion();
+  const settle = (hovered: boolean): void => {
+    scene.tweens.killTweensOf(card);
+    body.setStrokeStyle(2, color, hovered ? 0.82 : 0.46);
+    if (reduced) {
+      card.setScale(hovered ? 1.008 : 1).setY(hovered ? 168 : 170);
+      return;
+    }
+    scene.tweens.add({
+      targets: card,
+      y: hovered ? 164 : 170,
+      scaleX: hovered ? 1.014 : 1,
+      scaleY: hovered ? 1.014 : 1,
+      duration: hovered ? MOTION.hoverMs : MOTION.settleMs,
+      ease: hovered ? 'Cubic.Out' : 'Back.Out',
+    });
+  };
+  hit.on('pointerover', () => settle(true));
+  hit.on('pointerout', () => settle(false));
+}
+
+function modeGlyph(mode: RestorationMode): string {
+  switch (mode) {
+    case 'safe': return '◇';
+    case 'pro': return '◆';
+    case 'risky': return '⚡';
+  }
 }
 
 function modeTitle(locale: Locale, mode: RestorationMode): string {
@@ -132,20 +367,44 @@ function modeTradeoff(locale: Locale, mode: RestorationMode): string {
   }
 }
 
-function panel(scene: Phaser.Scene, x: number, y: number, width: number, height: number): Phaser.GameObjects.Rectangle {
-  return scene.add.rectangle(x, y, width, height, 0x15181e, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.08);
+function speedLabel(locale: Locale): string {
+  return locale === 'ru' ? 'СКОРОСТЬ' : 'SPEED';
+}
+
+function timingWindowLabel(locale: Locale): string {
+  return locale === 'ru' ? 'ОКНО ТОЧНОСТИ' : 'TIMING WINDOW';
+}
+
+function perfectShort(locale: Locale): string {
+  return locale === 'ru' ? 'ИДЕАЛЬНО' : 'PERFECT';
+}
+
+function goodShort(locale: Locale): string {
+  return locale === 'ru' ? 'ХОРОШО' : 'GOOD';
+}
+
+function conditionColor(condition: number): string {
+  if (condition >= 0.86) return '#63d28d';
+  if (condition >= 0.7) return '#e9b949';
+  if (condition >= 0.55) return '#d8a46c';
+  return '#ff8d85';
+}
+
+function formatMoney(locale: Locale, value: number): string {
+  const language = locale === 'ru' ? 'ru-RU' : 'en-US';
+  return `${new Intl.NumberFormat(language, { maximumFractionDigits: 0 }).format(Math.round(value))} ₽`;
 }
 
 function label(
   scene: Phaser.Scene,
   x: number,
   y: number,
-  text: string,
+  value: string,
   size: number,
   color: string,
   style: 'normal' | 'bold' = 'normal',
 ): Phaser.GameObjects.Text {
-  return scene.add.text(x, y, text, {
+  return scene.add.text(x, y, value, {
     fontFamily: 'Arial, sans-serif',
     fontSize: `${size}px`,
     fontStyle: style,
@@ -157,14 +416,18 @@ function centerLabel(
   scene: Phaser.Scene,
   x: number,
   y: number,
-  text: string,
+  value: string,
   size: number,
   color: string,
   style: 'normal' | 'bold' = 'normal',
 ): Phaser.GameObjects.Text {
-  return label(scene, x, y, text, size, color, style).setOrigin(0.5);
+  return label(scene, x, y, value, size, color, style).setOrigin(0.5);
 }
 
 function hexColor(value: number): string {
   return `#${value.toString(16).padStart(6, '0')}`;
+}
+
+function hexColorToNumber(value: string): number {
+  return Number.parseInt(value.slice(1), 16);
 }

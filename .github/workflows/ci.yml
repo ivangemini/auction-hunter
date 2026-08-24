@@ -23,6 +23,14 @@ jobs:
       - run: npm run qa:browser
       - run: node scripts/render-yandex-promos.mjs
       - run: node scripts/capture-yandex-screenshots.mjs
+      - run: node scripts/capture-restoration-review.mjs
+      - name: Upload restoration visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-restoration-review-ci
+          path: release/screenshots/review/**/*.png
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload screenshot diagnostics
         if: failure()
         uses: actions/upload-artifact@v4

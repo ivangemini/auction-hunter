@@ -10,17 +10,19 @@ Fast navigation map for humans and coding agents.
 - `index.html` — browser shell, Yandex SDK script and portrait orientation guard.
 - `vite.config.ts` — relative build configuration; production source maps are disabled so release archives do not ship source maps.
 - `playwright.config.ts` — desktop/landscape/portrait browser QA.
-- `.github/workflows/ci.yml` — CI gates, draft/archive validation, candidate ZIP, promo/screenshots and unified submission artifacts; failed screenshot runs preserve short-lived diagnostic captures.
+- `.github/workflows/ci.yml` — CI gates, draft/archive validation, candidate ZIP, promo/screenshots and unified submission artifacts; also uploads dedicated restoration visual-review captures without changing the Yandex submission screenshot set.
 - `.github/workflows/yandex-release.yml` — moderation-ready release workflow; produces the game ZIP plus a single submission bundle and injects optional `YANDEX_METRICA_ID` into the release build.
 - `release/yandex-draft-metadata.json` — machine-readable RU/EN draft copy and current visual-field constraints.
 - `release/promotional/` — reviewed SVG sources for the Yandex catalog icon/cover; `generated/` is produced by CI/release rather than committed.
 - `release/screenshots/generated/` — generated RU/EN desktop/mobile production screenshots; CI/release output only.
+- `release/screenshots/review/` — temporary RU/EN screen-family visual-review captures used by CI; currently restoration mode/timing screens and intentionally excluded from Yandex submission assets.
 - `release/screenshots/debug/` — temporary capture diagnostics created only when the production screenshot flow needs failure evidence; CI may upload them with short retention.
 - `release/submission/generated/` — assembled Draft submission tree; CI/release output only.
 - `scripts/validate-yandex-draft.mjs` — release metadata length/casing/consistency/spec validator, including package/release version parity.
 - `scripts/validate-yandex-archive.mjs` — built archive root/path/size/SDK/title validator; rejects production source maps.
 - `scripts/render-yandex-promos.mjs` — deterministic 512×512 icon and 800×470 cover PNG renderer/validator.
 - `scripts/capture-yandex-screenshots.mjs` — production-build RU/EN gameplay capture plus non-blank art-region checks; core-loop navigation is analytics-event-driven and asserts one committed lot choice remains stable through the auction before reveal/appraisal capture.
+- `scripts/capture-restoration-review.mjs` — drives a production build through the real auction/reveal/appraisal path, then captures RU/EN restoration mode-picker and timing-stage evidence with transition-difference assertions.
 - `scripts/build-yandex-submission.mjs` — assembles game ZIP, promo art, screenshots and metadata with SHA-256 manifests.
 
 ## Documentation
@@ -79,7 +81,7 @@ Static content/tuning inputs.
 - `scenes/PolishedAuctionSceneV2.ts` — P7 active-bidding, win, reveal and appraisal presentation: current-bid focal treatment, persistent rival cards/tells, staged item hero reveal, rarity/value feedback and locale-safe action controls.
 - `lotMarket.ts` — normal-auction tier validation, three-choice generation, visible modifier application and page-session market-cycle cache.
 - `lotMarket.test.ts` — deterministic tier fallback/distinct-choice/cache regression coverage.
-- `restorationUi.ts` — Safe/Pro/Risky choice cards plus Phaser timing challenge; formula/reward truth remains in `src/domain/restoration.ts`.
+- `restorationUi.ts` — P7 restoration workbench presentation: Safe/Pro/Risky decision cards with visible speed/window/reward tradeoffs, persistent item condition/value context, explicit Good/Perfect timing bands, dominant STOP control and one-shot input guards; formula/reward truth remains in `src/domain/restoration.ts`.
 - `scenes/CollectionScene.ts` — paged collection sets, concrete-copy appraisal/condition/trait display, Buyer Market navigation and lowest-value-first inventory quick sale.
 - `scenes/BuyerMarketScene.ts` — three deterministic daily buyers, exact-copy premium inventory matching and one completed sale per offer/day.
 - `scenes/OfficeScene.ts` — contracts, upgrades, achievements, stats, recent auction history and accessibility settings.
@@ -119,6 +121,7 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 - `tests/restoration.spec.ts` — compatibility-level condition/value and Safe/Pro/Risky restoration contract coverage.
 - Other `tests/*.spec.ts` cover system contracts used by Playwright QA.
 - `scripts/capture-yandex-screenshots.mjs` doubles as a production-build core-loop smoke test: it verifies a single lot selection remains stable through a legitimate auction win, advances reveal/appraisal by observed analytics events and rejects visually blank lot/item art.
+- `scripts/capture-restoration-review.mjs` is the restoration screen-family visual gate: it follows the same production core loop and verifies the mode/timing screens visibly replace their preceding states before CI uploads the four RU/EN review captures.
 
 ## Where to make common changes
 - Add/tune lots and clue signals: `src/data/catalog.ts` + `docs/CONTENT_MODEL.md`.
@@ -127,7 +130,7 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 - Change Buyer Market buyers/premiums/matching: `src/data/buyers.ts`; transaction semantics live in `src/game/store.ts`; presentation lives in `src/game/scenes/BuyerMarketScene.ts`.
 - Change normal-auction option sampling/cache behavior: `src/domain/lotSelection.ts` + `src/game/lotMarket.ts`; change polished selection presentation in `src/game/scenes/PolishedAuctionScene.ts`.
 - Change active bidding/win/reveal/appraisal presentation without changing auction rules: `src/game/scenes/PolishedAuctionSceneV2.ts`.
-- Change restoration mode difficulty/reward rules: `src/domain/restoration.ts`; change restoration choice/timing presentation in `src/game/restorationUi.ts`.
+- Change restoration mode difficulty/reward rules: `src/domain/restoration.ts`; change restoration choice/timing presentation in `src/game/restorationUi.ts`; update visual evidence through `scripts/capture-restoration-review.mjs`.
 - Change Dealer Memory aggregation: `src/domain/history.ts`; change its polished lot-card presentation in `src/game/scenes/PolishedAuctionScene.ts`.
 - Add/change catalog art: `public/assets/`, `src/data/artManifest.ts`, lot `artId` assignments and `src/data/artCoverage.test.ts`.
 - Change Yandex icon/cover: `release/promotional/*.svg` + `scripts/render-yandex-promos.mjs`; never hand-edit generated PNGs.
