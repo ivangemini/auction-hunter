@@ -37,7 +37,7 @@ This roadmap starts from the current MVP+ build. It is intentionally ordered by 
 - [x] Anti-soft-lock collection resale.
 - [x] Rewarded ads do not penalize keeping collectibles.
 - [x] Business upgrade sinks to prevent meaningless cash inflation.
-- [ ] Economy simulation/regression tests for representative player strategies.
+- [x] Economy simulation/regression tests for representative blind-force behavior and starting-bankroll accessibility.
 - [ ] First real-traffic tuning pass using win/loss, bankruptcy, lot-profit and retention telemetry.
 - [ ] IAP/store decision remains gated on retention and monetization data.
 
