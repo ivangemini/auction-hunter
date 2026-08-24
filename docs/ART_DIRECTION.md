@@ -1,4 +1,4 @@
-# Auction Hunter — Art Direction v0.5
+# Auction Hunter — Art Direction v0.6
 
 ## Visual thesis
 Auction Hunter should feel like a late-evening storage auction: warm tungsten light, cold industrial shadows, dusty surfaces, taped cardboard, worn paint and small flashes of valuable metal or electronics.
@@ -28,6 +28,8 @@ Avoid common synthetic/AI-looking artifacts:
 - baking interface text, prices or dynamic values into generated artwork.
 
 UI typography, prices, clues, badges and dynamic labels are rendered by Phaser, not embedded in raster art. Raster assets should contain the physical scene/object only. Clean silhouettes, controlled value grouping and consistent materials are preferable to maximum detail.
+
+A catalog batch must not read as nine variations of one rendering recipe. Change construction and material language where the identity demands it: aged plastic should not be shaded like brass, paper should not use the same edge treatment as electronics, polished metal should not share identical highlights with wood, and asymmetry should come from the object rather than random decorative noise.
 
 ## Palette
 - Ink / near-black: `#101216`
@@ -129,9 +131,17 @@ Lot presentation keeps nine semantic environment identities: three Garage, three
 
 P7 has started the higher-fidelity raster replacement pass. The three Estate archetypes (`estate-42`, `estate-attic`, `estate-studio`) now use cleaned WebP environment art while preserving the same semantic Phaser texture keys. Garage and Collector archetypes still use their SVG implementations until their corresponding art pass is complete.
 
-The first P7 item-fidelity batch upgrades nine high-visibility finds while preserving their existing semantic IDs and 512×360 vector contract: `toolbox`, `toy-robot`, `film-camera`, `pocket-watch`, `porcelain-figurine`, `arcade-handheld`, `clockwork-automaton`, `art-deco-lamp` and `master-study`. These replacements use stronger silhouettes, authored perspective, material separation, controlled highlights and restrained gradients/shadows rather than schematic icon geometry. The remaining catalog SVGs are still valid direct art but remain candidates for the same fidelity pass.
+### P7 item fidelity — Batch 01
+Nine high-visibility reveal/restoration finds preserve their existing semantic IDs and 512×360 vector contract while using stronger silhouettes, authored perspective, material separation, controlled highlights and restrained gradients/shadows rather than schematic icon geometry:
+`toolbox`, `toy-robot`, `film-camera`, `pocket-watch`, `porcelain-figurine`, `arcade-handheld`, `clockwork-automaton`, `art-deco-lamp`, `master-study`.
 
-`scripts/capture-item-art-review.mjs` renders this batch deterministically into a 3×3 CI review sheet so fidelity changes are visually inspectable even when random auction screenshots do not happen to reveal one of these identities.
+### P7 item fidelity — Batch 02
+A second nine identities now use the same authored-quality floor while deliberately varying construction/material language across electronics, wood/vinyl, brass, optics, paper, jewelry, console hardware, leather/steel and aged book cloth:
+`cassette-player`, `vinyl-box`, `brass-clock`, `telescope`, `signed-poster`, `silver-ring`, `mini-console`, `chronograph-watch`, `first-edition-book`.
+
+That brings the authored P7 item-fidelity pass to **18 of 36 catalog identities**. The remaining 18 direct SVGs are valid for coverage but remain candidates for the same replacement pass.
+
+`scripts/capture-item-art-review.mjs` keeps both accepted batches under deterministic visual review. CI renders a separate 3×3 1280×720 contact sheet for Batch 01 and Batch 02, validates each SVG source against the 512×360 viewBox contract and verifies browser decode before uploading the sheets for human review. New batches should be added without dropping previously accepted batches.
 
 This coverage is a correctness floor, not a quality ceiling. Existing simple SVGs should be replaced or augmented when they read as schematic placeholders in production screenshots.
 

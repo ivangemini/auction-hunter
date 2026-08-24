@@ -1,1 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360"><g stroke="#17191e" stroke-width="8"><rect x="112" y="80" width="288" height="202" rx="24" fill="#323840"/><rect x="156" y="118" width="200" height="88" rx="10" fill="#171a1f"/><circle cx="208" cy="162" r="27" fill="#59616c"/><circle cx="304" cy="162" r="27" fill="#59616c"/><path d="M207 162h98" stroke="#c4773a" stroke-width="10"/><rect x="157" y="228" width="122" height="24" rx="12" fill="#8b8172"/><circle cx="345" cy="240" r="18" fill="#e9b949"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360">
+  <defs>
+    <linearGradient id="case" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#59616c"/><stop offset="1" stop-color="#242a31"/></linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d2d7dc"/><stop offset="1" stop-color="#737d87"/></linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#243b46"/><stop offset="1" stop-color="#101820"/></linearGradient>
+    <filter id="shadow"><feGaussianBlur stdDeviation="7"/></filter>
+  </defs>
+  <ellipse cx="256" cy="293" rx="150" ry="18" fill="#000" opacity=".28" filter="url(#shadow)"/>
+  <g stroke="#15181d" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M112 102 365 82l38 32-24 164-255 12-28-33z" fill="url(#case)"/>
+    <path d="m365 82 38 32-282 17-25-29z" fill="#747d86"/>
+    <path d="M132 136 358 121l-15 105-205 9z" fill="#171c22"/>
+    <path d="M157 149 336 138l-10 72-165 7z" fill="url(#glass)" stroke="#8b8172" stroke-width="4"/>
+    <circle cx="205" cy="180" r="25" fill="#343b44"/><circle cx="205" cy="180" r="12" fill="#9ba4ad"/>
+    <circle cx="286" cy="175" r="25" fill="#343b44"/><circle cx="286" cy="175" r="12" fill="#9ba4ad"/>
+    <path d="M217 198h56" stroke="#c4773a" stroke-width="6"/>
+    <path d="M143 254h145" stroke="#9aa3ad" stroke-width="5"/>
+    <rect x="302" y="237" width="49" height="27" rx="5" fill="#d4a84c"/>
+    <circle cx="373" cy="151" r="11" fill="#e9b949"/>
+    <path d="M379 161c24 22 36 45 20 67-13 18-33 3-24-12" fill="none" stroke="#4a5059" stroke-width="6"/>
+    <rect x="151" y="112" width="54" height="14" rx="5" fill="url(#metal)" stroke-width="4"/>
+  </g>
+  <path d="m178 157 122-8" stroke="#fff" stroke-width="3" opacity=".12"/>
+</svg>
