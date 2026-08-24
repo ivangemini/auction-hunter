@@ -2,6 +2,7 @@ import { estimateItemValue } from './restoration';
 import type { ItemDefinition, LocalizedText, LotClue, LotTemplate, RevealedItem } from './types';
 
 export type RandomSource = () => number;
+export type BidderTell = 'calm' | 'watching' | 'hesitating' | 'out';
 
 export interface NumericRange {
   min: number;
@@ -12,12 +13,14 @@ export interface BidderProfile {
   id: string;
   name: LocalizedText;
   hiddenValueFactor: NumericRange;
+  trait?: LocalizedText;
 }
 
 export interface AuctionOpponent {
   id: string;
   name: LocalizedText;
   maxBid: number;
+  trait?: LocalizedText;
 }
 
 const DEFAULT_RANDOM: RandomSource = Math.random;
@@ -79,8 +82,6 @@ export function createLotItems(
     if (item) selected.push(item);
   };
 
-  // Every visible clue backs at least one generated find when its signal has an eligible item.
-  // The player therefore receives real information without learning the exact hidden item/value.
   for (const clue of lot.clues) {
     if (selected.length >= lot.itemCount) break;
     const candidate = chooseRandom(clueCandidateIds(clue, pool, itemById), random);
@@ -121,6 +122,7 @@ export function createAuctionOpponents(
   return profiles.map((profile) => ({
     id: profile.id,
     name: profile.name,
+    trait: profile.trait,
     maxBid: roundToBid(hiddenValue * randomBetween(profile.hiddenValueFactor, random), lot),
   }));
 }
@@ -132,4 +134,12 @@ export function eligibleOpponents(
 ): AuctionOpponent[] {
   const requiredBid = nextBid(currentBid, lot);
   return opponents.filter((opponent) => opponent.maxBid >= requiredBid);
+}
+
+export function opponentTell(opponent: AuctionOpponent, currentBid: number, lot: LotTemplate): BidderTell {
+  if (opponent.maxBid < nextBid(currentBid, lot)) return 'out';
+  const ratio = opponent.maxBid > 0 ? currentBid / opponent.maxBid : 1;
+  if (ratio < 0.6) return 'calm';
+  if (ratio < 0.82) return 'watching';
+  return 'hesitating';
 }

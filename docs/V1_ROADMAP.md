@@ -15,9 +15,9 @@ This roadmap starts from the current MVP+ build. It is intentionally ordered by 
 - [x] Truthful clue-backed generation.
 - [x] Risky NPC bidding where blindly forcing every win is not optimal.
 - [x] One restoration attempt per won lot.
-- [ ] Bidder personality tells/reactions that communicate aggression without exposing exact max bids.
+- [x] Bidder personality tells/reactions communicate pressure without exposing exact max bids.
 - [ ] Optional advanced inspection layer for late progression.
-- [ ] Rare lot modifiers/events that alter risk or condition distributions.
+- [x] Rare visible lot modifiers/events alter quantity, condition, reserve or market value.
 
 ## C. Content scale
 - [x] 18 lot templates: 6 Garage, 6 Estate and 6 Collector variants.
