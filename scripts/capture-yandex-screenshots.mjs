@@ -339,7 +339,7 @@ async function captureLocale(browser, localeCode, locale) {
     // Open Lot and Reveal share this stable center corridor across their sequential screens.
     await activateUntilEvent(revealPage, 640, 596, 'item_revealed', 10, 280);
     await activateUntilEvent(revealPage, 1016, 560, 'item_appraised', 10, 300);
-    await page.waitForTimeout(420); // Let appraisal value count-up settle for the production capture.
+    await revealPage.waitForTimeout(420); // Let appraisal value count-up settle for the production capture.
     await saveViewport(
       revealPage,
       path.join(mobileDir, '01-appraised-find.png'),
