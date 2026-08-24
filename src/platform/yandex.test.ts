@@ -52,6 +52,11 @@ describe('Yandex SDK adapter', () => {
     yandex.markGameReady();
     expect(ready).toHaveBeenCalledOnce();
 
+    const activity = vi.fn();
+    yandex.subscribeGameplayActivity(activity);
+    expect(activity).toHaveBeenCalledWith(false);
+    activity.mockClear();
+
     yandex.setGameplayActive(true);
     yandex.setGameplayActive(true);
     yandex.setGameplayActive(false);
@@ -59,6 +64,7 @@ describe('Yandex SDK adapter', () => {
     yandex.setGameplayActive(true);
     expect(start).toHaveBeenCalledTimes(2);
     expect(stop).toHaveBeenCalledOnce();
+    expect(activity.mock.calls.map(([active]) => active)).toEqual([true, false, true]);
 
     expect(await yandex.getYandexPlayer()).toBe(player);
     expect(await yandex.getYandexPlayer()).toBe(player);

@@ -18,7 +18,7 @@ An item definition owns or references:
 - category/set;
 - rarity;
 - baseline value/tuning range;
-- art/asset reference or temporary visual archetype alias;
+- art/asset reference;
 - restoration/condition metadata when implemented;
 - discovery/auction availability tags.
 
@@ -42,7 +42,7 @@ Generated lot/item instances reference stable definitions and carry runtime outc
 Display copy is content, not identity. IDs must not depend on English/Russian names.
 
 ## Current scale
-The v1 content pass contains 24 item identities, 18 lot templates and 8 collection sets. The 12 original items have dedicated SVG art. The 12 added identities intentionally reuse related original visual archetypes through `src/game/art.ts`; this is an interim art strategy, not final asset completion.
+The current content pass contains 24 item identities, 18 lot templates and 8 collection sets. All 24 catalog items have direct dedicated SVG art identities. The lot catalog uses nine authored environment illustrations across the three auction tiers; multiple lot templates may intentionally share an environment while retaining distinct names, clues, pools and economy tuning.
 
 ## Scale safeguards
 Automated tests check:
@@ -50,6 +50,7 @@ Automated tests check:
 - missing tier lot references;
 - lot pools referencing missing items;
 - clue signals that cannot match anything in their lot pool;
-- v1 target counts for items/lots/tier variants;
+- target counts for items/lots/tier variants;
 - collection coverage for every catalog item;
+- direct item-art coverage and declared lot environments;
 - RU/EN localization parity through the i18n gate.

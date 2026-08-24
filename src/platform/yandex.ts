@@ -125,15 +125,14 @@ export function subscribeGameplayActivity(listener: GameplayActivityListener): (
 }
 
 export function setGameplayActive(active: boolean): void {
-  if (active !== gameplayActive) {
-    if (active) {
-      sdk?.features?.GameplayAPI?.start();
-    } else {
-      sdk?.features?.GameplayAPI?.stop();
-    }
+  if (active === gameplayActive) return;
 
-    gameplayActive = active;
+  if (active) {
+    sdk?.features?.GameplayAPI?.start();
+  } else {
+    sdk?.features?.GameplayAPI?.stop();
   }
 
+  gameplayActive = active;
   for (const listener of gameplayActivityListeners) listener(active);
 }

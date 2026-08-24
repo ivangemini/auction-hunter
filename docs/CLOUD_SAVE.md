@@ -24,7 +24,9 @@ If Player initialization or cloud reading fails, startup continues with local pr
 ## Write policy
 Every gameplay mutation still writes local state immediately. Cloud writes are coalesced with a four-second interval, keeping normal play comfortably under the current Yandex `setData()` request limit. Pending progress is flushed when the document becomes hidden or receives `pagehide`.
 
-A failed cloud upload does not roll back local progress. The newest failed save remains queued for the next flush opportunity in the same session.
+Cloud uploads are serialized. If a flush is already in flight, a later flush waits for it before taking the newest pending save. This prevents an older `setData()` request from completing after a newer one and rolling cloud progress backward because of network timing.
+
+A failed cloud upload does not roll back local progress. The newest failed save remains queued for the next flush opportunity in the same session; if newer progress was queued while the failed upload was in flight, the newer pending save wins.
 
 ## Compatibility
 `updatedAt` is additive to save version 1. Existing v1 saves normalize with `updatedAt = 0` and retain cash, collection and progression.
@@ -36,3 +38,4 @@ v0.1 uses last-write-wins by `updatedAt`. Equal timestamps fall back to a progre
 - Player data uses `ysdk.getPlayer()` plus `player.getData()` / `player.setData()`.
 - Player data limit is far above the current save size.
 - Cloud requests are rate-limited, so writes are batched instead of sent on every mutation.
+- In-session uploads are ordered so request completion order cannot reverse save chronology.

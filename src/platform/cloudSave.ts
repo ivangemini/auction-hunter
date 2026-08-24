@@ -19,6 +19,7 @@ export interface StartupSaveChoice {
 let player: YandexPlayer | null = null;
 let pendingSave: PlayerSave | null = null;
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
+let flushQueue: Promise<void> = Promise.resolve();
 let initialized = false;
 let lifecycleInstalled = false;
 
@@ -61,23 +62,30 @@ export function scheduleCloudSave(save: PlayerSave): void {
   }, CLOUD_SAVE_INTERVAL_MS);
 }
 
-export async function flushCloudSave(flush = true): Promise<void> {
-  if (!player || !pendingSave) return;
+export function flushCloudSave(flush = true): Promise<void> {
+  if (!player) return Promise.resolve();
 
   if (flushTimer) {
     clearTimeout(flushTimer);
     flushTimer = null;
   }
 
-  const save = pendingSave;
-  pendingSave = null;
+  const operation = flushQueue.then(async () => {
+    if (!player || !pendingSave) return;
 
-  try {
-    await uploadSave(save, flush);
-  } catch (error) {
-    requeueFailedSave(save);
-    console.warn('[CloudSave] Upload failed; progress remains queued locally.', error);
-  }
+    const save = pendingSave;
+    pendingSave = null;
+
+    try {
+      await uploadSave(save, flush);
+    } catch (error) {
+      requeueFailedSave(save);
+      console.warn('[CloudSave] Upload failed; progress remains queued locally.', error);
+    }
+  });
+
+  flushQueue = operation.then(() => undefined, () => undefined);
+  return operation;
 }
 
 export function pickStartupSave(local: PlayerSave, cloud: PlayerSave | null): StartupSaveChoice {
