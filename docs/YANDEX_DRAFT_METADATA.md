@@ -11,8 +11,10 @@ Reference: https://yandex.com/dev/games/doc/en/console/add-new-game/draft
 - Version: `1.0.0`
 - Supported platforms: Desktop + Mobile
 - Orientation: Landscape
-- Archive: use the `auction-hunter-yandex` GitHub Actions artifact produced by `Yandex Release Archive`.
 - Languages: Russian + English.
+- Preferred release artifact: `auction-hunter-yandex-submission` from `Yandex Release Archive`.
+- The unified submission ZIP contains the actual game archive, catalog icon/cover, RU/EN desktop/mobile screenshots, this metadata and SHA-256 manifests.
+- If only the playable archive is needed, use `game/auction-hunter-yandex.zip` from inside the submission bundle or the standalone `auction-hunter-yandex` artifact.
 
 ## Russian
 
@@ -62,10 +64,9 @@ Before bidding, study the visible clues and use Advanced Inspection when it is u
 
 The catalog icon and cover are generated deterministically from reviewed SVG sources:
 
-- `release/promotional/icon.svg` → `generated/icon.png` at exactly 512×512.
-- `release/promotional/cover.svg` → `generated/cover.png` at exactly 800×470.
+- `release/promotional/icon.svg` → `promotional/icon.png` at exactly 512×512.
+- `release/promotional/cover.svg` → `promotional/cover.png` at exactly 800×470.
 - `node scripts/render-yandex-promos.mjs` renders and validates both PNGs after Playwright Chromium is installed.
-- CI uploads `auction-hunter-yandex-promos-ci`; the release workflow uploads `auction-hunter-yandex-promos`.
 
 The icon contains no text. The cover is language-neutral except for the exact proper-name brand `Auction Hunter`, so the same composition can be used for RU and EN without an English-only slogan. Promotional art is authored artwork, not a raw gameplay screenshot.
 
@@ -85,34 +86,55 @@ The icon contains no text. The cover is language-neutral except for the exact pr
 - 1560 × 520 px.
 - PNG or JPG.
 
-### Required screenshots
-For each selected platform, upload at least two screenshots.
+## Gameplay screenshots
 
-- Landscape: 16:9.
-- Long side: 1280–2560 px.
-- JPEG or 24-bit PNG.
-- Desktop screenshots must be landscape.
-- Auction Hunter declares landscape on mobile, so mobile screenshots should also be landscape.
+`node scripts/capture-yandex-screenshots.mjs` captures eight 1280×720 PNG candidates from the real production build. It uses the existing save boundary, the same Yandex locale path as Draft, real Phaser controls and a real Garage auction win/reveal/appraisal flow. It also samples lot/item art regions so visually blank production textures fail CI.
 
-Recommended screenshot set:
-1. Lot lobby showing truthful clues, lot art and a visible rare modifier or Advanced Inspection control.
-2. Active bidding showing current price, NPC bidder tells and the Bid/Pass decision.
-3. Reveal/appraisal/restoration moment with a high-rarity find.
-4. Collection Book or Office showing sets, contracts, achievements and business progression.
+The bundle contains:
 
-For initial submission, capture at least two clean desktop frames and two clean landscape-mobile frames from the real Yandex Draft candidate. Do not fabricate screenshots from mock UI.
+- `screenshots/ru/desktop/01-lot-lobby.png`
+- `screenshots/ru/desktop/02-active-bidding.png`
+- `screenshots/ru/mobile/01-appraised-find.png`
+- `screenshots/ru/mobile/02-office-progression.png`
+- the same four paths under `screenshots/en/`.
+
+These satisfy the automated 16:9/1280×720 candidate requirement. Before submission, still inspect the images from the exact final release candidate and replace a frame only if the real Yandex Draft renders materially differently.
+
+## Submission bundle
+
+`node scripts/build-yandex-submission.mjs` assembles the release materials into one tree:
+
+- `game/auction-hunter-yandex.zip`
+- `promotional/icon.png`
+- `promotional/cover.png`
+- 8 localized screenshots
+- `metadata/yandex-draft-metadata.json`
+- `metadata/YANDEX_DRAFT_METADATA.md`
+- `submission-manifest.json`
+- `SHA256SUMS.txt`
+
+`submission-manifest.json` records the release version, source commit and SHA-256/byte size for every copied release file. `SHA256SUMS.txt` is a simple checksum list for manual verification.
 
 ## Manual console checks before submit
 
 - Verify `Auction Hunter` is still unique in the Yandex Games catalog; search-engine results are not authoritative for catalog uniqueness.
 - Select the closest available categories/tags that describe auction, collecting and casual simulation gameplay; do not use unrelated high-traffic tags.
 - Confirm the age rating matches the actual non-violent content.
-- Set the exact declared platform/orientation values above.
-- Upload the current release-candidate ZIP, not an older local build.
-- Upload the generated icon and cover from the same release candidate.
+- Set Desktop + Mobile and Landscape exactly as declared above.
+- Upload `game/auction-hunter-yandex.zip` from the current unified submission bundle, not an older local build.
+- Upload `promotional/icon.png`, `promotional/cover.png` and the localized screenshots from the same bundle.
 - Add the real Yandex Metrica counter ID to the GitHub Actions variable `YANDEX_METRICA_ID` before the final telemetry-enabled archive build if custom telemetry is desired at launch.
-- Run `docs/QA.md`, `docs/MODERATION.md` and `docs/CONTENT_DURATION.md` against the actual Draft before submitting for moderation.
+- Run `docs/QA.md`, `docs/MODERATION.md` and `docs/CONTENT_DURATION.md` against the actual Yandex Draft before submitting for moderation.
 
-## Automated guard
+## Automated guards
 
-`node scripts/validate-yandex-draft.mjs` validates the current text limits, title casing/consistency, non-duplication basics and visual specification constants. `node scripts/render-yandex-promos.mjs` verifies promotional text policy and exact PNG output dimensions. CI and the release archive workflow run these gates before artifacts are published.
+The release pipeline runs:
+
+- `validate-yandex-draft.mjs` — field lengths, title casing/consistency and visual spec constants.
+- typecheck + unit tests + production build + browser QA.
+- `render-yandex-promos.mjs` — promo text policy and exact PNG dimensions.
+- `capture-yandex-screenshots.mjs` — production gameplay screenshots and non-blank art validation.
+- `validate-yandex-archive.mjs` — archive root/path/size/SDK/title checks.
+- `build-yandex-submission.mjs` — exact file-count/structure checks and SHA-256 manifest generation.
+
+Automated gates reduce moderation risk but do not replace final checks inside the actual Yandex Draft.
