@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { playFeedbackCue } from './feedback';
+import { MOTION, prefersReducedMotion } from './motion';
 
 interface ButtonOptions {
   width?: number;
@@ -12,12 +13,6 @@ interface ButtonOptions {
   accent?: number;
   motion?: boolean;
 }
-
-const prefersReducedMotion = (): boolean => (
-  typeof window !== 'undefined'
-  && typeof window.matchMedia === 'function'
-  && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-);
 
 export function button(
   scene: Phaser.Scene,
@@ -37,7 +32,6 @@ export function button(
   const hitSlop = Math.max(0, options.hitSlop ?? 14);
   const motionEnabled = options.motion !== false && !prefersReducedMotion();
 
-  // A restrained shadow + halo gives the control physical depth without adding texture assets.
   const shadow = scene.add.rectangle(0, 4, width + 4, height + 4, 0x000000, options.disabled ? 0.18 : 0.34)
     .setStrokeStyle(1, accent, 0.08);
   const glow = scene.add.rectangle(0, 0, width + 8, height + 8, accent, 0)
@@ -75,20 +69,20 @@ export function button(
         scaleX: hovered ? 1.025 : 1,
         scaleY: hovered ? 1.025 : 1,
         y: hovered ? y - 2 : y,
-        duration: hovered ? 140 : 180,
+        duration: hovered ? MOTION.hoverMs : MOTION.settleMs,
         ease: hovered ? 'Cubic.Out' : 'Back.Out',
       });
       scene.tweens.add({
         targets: glow,
         alpha: hovered ? 0.13 : 0,
-        duration: 140,
+        duration: MOTION.hoverMs,
         ease: 'Sine.Out',
       });
       scene.tweens.add({
         targets: shadow,
         alpha: hovered ? 0.48 : 0.34,
         y: hovered ? 6 : 4,
-        duration: 160,
+        duration: MOTION.settleMs,
         ease: 'Sine.Out',
       });
     };
@@ -103,7 +97,7 @@ export function button(
           scaleX: 0.972,
           scaleY: 0.972,
           y: y + 1,
-          duration: 75,
+          duration: MOTION.pressMs,
           ease: 'Cubic.Out',
         });
       } else {
@@ -119,7 +113,7 @@ export function button(
           scaleX: 1.025,
           scaleY: 1.025,
           y: y - 2,
-          duration: 135,
+          duration: MOTION.settleMs,
           ease: 'Back.Out',
         });
       } else {
