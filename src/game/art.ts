@@ -1,18 +1,20 @@
 import Phaser from 'phaser';
 import { ITEM_ART_IDS, LOT_ART_IDS } from '../data/artManifest';
 
+const ART_SVG_SIZE = { width: 512, height: 360 } as const;
+
 export function preloadArt(scene: Phaser.Scene): void {
   for (const id of ITEM_ART_IDS) {
     const key = itemTextureKey(id);
-    if (!scene.textures.exists(key)) scene.load.svg(key, `assets/items/${id}.svg`);
+    if (!scene.textures.exists(key)) scene.load.svg(key, `assets/items/${id}.svg`, ART_SVG_SIZE);
   }
 
   const fallbackKey = itemTextureKey('fallback');
-  if (!scene.textures.exists(fallbackKey)) scene.load.svg(fallbackKey, 'assets/items/fallback.svg');
+  if (!scene.textures.exists(fallbackKey)) scene.load.svg(fallbackKey, 'assets/items/fallback.svg', ART_SVG_SIZE);
 
   for (const id of LOT_ART_IDS) {
     const key = lotTextureKey(id);
-    if (!scene.textures.exists(key)) scene.load.svg(key, `assets/lots/${id}.svg`);
+    if (!scene.textures.exists(key)) scene.load.svg(key, `assets/lots/${id}.svg`, ART_SVG_SIZE);
   }
 }
 
