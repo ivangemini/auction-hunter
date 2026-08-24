@@ -18,7 +18,7 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
     trait: { ru: 'Осторожный · техника и инструменты', en: 'Cautious · electronics & tools' },
     hiddenValueFactor: { min: 0.45, max: 0.65 },
     specialtyCategories: ['electronics', 'tools'],
-    specialtyValueMultiplier: 1.18,
+    specialtyValueMultiplier: 1.08,
   },
   {
     id: 'npc-1',
@@ -26,7 +26,7 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
     trait: { ru: 'Считает маржу · часы и искусство', en: 'Margin-focused · watches & art' },
     hiddenValueFactor: { min: 0.6, max: 0.85 },
     specialtyCategories: ['watches', 'art'],
-    specialtyValueMultiplier: 1.24,
+    specialtyValueMultiplier: 1.1,
   },
   {
     id: 'npc-2',
@@ -34,7 +34,7 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
     trait: { ru: 'Дожимает · игрушки и коллекционка', en: 'Pushes hard · toys & collectibles' },
     hiddenValueFactor: { min: 0.75, max: 1.02 },
     specialtyCategories: ['toys', 'collectibles'],
-    specialtyValueMultiplier: 1.28,
+    specialtyValueMultiplier: 1.12,
   },
 ];
 
