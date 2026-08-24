@@ -28,6 +28,16 @@ assert(Array.isArray(metadata.supportedPlatforms), 'supportedPlatforms must be a
 assert(metadata.supportedPlatforms.includes('desktop'), 'desktop platform is required');
 assert(metadata.supportedPlatforms.includes('mobile'), 'mobile platform is required');
 
+const draftDefaults = metadata.draftDefaults;
+assert(draftDefaults && typeof draftDefaults === 'object', 'draftDefaults are required');
+assert(draftDefaults.usesCloudSave === true, 'Draft must declare that Auction Hunter uses cloud save');
+assert(draftDefaults.postponePublication === true, 'First v1 submission should postpone publication until final Verified/device checks');
+const developerCommentLength = assertRange('draftDefaults.developerComment', draftDefaults.developerComment, 100, 2048);
+assert(/18\s+varied\s+lot\s+templates/i.test(draftDefaults.developerComment), 'Developer comment must describe the 18-lot replayability scope');
+assert(/cloud|Yandex Player/i.test(draftDefaults.developerComment), 'Developer comment must mention cloud/player-data behavior');
+assert(/10\+\s*minute/i.test(draftDefaults.developerComment), 'Developer comment must explain the 10+ minute content requirement');
+assert(/natural breaks/i.test(draftDefaults.developerComment), 'Developer comment must describe natural-break ad placement');
+
 const locales = ['ru', 'en'];
 const titles = new Set();
 const report = [];
@@ -81,5 +91,6 @@ for (const row of report) {
   console.log(`${row.locale}: title=${row.titleLength}, seo=${row.seoLength}, short=${row.shortLength}, description=${row.descriptionLength}, howToPlay=${row.howLength}`);
 }
 console.log(`Release version consistency OK: ${metadata.version}`);
+console.log(`Moderator guidance OK: developerComment=${developerCommentLength} characters, cloudSave=${draftDefaults.usesCloudSave}, postponePublication=${draftDefaults.postponePublication}`);
 console.log(`Brand consistency OK: ${canonicalTitle}`);
 console.log('Yandex draft metadata validation OK');
