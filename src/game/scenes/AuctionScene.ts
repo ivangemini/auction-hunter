@@ -5,6 +5,7 @@ import { ITEM_BY_ID, LOTS } from '../../data/catalog';
 import { uniqueCollectionCount } from '../../data/collections';
 import { getDailySpecial, localDayKey, type DailySpecialDefinition } from '../../data/daily';
 import { ADVANCED_INSPECTION_COST, ADVANCED_INSPECTION_MIN_REP } from '../../data/inspection';
+import { itemTraitNamesForIds, itemTraitValueMultiplier } from '../../data/itemTraits';
 import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from '../../data/lotModifiers';
 import { MONETIZATION_POLICY } from '../../data/monetization';
 import { AUCTION_TIERS, getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../../data/tiers';
@@ -690,6 +691,8 @@ export class AuctionScene extends Phaser.Scene {
           itemId: item.definition.id,
           value: item.appraisedValue,
           condition: item.condition,
+          traitIds: [...(item.traitIds ?? [])],
+          traitMultiplier: itemTraitValueMultiplier(item.traitIds ?? []),
         });
         this.revealStage = 'appraised';
         this.renderReveal();
@@ -697,26 +700,38 @@ export class AuctionScene extends Phaser.Scene {
       return;
     }
 
-    const alreadyOwned = this.store.snapshot.collection.includes(item.definition.id);
-    if (alreadyOwned) this.centerLabel(640, 470, t(this.locale, 'alreadyCollected'), 13, '#61a8ff', 'bold');
+    const traitNames = itemTraitNamesForIds(item.traitIds ?? [], this.locale);
+    if (traitNames.length > 0) {
+      this.centerLabel(
+        640,
+        469,
+        `${this.locale === 'ru' ? 'Признаки' : 'Traits'}: ${traitNames.join(' · ')}`,
+        11,
+        '#61a8ff',
+        'bold',
+      ).setWordWrapWidth(680);
+    }
 
-    this.label(420, 486, t(this.locale, 'condition'), 14, '#8b93a1');
-    this.label(835, 486, `${this.conditionLabel(item.condition)} · ${Math.round(item.condition * 100)}%`, 14, this.hexColor(this.conditionColor(item.condition)), 'bold').setOrigin(1, 0);
-    this.conditionBar(420, 511, 415, item.condition);
-    this.label(420, 526, t(this.locale, 'estimatedValue'), 14, '#8b93a1');
-    this.label(835, 519, this.money(item.appraisedValue), 28, '#63d28d', 'bold').setOrigin(1, 0);
+    const alreadyOwned = this.store.snapshot.collection.includes(item.definition.id);
+    if (alreadyOwned) this.centerLabel(640, 489, t(this.locale, 'alreadyCollected'), 12, '#61a8ff', 'bold');
+
+    this.label(420, 505, t(this.locale, 'condition'), 13, '#8b93a1');
+    this.label(835, 505, `${this.conditionLabel(item.condition)} · ${Math.round(item.condition * 100)}%`, 13, this.hexColor(this.conditionColor(item.condition)), 'bold').setOrigin(1, 0);
+    this.conditionBar(420, 528, 415, item.condition);
+    this.label(420, 540, t(this.locale, 'estimatedValue'), 13, '#8b93a1');
+    this.label(835, 534, this.money(item.appraisedValue), 25, '#63d28d', 'bold').setOrigin(1, 0);
 
     if (item.restored) {
       const grade = item.restorationGrade ? this.restorationGradeLabel(item.restorationGrade) : '';
       const gain = item.restorationGain ?? 0;
-      this.centerLabel(640, 565, `${grade} · ${t(this.locale, 'restorationGain', { amount: this.money(gain) })}`, 14, '#63d28d', 'bold');
+      this.centerLabel(640, 573, `${grade} · ${t(this.locale, 'restorationGain', { amount: this.money(gain) })}`, 13, '#63d28d', 'bold');
       button(this, 505, 607, alreadyOwned ? t(this.locale, 'sellDuplicate') : t(this.locale, 'sell'), () => this.sellCurrentItem(), { width: 220, height: 50, feedback: false });
       button(this, 775, 607, t(this.locale, 'keep'), () => this.keepCurrentItem(), { width: 220, height: 50, background: 0x3f73b8, feedback: false });
       return;
     }
 
     const canRestore = !this.restorationUsed;
-    this.centerLabel(640, 565, canRestore ? t(this.locale, 'restorationAvailable') : t(this.locale, 'restorationSpent'), 13, canRestore ? '#c9955f' : '#737b88', 'bold');
+    this.centerLabel(640, 573, canRestore ? t(this.locale, 'restorationAvailable') : t(this.locale, 'restorationSpent'), 12, canRestore ? '#c9955f' : '#737b88', 'bold');
     button(this, 405, 607, t(this.locale, 'restore'), () => this.startRestoration(), {
       width: 190,
       height: 50,
@@ -819,7 +834,7 @@ export class AuctionScene extends Phaser.Scene {
   private keepCurrentItem(): void {
     const item = this.items[this.revealIndex];
     if (!item) return;
-    this.store.keepItem(item.definition.id);
+    this.store.keepItem(item);
     this.roundKept += 1;
     this.roundKeptValue += item.appraisedValue;
     playFeedbackCue(this, 'keep');
