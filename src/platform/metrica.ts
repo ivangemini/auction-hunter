@@ -16,6 +16,7 @@ export const METRICA_GOAL_EVENTS = new Set<AnalyticsEventName>([
   'auction_passed',
   'restoration_completed',
   'item_dispositioned',
+  'buyer_sale_completed',
   'collection_set_reward_claimed',
   'daily_special_completed',
   'daily_contract_reward_claimed',
