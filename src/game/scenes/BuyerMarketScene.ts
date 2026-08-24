@@ -2,11 +2,11 @@ import Phaser from 'phaser';
 import { bestBuyerMatch, dailyBuyerOffersForDay, type BuyerOfferDefinition } from '../../data/buyers';
 import { ITEM_BY_ID } from '../../data/catalog';
 import { localDayKey } from '../../data/daily';
-import { itemTraitNames } from '../../data/itemTraits';
+import { itemTraitNames, itemTraitNamesForIds } from '../../data/itemTraits';
 import type { Locale } from '../../domain/types';
 import { t } from '../../i18n';
 import { getPlatformLocale, setGameplayActive } from '../../platform/yandex';
-import { preloadArt, resolveItemTexture } from '../art';
+import { resolveItemTexture } from '../art';
 import { playFeedbackCue } from '../feedback';
 import { GameStore } from '../store';
 import { button } from '../ui';
@@ -22,13 +22,9 @@ export class BuyerMarketScene extends Phaser.Scene {
     super('buyer-market');
   }
 
-  preload(): void {
-    preloadArt(this);
-  }
-
   create(): void {
-    setGameplayActive(false);
     this.locale = getPlatformLocale();
+    setGameplayActive(false);
     this.store.prepareBuyerMarket(localDayKey());
     this.renderMarket();
   }
@@ -69,7 +65,9 @@ export class BuyerMarketScene extends Phaser.Scene {
     const height = 455;
     const save = this.store.snapshot;
     const claimed = save.claimedBuyerOfferIds.includes(offer.id);
-    const match = claimed ? null : bestBuyerMatch(save.collection, ITEM_BY_ID, offer);
+    const match = claimed
+      ? null
+      : bestBuyerMatch(save.collection, ITEM_BY_ID, offer, save.collectionItems ?? []);
 
     this.add.rectangle(x, y, width, height, 0x171a20, 1)
       .setOrigin(0)
@@ -101,18 +99,34 @@ export class BuyerMarketScene extends Phaser.Scene {
     this.add.image(x + width / 2, y + 225, resolveItemTexture(this, item.id)).setDisplaySize(175, 118);
     this.centerLabel(x + width / 2, y + 310, item.name[this.locale], 17, '#f7f8fa', 'bold').setWordWrapWidth(300);
 
-    const traits = itemTraitNames(item.id, this.locale);
+    const traits = match.traitIds
+      ? itemTraitNamesForIds(match.traitIds, this.locale)
+      : itemTraitNames(item.id, this.locale);
     const traitText = traits.length > 0 ? traits.join(' · ') : copy.categoryMatch;
-    this.centerLabel(x + width / 2, y + 343, traitText, 12, traits.length > 0 ? '#61a8ff' : '#8b93a1', 'bold')
+    this.centerLabel(x + width / 2, y + 340, traitText, 11, traits.length > 0 ? '#61a8ff' : '#8b93a1', 'bold')
       .setWordWrapWidth(300);
-    this.centerLabel(x + width / 2, y + 377, `${copy.offer}: ${this.money(match.value)}`, 19, '#63d28d', 'bold');
-    if (match.copies > 1) this.centerLabel(x + width / 2, y + 402, `${copy.copies}: ${match.copies}`, 12, '#8b93a1');
 
-    button(this, x + width / 2, y + 425, `${copy.sell} · ${this.money(match.value)}`, () => {
-      const sold = this.store.sellToBuyer(offer.id, match.itemId, dayKey);
+    if (match.appraisedValue !== undefined) {
+      const condition = match.condition !== undefined ? ` · ${Math.round(match.condition * 100)}%` : '';
+      const restored = match.restored ? ` · ${copy.restored}` : '';
+      this.centerLabel(
+        x + width / 2,
+        y + 367,
+        `${copy.appraised}: ${this.money(match.appraisedValue)}${condition}${restored}`,
+        12,
+        '#aeb5c0',
+        'bold',
+      ).setWordWrapWidth(305);
+    }
+
+    this.centerLabel(x + width / 2, y + 393, `${copy.offer}: ${this.money(match.value)}`, 19, '#63d28d', 'bold');
+    if (match.copies > 1) this.centerLabel(x + width / 2, y + 416, `${copy.copies}: ${match.copies}`, 12, '#8b93a1');
+
+    button(this, x + width / 2, y + 442, `${copy.sell} · ${this.money(match.value)}`, () => {
+      const sold = this.store.sellToBuyer(offer.id, match.instanceId ?? match.itemId, dayKey);
       if (sold > 0) playFeedbackCue(this, 'sell');
       this.renderMarket();
-    }, { width: 280, height: 48, background: 0xc4773a, feedback: false });
+    }, { width: 280, height: 44, background: 0xc4773a, feedback: false });
   }
 
   private copy(): {
@@ -125,6 +139,8 @@ export class BuyerMarketScene extends Phaser.Scene {
     noMatch: string;
     keepHunting: string;
     categoryMatch: string;
+    appraised: string;
+    restored: string;
     offer: string;
     copies: string;
     sell: string;
@@ -133,7 +149,7 @@ export class BuyerMarketScene extends Phaser.Scene {
     if (this.locale === 'ru') {
       return {
         title: 'Рынок покупателей',
-        subtitle: 'Три покупателя в день платят премию за нужные им категории и коллекционные признаки',
+        subtitle: 'Три покупателя в день платят премию за нужные им категории и признаки конкретных экземпляров',
         resetHint: 'Предложения обновляются каждый локальный день',
         premium: 'Премия',
         completed: 'Сделка на сегодня завершена',
@@ -141,16 +157,18 @@ export class BuyerMarketScene extends Phaser.Scene {
         noMatch: 'Подходящей вещи пока нет',
         keepHunting: 'Оставляй подходящие находки вместо быстрой продажи и возвращайся сюда.',
         categoryMatch: 'Подходит по категории',
+        appraised: 'Оценка копии',
+        restored: 'реставрирован',
         offer: 'Предложение',
         copies: 'Экземпляров',
         sell: 'Продать покупателю',
-        footer: 'Каждый оффер можно использовать один раз в день. Быстрая продажа в книге коллекции остаётся доступна всегда, но обычно платит заметно меньше.',
+        footer: 'Каждый оффер можно использовать один раз в день. Покупатель оценивает именно конкретную копию: её состояние, реставрацию и признаки уже заложены в сохранённую оценку.',
       };
     }
 
     return {
       title: 'Buyer Market',
-      subtitle: 'Three daily buyers pay premiums for categories and collectible traits they currently want',
+      subtitle: 'Three daily buyers pay premiums for categories and traits on the concrete copies they want',
       resetHint: 'Offers refresh each local calendar day',
       premium: 'Premium',
       completed: 'Today’s deal is complete',
@@ -158,10 +176,12 @@ export class BuyerMarketScene extends Phaser.Scene {
       noMatch: 'No matching item yet',
       keepHunting: 'Hold matching finds instead of quick-selling them, then return here.',
       categoryMatch: 'Category match',
+      appraised: 'Copy appraisal',
+      restored: 'restored',
       offer: 'Offer',
       copies: 'Copies',
       sell: 'Sell to buyer',
-      footer: 'Each offer can be used once per day. Collection quick-sale remains always available, but normally pays substantially less.',
+      footer: 'Each offer can be used once per day. The buyer prices the concrete copy: its condition, restoration and variant traits are already reflected in the saved appraisal.',
     };
   }
 
