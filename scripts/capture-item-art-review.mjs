@@ -40,6 +40,19 @@ async function waitForPreview() {
   throw new Error('Timed out waiting for item-art review preview server');
 }
 
+async function validateSourceContracts() {
+  for (const id of ITEM_IDS) {
+    const url = `${previewUrl}/assets/items/${id}.svg`;
+    const response = await fetch(url);
+    assert(response.ok, `${id} review asset returned HTTP ${response.status}`);
+    const source = await response.text();
+    assert(
+      /viewBox=["']\s*0\s+0\s+512\s+360\s*["']/i.test(source),
+      `${id} must preserve the 512x360 SVG viewBox contract`,
+    );
+  }
+}
+
 async function stopPreview(preview) {
   if (preview.exitCode !== null || preview.signalCode) return;
   const closed = new Promise((resolve) => preview.once('close', resolve));
@@ -73,6 +86,7 @@ preview.stderr.on('data', (chunk) => { previewLog += chunk.toString(); });
 
 try {
   await waitForPreview();
+  await validateSourceContracts();
   const browser = await chromium.launch({ headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
@@ -123,7 +137,7 @@ try {
     })));
     assert(dimensions.length === ITEM_IDS.length, `Expected ${ITEM_IDS.length} loaded item assets, got ${dimensions.length}`);
     for (const image of dimensions) {
-      assert(image.width >= 512 && image.height >= 360, `${image.src} rendered below the 512x360 art contract`);
+      assert(image.width > 0 && image.height > 0, `${image.src} did not decode to a visible browser image`);
     }
 
     const screenshot = await page.screenshot({ path: outputPath, type: 'png', fullPage: false });
