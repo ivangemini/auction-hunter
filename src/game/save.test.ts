@@ -19,6 +19,14 @@ describe('save normalization', () => {
 
     expect(save.cash).toBe(4321);
     expect(save.collection).toEqual(['film-camera']);
+    expect(save.collectionItems).toHaveLength(1);
+    expect(save.collectionItems?.[0]).toMatchObject({
+      itemId: 'film-camera',
+      appraisedValue: 780,
+      condition: 1,
+      restored: false,
+      acquiredAt: 0,
+    });
     expect(save.auctionHistory).toEqual([]);
     expect(save.highestCash).toBe(4321);
     expect(save.buyerMarketDayKey).toBeNull();
@@ -62,5 +70,46 @@ describe('save normalization', () => {
 
     expect(save.buyerMarketDayKey).toBe('2026-08-24');
     expect(save.claimedBuyerOfferIds).toEqual(['watch-specialist', '', 'prototype-broker']);
+  });
+
+  it('sanitizes concrete collection copies and drops orphan instances', () => {
+    const save = normalizeSave({
+      version: 1,
+      cash: 2500,
+      collection: ['pocket-watch'],
+      collectionItems: [
+        {
+          id: 'watch-copy',
+          itemId: 'pocket-watch',
+          appraisedValue: 7300,
+          condition: 1.4,
+          restored: true,
+          traitIds: ['mechanical', 'rare-variant', 'not-a-real-trait'],
+          acquiredAt: 999,
+          restorationGrade: 'perfect',
+        },
+        {
+          id: 'orphan-copy',
+          itemId: 'toolbox',
+          appraisedValue: 100,
+          condition: 0.8,
+          restored: false,
+          traitIds: [],
+          acquiredAt: 1000,
+        },
+      ],
+    });
+
+    expect(save.collectionItems).toHaveLength(1);
+    expect(save.collectionItems?.[0]).toEqual({
+      id: 'watch-copy',
+      itemId: 'pocket-watch',
+      appraisedValue: 7300,
+      condition: 1,
+      restored: true,
+      traitIds: ['mechanical', 'rare-variant'],
+      acquiredAt: 999,
+      restorationGrade: 'perfect',
+    });
   });
 });
