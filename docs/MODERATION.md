@@ -4,11 +4,20 @@ Use this checklist before submitting a build. Requirements can change; re-check 
 
 ## Archive
 - [ ] Run the `Yandex Release Archive` GitHub Actions workflow.
-- [ ] Workflow quality gates pass: typecheck, unit tests, production build and browser QA.
+- [ ] Workflow quality gates pass: draft-metadata validation, typecheck, unit tests, production build and browser QA.
 - [ ] ZIP contains `index.html` at archive root.
 - [ ] Uncompressed files are <= 100 MB.
 - [ ] Archive paths contain no spaces or Cyrillic/non-ASCII characters.
 - [ ] Do not upload `dist/` directly; use the produced `auction-hunter-yandex.zip` artifact.
+
+## Draft metadata / branding
+- [ ] Use `release/yandex-draft-metadata.json` / `docs/YANDEX_DRAFT_METADATA.md` as the source for RU/EN text fields.
+- [ ] Run `node scripts/validate-yandex-draft.mjs`; it must pass before archive build.
+- [ ] The title is exactly `Auction Hunter` in the game, browser title and every selected-language draft material.
+- [ ] The title is not written in full or partial all caps.
+- [ ] Verify `Auction Hunter` is still unique in the live Yandex Games catalog before submit.
+- [ ] Required icon is 512×512 PNG and cover is 800×470 PNG; neither is a raw gameplay screenshot.
+- [ ] At least two valid screenshots are uploaded for every selected platform.
 
 ## SDK / lifecycle
 - [ ] Open the draft with the Yandex debug panel.
@@ -61,4 +70,4 @@ Use this checklist before submitting a build. Requirements can change; re-check 
 - [ ] No third-party ads or unapproved external links are present.
 
 ## Final manual gate
-Do not submit for moderation until `docs/QA.md` manual Yandex draft/device checks, analytics verification (if custom telemetry is enabled) and the timed content-duration check above are complete. Automated browser/content/economy tests and the archive workflow reduce regressions but do not replace real draft/device moderation QA.
+Do not submit for moderation until `docs/QA.md` manual Yandex draft/device checks, analytics verification (if custom telemetry is enabled) and the timed content-duration check above are complete. Automated metadata/browser/content/economy tests and the archive workflow reduce regressions but do not replace real draft/device moderation QA.

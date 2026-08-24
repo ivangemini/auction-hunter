@@ -10,8 +10,10 @@ Fast navigation map for humans and coding agents.
 - `index.html` — browser shell, Yandex SDK script and portrait orientation guard.
 - `vite.config.ts` — relative build configuration.
 - `playwright.config.ts` — desktop/landscape/portrait browser QA.
-- `.github/workflows/ci.yml` — CI gates.
-- `.github/workflows/yandex-release.yml` — moderation-ready ZIP build workflow; injects optional `YANDEX_METRICA_ID` repository variable into the release build.
+- `.github/workflows/ci.yml` — CI gates, including draft-metadata validation.
+- `.github/workflows/yandex-release.yml` — moderation-ready ZIP build workflow; validates draft metadata and injects optional `YANDEX_METRICA_ID` into the release build.
+- `release/yandex-draft-metadata.json` — machine-readable RU/EN draft copy and current visual-field constraints.
+- `scripts/validate-yandex-draft.mjs` — release metadata length/casing/consistency/spec validator.
 
 ## Documentation
 - `GAME_DESIGN.md`, `ROADMAP.md`, `V1_ROADMAP.md` — product intent and delivery status.
@@ -19,6 +21,7 @@ Fast navigation map for humans and coding agents.
 - `CONTENT_MODEL.md`, `ECONOMY_AND_RETENTION.md`, `CONTENT_DURATION.md` — content/economy/replayability rules and moderation evidence.
 - `RESTORATION.md`, `COLLECTIONS.md`, `TIERS.md`, `DAILY_SPECIAL.md`, `FIRST_SESSION.md` — gameplay contracts.
 - `CLOUD_SAVE.md`, `YANDEX_INTEGRATION.md`, `MONETIZATION.md`, `MODERATION.md` — persistence/platform/release contracts.
+- `YANDEX_DRAFT_METADATA.md` — ready-to-paste draft fields plus required visual specs and screenshot shot-list.
 - `ANALYTICS.md` — typed event schema plus optional Yandex Metrica transport/setup.
 - `ART_DIRECTION.md`, `QA.md` — visual/device QA contracts.
 
@@ -78,7 +81,7 @@ Static content/tuning inputs.
 - `metrica.ts` — optional Yandex Metrica tag loader and typed analytics transport; no-op without a real counter ID.
 
 ### `src/i18n.ts`
-RU/EN gameplay, Office, inspection, accessibility and orientation copy.
+RU/EN gameplay, Office, inspection, accessibility and orientation copy. The visible game brand is `Auction Hunter` in both locales to match Yandex draft materials.
 
 ## Tests
 - `src/domain/*.test.ts` — fast economy/game-rule unit tests.
@@ -97,4 +100,5 @@ RU/EN gameplay, Office, inspection, accessibility and orientation copy.
 - Change local/cloud save schema: `src/game/save.ts` + migration/normalization tests.
 - Change device-local accessibility preferences: `src/game/preferences.ts`.
 - Change Yandex Games/cloud/ads/lifecycle/Metrica: `src/platform/` + platform docs/tests.
-- Change localized copy: `src/i18n.ts`.
+- Change draft catalog text/limits: `release/yandex-draft-metadata.json` + `docs/YANDEX_DRAFT_METADATA.md` + validator.
+- Change localized gameplay copy: `src/i18n.ts`.

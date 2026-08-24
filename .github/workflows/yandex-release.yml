@@ -24,6 +24,7 @@ jobs:
         with:
           node-version: '22'
       - run: npm install
+      - run: node scripts/validate-yandex-draft.mjs
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
