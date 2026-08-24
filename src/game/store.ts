@@ -1,5 +1,8 @@
 import { trackEvent } from '../analytics';
+import { dailyBuyerOffersForDay, buyerOfferMatches, buyerOfferValue } from '../data/buyers';
+import { ITEM_BY_ID } from '../data/catalog';
 import { localDayKey } from '../data/daily';
+import { itemTraitsFor } from '../data/itemTraits';
 import { ACHIEVEMENTS, BUSINESS_UPGRADES, dailyContractsForDay } from '../data/meta';
 import { appendAuctionHistory } from '../domain/history';
 import {
@@ -28,6 +31,12 @@ export class GameStore {
   prepareDailyContracts(dayKey = localDayKey()): void {
     this.sync();
     if (!this.resetDailyContractsIfNeeded(dayKey)) return;
+    this.persist();
+  }
+
+  prepareBuyerMarket(dayKey = localDayKey()): void {
+    this.sync();
+    if (!this.resetBuyerMarketIfNeeded(dayKey)) return;
     this.persist();
   }
 
@@ -92,6 +101,43 @@ export class GameStore {
     this.persist();
     trackEvent('item_dispositioned', { disposition: 'sell', itemId, value: saleValue, source: 'collection' });
     return true;
+  }
+
+  sellToBuyer(buyerId: string, itemId: string, dayKey = localDayKey()): number {
+    this.sync();
+    this.resetDailyContractsIfNeeded(dayKey);
+    this.resetBuyerMarketIfNeeded(dayKey);
+
+    if (this.state.claimedBuyerOfferIds.includes(buyerId)) return 0;
+    const offer = dailyBuyerOffersForDay(dayKey).find((candidate) => candidate.id === buyerId);
+    const item = ITEM_BY_ID.get(itemId);
+    if (!offer || !item || !buyerOfferMatches(item, offer)) return 0;
+
+    const index = this.state.collection.indexOf(itemId);
+    if (index < 0) return 0;
+
+    const saleValue = buyerOfferValue(item, offer);
+    if (saleValue <= 0) return 0;
+
+    this.state.collection.splice(index, 1);
+    this.state.claimedBuyerOfferIds.push(offer.id);
+    this.state.cash += saleValue;
+    this.state.lifetimeSales += saleValue;
+    this.addContractProgress('itemsSold', 1);
+    this.addContractProgress('salesValue', saleValue);
+    this.updateHighestCash();
+    this.persist();
+
+    trackEvent('buyer_sale_completed', {
+      buyerId: offer.id,
+      itemId,
+      dayKey,
+      value: saleValue,
+      premiumMultiplier: offer.multiplier,
+      traitIds: itemTraitsFor(itemId),
+    });
+    trackEvent('item_dispositioned', { disposition: 'sell', itemId, value: saleValue, source: 'collection' });
+    return saleValue;
   }
 
   grantBonusCash(amount: number): void {
@@ -201,6 +247,13 @@ export class GameStore {
     this.state.contractDayKey = dayKey;
     this.state.contractProgress = {};
     this.state.claimedContractRewards = [];
+    return true;
+  }
+
+  private resetBuyerMarketIfNeeded(dayKey: string): boolean {
+    if (this.state.buyerMarketDayKey === dayKey) return false;
+    this.state.buyerMarketDayKey = dayKey;
+    this.state.claimedBuyerOfferIds = [];
     return true;
   }
 
