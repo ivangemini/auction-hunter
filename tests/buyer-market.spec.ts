@@ -48,7 +48,7 @@ test('Buyer Market completes one premium sale and persists the daily claim', asy
   await page.goto('/');
   await expect(page.locator('canvas')).toBeVisible();
 
-  await clickGame(page, 940, 218); // Collection Book from lot selection.
+  await clickGame(page, 1000, 112); // Collection Book from polished lot-selection header.
   await page.waitForTimeout(100);
   await clickGame(page, 775, 72); // Buyer Market.
   await page.waitForTimeout(150);
