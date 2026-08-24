@@ -1,0 +1,28 @@
+import { describe, expect, it } from 'vitest';
+import { ITEMS, LOTS } from './catalog';
+import { COLLECTION_SETS } from './collections';
+import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from './lotModifiers';
+import { ACHIEVEMENTS, BUSINESS_UPGRADE_ORDER, DAILY_CONTRACT_POOL } from './meta';
+import { AUCTION_TIERS } from './tiers';
+
+describe('v1 replayability floor', () => {
+  it('keeps enough configured variety for repeated auction sessions', () => {
+    expect(ITEMS.length).toBeGreaterThanOrEqual(24);
+    expect(LOTS.length).toBeGreaterThanOrEqual(18);
+    expect(COLLECTION_SETS.length).toBeGreaterThanOrEqual(8);
+    expect(AUCTION_TIERS).toHaveLength(3);
+
+    for (const tier of AUCTION_TIERS) {
+      expect(tier.lotIds.length, `${tier.id} lot variety`).toBeGreaterThanOrEqual(6);
+    }
+  });
+
+  it('keeps multiple independent return and variation systems configured', () => {
+    expect(DAILY_CONTRACT_POOL.length).toBeGreaterThanOrEqual(5);
+    expect(ACHIEVEMENTS.length).toBeGreaterThanOrEqual(8);
+    expect(BUSINESS_UPGRADE_ORDER.length).toBeGreaterThanOrEqual(3);
+    expect(LOT_MODIFIERS.length).toBeGreaterThanOrEqual(4);
+    expect(LOT_MODIFIER_CHANCE).toBeGreaterThan(0);
+    expect(LOT_MODIFIER_CHANCE).toBeLessThan(1);
+  });
+});
