@@ -8,6 +8,12 @@ export const MOTION = {
   cardEnterMs: 260,
   cardEnterStaggerMs: 55,
   selectMs: 130,
+  bidPulseMs: 180,
+  rivalReactMs: 220,
+  revealMs: 320,
+  revealSettleMs: 420,
+  valueCountMs: 460,
+  celebrateMs: 520,
 } as const;
 
 type StaggerTarget = Phaser.GameObjects.GameObject & {
