@@ -47,6 +47,14 @@ jobs:
           path: release/screenshots/environment-review/generated/*.png
           if-no-files-found: error
           retention-days: 7
+      - run: node scripts/capture-collection-market-review.mjs
+      - name: Upload P7 Collection and Buyer Market review
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-collection-market-review-ci
+          path: release/screenshots/collection-market-review/**/*.png
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload screenshot diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
