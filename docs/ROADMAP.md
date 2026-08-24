@@ -71,7 +71,7 @@
 - [x] Expand Collection Book to 12 sets while preserving existing set IDs/rewards and save compatibility.
 - [x] Keep all new lot clues truthful and all new items represented in at least one collection set.
 - [x] Raise automated content/replayability floors to the expanded catalog.
-- [ ] Run economy simulation and browser/release CI against the expanded pack plus Buyer Market.
+- [ ] Run economy simulation and browser/release CI against the expanded pack plus Buyer Market/per-copy traits.
 - [ ] During/after first moderation, continue breadth toward roughly 72 items / 42 lots / 24 sets rather than stopping development at the first submitted build.
 
 ## P6 — retention and trading depth
@@ -80,8 +80,10 @@
 - [x] One premium sale per buyer offer per local day with cloud-persisted claim state.
 - [x] Buyer sales feed cash, lifetime sales, daily contracts and typed analytics/Metrica.
 - [x] Collection Book exposes market traits and a direct Buyer Market entry point.
+- [x] Per-copy randomized positive/negative traits with appraisal multipliers.
+- [x] Inventory-instance persistence retains each copy's appraisal, condition, restoration and traits while preserving the legacy ID index for sets/save compatibility.
+- [x] Buyer Market prices and removes the exact concrete copy; Collection quick-sale intentionally sells the lowest-value duplicate first.
 - [ ] Decompose `AuctionScene.ts` before adding another major reveal/trading mechanic directly to it.
-- [ ] Per-copy randomized traits/defects/serial-number rarity with inventory-instance persistence after the scene/save refactor.
 - [ ] Deeper restoration choices with distinct safe/pro/risky paths.
 - [ ] Persistent rival-dealer specialties and learned behavior.
 - [ ] Collection-set perks that unlock lasting expertise rather than only cash rewards.
