@@ -9,6 +9,11 @@ export const MOTION = {
   selectMs: 130,
 } as const;
 
+type StaggerTarget = Phaser.GameObjects.GameObject & {
+  setAlpha: (alpha: number) => StaggerTarget;
+  setY: (y: number) => StaggerTarget;
+};
+
 export function prefersReducedMotion(): boolean {
   return typeof window !== 'undefined'
     && typeof window.matchMedia === 'function'
@@ -17,7 +22,7 @@ export function prefersReducedMotion(): boolean {
 
 export function enterWithStagger(
   scene: Phaser.Scene,
-  target: Phaser.GameObjects.GameObject & Phaser.GameObjects.Components.Alpha & Phaser.GameObjects.Components.Transform,
+  target: StaggerTarget,
   baseY: number,
   index: number,
 ): void {
