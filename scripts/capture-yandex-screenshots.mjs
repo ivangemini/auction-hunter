@@ -278,7 +278,7 @@ async function captureLocale(browser, localeCode, locale) {
 
     const officePage = await bootPage(mobile, localeCode);
     await pageWaitAndClick(officePage, 1000, 112, 260); // Collection Book from polished lot selection.
-    await pageWaitAndClick(officePage, 875, 72, 350); // Office.
+    await pageWaitAndClick(officePage, 970, 72, 350); // Office.
     await saveViewport(officePage, path.join(mobileDir, '02-office-progression.png'));
     await officePage.close();
   } finally {
