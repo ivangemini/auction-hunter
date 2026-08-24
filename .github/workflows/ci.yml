@@ -29,6 +29,12 @@ jobs:
         run: |
           cd dist
           zip -r ../auction-hunter-yandex.zip .
+      - run: node scripts/build-yandex-submission.mjs
+      - name: Build unified Yandex submission ZIP
+        shell: bash
+        run: |
+          cd release/submission/generated
+          zip -r ../../../auction-hunter-yandex-submission.zip .
       - uses: actions/upload-artifact@v4
         with:
           name: auction-hunter-yandex-ci
@@ -45,5 +51,11 @@ jobs:
         with:
           name: auction-hunter-yandex-screenshots-ci
           path: release/screenshots/generated/**/*.png
+          if-no-files-found: error
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-yandex-submission-ci
+          path: auction-hunter-yandex-submission.zip
           if-no-files-found: error
           retention-days: 7
