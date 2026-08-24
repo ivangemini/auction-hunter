@@ -34,7 +34,7 @@ Fast navigation map for humans and coding agents.
 
 ## Source
 ### `src/main.ts`
-Startup orchestration: SDK, localized orientation guard, accessibility preferences, lifecycle, cloud sync, auction-history analytics sink, optional Metrica analytics sink and Phaser boot.
+Startup orchestration: SDK, sticky-banner gameplay policy, localized orientation guard, accessibility preferences, lifecycle, cloud sync, auction-history analytics sink, optional Metrica analytics sink and Phaser boot.
 
 ### `src/analytics.ts`
 Versioned vendor-neutral gameplay analytics boundary, including lot-selection, auction, monetization, meta-progression and advanced-inspection events.
@@ -83,9 +83,9 @@ Static content/tuning inputs.
 - `lots/` — nine authored lot environments: three Garage, three Estate and three Collector archetypes.
 
 ### `src/platform/`
-- `yandex.ts` — Yandex Games SDK/Player integration.
+- `yandex.ts` — Yandex Games SDK/Player integration plus gameplay-activity notifications for platform policies.
 - `cloudSave.ts` — Player-data synchronization.
-- `ads.ts` — rewarded/interstitial adapter.
+- `ads.ts` — rewarded/interstitial adapters plus API-controlled sticky-banner policy.
 - `lifecycle.ts` — Yandex/browser/orientation pause reasons.
 - `metrica.ts` — optional Yandex Metrica tag loader and typed analytics transport; no-op without a real counter ID.
 

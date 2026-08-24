@@ -31,6 +31,7 @@
 ## P2 — Monetization and release
 - [x] Rewarded ad placements based on optional value.
 - [x] Interstitial policy at natural breaks.
+- [x] API-controlled sticky banner outside active gameplay.
 - [x] Sound/focus/ad pause handling.
 - [ ] Store/IAP design if metrics justify it — intentionally gated on post-release telemetry; see `IAP_GATE.md`.
 - [x] Full RU/EN localization.

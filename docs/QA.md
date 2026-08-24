@@ -24,22 +24,26 @@ The three-option lot-selection screen is part of the same 1280×720 composition:
 - Yandex pause/resume, visibility, blur/focus and phone portrait orientation all feed the same idempotent pause-reason set.
 
 ## Manual Yandex QA — required before checking the roadmap item
+Before the pass, enable sticky banners for the intended desktop/mobile placements in the Yandex Console and enable **Use the API to display a sticky-banner** so the runtime show/hide policy can be verified.
+
 Run an uploaded draft through the Yandex Games debug panel on at least one desktop browser and one real mobile device:
 1. Game Ready changes only after the first interactive screen.
 2. Normal auctions first present three distinct options with opening price, item count, clue-backed signals and visible event state; changing tier must not expose hidden item values.
 3. With existing normal-auction history, Dealer Memory may show prior visits/wins and average estimated result for the same lot template. Confirm a Daily-only history entry never creates or changes this line, and current hidden item values/conditions do not affect it.
 4. Selecting an option opens its detailed lobby without activating GameplayAPI. GameplayAPI becomes active only when the user enters bidding, and inactive at natural breaks.
-5. On a short landscape phone, verify all three lot cards, any Dealer Memory line and each `Choose lot` button are readable/tappable with no clipping or accidental overlap.
-6. Switch tabs/minimize during bidding and confirm both gameplay and sound pause/resume.
-7. Resize desktop repeatedly; no text/buttons clip.
-8. On mobile landscape, tap all auction/reveal/appraisal/restoration/sell/keep controls one-handed.
-9. Rotate to portrait: the in-game localized rotate guard appears and active game input stops. Rotate back: play resumes without state loss.
-10. Long-press the canvas; no selection/callout/context menu appears.
-11. Open Collection Book from the lot-selection screen, sell one owned item and verify cash/save/cloud state update.
-12. Complete a lot using exactly one restoration; verify later items cannot launch a second restoration.
-13. Run multiple variants within each tier and verify clue text always corresponds to at least one revealed category.
-14. Activate Daily Special and verify it intentionally bypasses three-option selection after activation, while returning to normal auctions restores the choice screen.
-15. Inspect console and Yandex debug panel for runtime errors.
+5. Verify the sticky banner is available on non-gameplay states such as lot choice/lobby and pass/round-summary breaks, hides when the auction enters active gameplay, remains hidden through reveal/appraisal/restoration/sell/keep, and returns at the next natural break. Banner failure must never block progression.
+6. Check the configured desktop and landscape-mobile banner positions for overlap/accidental-click pressure near lot cards, Dealer Memory, navigation and primary action buttons; change the console placement if necessary before release.
+7. On a short landscape phone, verify all three lot cards, any Dealer Memory line and each `Choose lot` button are readable/tappable with no clipping or accidental overlap.
+8. Switch tabs/minimize during bidding and confirm both gameplay and sound pause/resume.
+9. Resize desktop repeatedly; no text/buttons clip.
+10. On mobile landscape, tap all auction/reveal/appraisal/restoration/sell/keep controls one-handed.
+11. Rotate to portrait: the in-game localized rotate guard appears and active game input stops. Rotate back: play resumes without state loss.
+12. Long-press the canvas; no selection/callout/context menu appears.
+13. Open Collection Book from the lot-selection screen, sell one owned item and verify cash/save/cloud state update.
+14. Complete a lot using exactly one restoration; verify later items cannot launch a second restoration.
+15. Run multiple variants within each tier and verify clue text always corresponds to at least one revealed category.
+16. Activate Daily Special and verify it intentionally bypasses three-option selection after activation, while returning to normal auctions restores the choice screen.
+17. Inspect console and Yandex debug panel for runtime errors.
 
 ## Roadmap completion rule
 Do not mark `Device/browser QA` complete until the manual draft/device pass is performed. Automated CI is a regression gate, not a substitute for platform moderation QA.

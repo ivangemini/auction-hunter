@@ -22,9 +22,19 @@ interface RewardedAdCallbacks {
   onError?: (error: object) => void;
 }
 
+export type StickyBannerReason = 'ADV_IS_NOT_CONNECTED' | 'UNKNOWN';
+
+export interface StickyBannerStatus {
+  stickyAdvIsShowing: boolean;
+  reason?: StickyBannerReason;
+}
+
 interface AdvertisingApi {
   showFullscreenAdv(options?: { callbacks?: FullscreenAdCallbacks }): void;
   showRewardedVideo(options?: { callbacks?: RewardedAdCallbacks }): void;
+  getBannerAdvStatus?(): Promise<StickyBannerStatus>;
+  showBannerAdv?(): Promise<StickyBannerStatus>;
+  hideBannerAdv?(): Promise<{ stickyAdvIsShowing: boolean }>;
 }
 
 export interface YandexPlayer {
@@ -59,10 +69,13 @@ declare global {
   }
 }
 
+type GameplayActivityListener = (active: boolean) => void;
+
 let sdk: YandexSdk | null = null;
 let cachedPlayer: YandexPlayer | null = null;
 let readySent = false;
 let gameplayActive = false;
+const gameplayActivityListeners = new Set<GameplayActivityListener>();
 
 export async function initYandexSdk(): Promise<void> {
   if (!window.YaGames) {
@@ -105,14 +118,21 @@ export function markGameReady(): void {
   readySent = true;
 }
 
-export function setGameplayActive(active: boolean): void {
-  if (active === gameplayActive) return;
+export function subscribeGameplayActivity(listener: GameplayActivityListener): () => void {
+  gameplayActivityListeners.add(listener);
+  return () => gameplayActivityListeners.delete(listener);
+}
 
-  if (active) {
-    sdk?.features?.GameplayAPI?.start();
-  } else {
-    sdk?.features?.GameplayAPI?.stop();
+export function setGameplayActive(active: boolean): void {
+  if (active !== gameplayActive) {
+    if (active) {
+      sdk?.features?.GameplayAPI?.start();
+    } else {
+      sdk?.features?.GameplayAPI?.stop();
+    }
+
+    gameplayActive = active;
   }
 
-  gameplayActive = active;
+  for (const listener of gameplayActivityListeners) listener(active);
 }

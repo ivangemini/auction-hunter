@@ -6,6 +6,7 @@ import { installAuctionHistoryTracking } from './game/historyTracking';
 import { installGameLifecycle } from './game/lifecycle';
 import { applyAccessibilityPreferences } from './game/preferences';
 import { t } from './i18n';
+import { initializeStickyBannerPolicy } from './platform/ads';
 import { initializeCloudSave } from './platform/cloudSave';
 import { initializePlatformLifecycle } from './platform/lifecycle';
 import { initializeMetricaAnalytics } from './platform/metrica';
@@ -28,6 +29,7 @@ async function bootstrap(): Promise<void> {
   installBrowserGuards();
   applyAccessibilityPreferences();
   await initYandexSdk();
+  initializeStickyBannerPolicy();
   const locale = getPlatformLocale();
   localizeOrientationGuard(locale);
   initializePlatformLifecycle();

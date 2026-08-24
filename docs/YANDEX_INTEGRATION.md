@@ -6,11 +6,12 @@ All direct Yandex Games SDK calls belong under `src/platform/`. Game/domain/data
 ## Boot
 The game must support local development when the Yandex SDK is unavailable. Production initialization should:
 1. initialize the SDK;
-2. subscribe to platform pause/resume lifecycle;
-3. reconcile local/cloud progress;
-4. expose locale/platform information through adapters;
-5. boot the playable game;
-6. call `LoadingAPI.ready()` only when the initial playable state is ready for interaction.
+2. install the sticky-banner gameplay policy when advertising APIs are available;
+3. subscribe to platform pause/resume lifecycle;
+4. reconcile local/cloud progress;
+5. expose locale/platform information through adapters;
+6. boot the playable game;
+7. call `LoadingAPI.ready()` only when the initial playable state is ready for interaction.
 
 Do not signal ready simply because JavaScript loaded.
 
@@ -34,6 +35,10 @@ Rewarded flow distinguishes:
 Grant the reward exactly once and only after Yandex invokes `onRewarded`. The player must always see both the advertising action and the exact reward before opting in.
 
 Interstitials may be requested only at natural breaks after a user action and never while the player is actively bidding, revealing, restoring or making a transactional decision. Ad failure or frequency rejection must never block progression.
+
+Sticky banners use `showBannerAdv()` / `hideBannerAdv()` behind the platform adapter. The runtime policy follows the existing gameplay boundary: request the banner while `GameplayAPI` is inactive and hide it while gameplay is active. Visibility requests are serialized so quick state changes cannot leave the banner in an older requested state. Missing banner methods, `ADV_IS_NOT_CONNECTED` and Yandex-side errors are non-fatal.
+
+The Yandex Console must have sticky banners enabled for the intended device classes/positions and **Use the API to display a sticky-banner** enabled before SDK-driven visibility control can work. Final placement must be checked in a real Yandex draft so the platform banner does not create accidental-click pressure near game controls.
 
 See `docs/MONETIZATION.md` for the product policy and tuning values.
 
