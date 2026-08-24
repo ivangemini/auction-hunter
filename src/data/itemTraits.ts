@@ -170,11 +170,13 @@ export function itemTraitsFor(itemId: string): ItemTraitId[] {
 export function rollItemTraits(item: ItemDefinition, random: () => number = Math.random): ItemTraitId[] {
   const traits = new Set(itemTraitsFor(item.id));
   const positive = eligibleVariantTraits(POSITIVE_VARIANT_RULES, item.category);
-  const negative = eligibleVariantTraits(NEGATIVE_VARIANT_RULES, item.category);
 
   if (positive.length > 0 && clampedRandom(random) < POSITIVE_CHANCE[item.rarity]) {
     traits.add(pickTrait(positive, random));
   }
+
+  const negative = eligibleVariantTraits(NEGATIVE_VARIANT_RULES, item.category)
+    .filter((id) => !(id === 'incomplete' && traits.has('complete-set')));
 
   if (negative.length > 0 && clampedRandom(random) < NEGATIVE_CHANCE[item.rarity]) {
     traits.add(pickTrait(negative, random));
