@@ -10,16 +10,17 @@ Fast navigation map for humans and coding agents.
 - `index.html` — browser shell, Yandex SDK script and portrait orientation guard.
 - `vite.config.ts` — relative build configuration; production source maps are disabled so release archives do not ship source maps.
 - `playwright.config.ts` — desktop/landscape/portrait browser QA.
-- `.github/workflows/ci.yml` — CI gates, draft/archive validation, candidate ZIP, promo/screenshots and unified submission artifacts.
+- `.github/workflows/ci.yml` — CI gates, draft/archive validation, candidate ZIP, promo/screenshots and unified submission artifacts; failed screenshot runs preserve short-lived diagnostic captures.
 - `.github/workflows/yandex-release.yml` — moderation-ready release workflow; produces the game ZIP plus a single submission bundle and injects optional `YANDEX_METRICA_ID` into the release build.
 - `release/yandex-draft-metadata.json` — machine-readable RU/EN draft copy and current visual-field constraints.
 - `release/promotional/` — reviewed SVG sources for the Yandex catalog icon/cover; `generated/` is produced by CI/release rather than committed.
 - `release/screenshots/generated/` — generated RU/EN desktop/mobile production screenshots; CI/release output only.
+- `release/screenshots/debug/` — temporary capture diagnostics created only when the production screenshot flow needs failure evidence; CI may upload them with short retention.
 - `release/submission/generated/` — assembled Draft submission tree; CI/release output only.
 - `scripts/validate-yandex-draft.mjs` — release metadata length/casing/consistency/spec validator, including package/release version parity.
 - `scripts/validate-yandex-archive.mjs` — built archive root/path/size/SDK/title validator; rejects production source maps.
 - `scripts/render-yandex-promos.mjs` — deterministic 512×512 icon and 800×470 cover PNG renderer/validator.
-- `scripts/capture-yandex-screenshots.mjs` — production-build RU/EN gameplay capture plus non-blank art-region checks; current core-loop capture includes lot selection before bidding.
+- `scripts/capture-yandex-screenshots.mjs` — production-build RU/EN gameplay capture plus non-blank art-region checks; core-loop navigation is analytics-event-driven and asserts one committed lot choice remains stable through the auction before reveal/appraisal capture.
 - `scripts/build-yandex-submission.mjs` — assembles game ZIP, promo art, screenshots and metadata with SHA-256 manifests.
 
 ## Documentation
@@ -73,7 +74,9 @@ Static content/tuning inputs.
 - `replayability.test.ts`, `contentScale.test.ts` — expanded content/replayability regression floors.
 
 ### `src/game/`
-- `scenes/AuctionScene.ts` — auction/reveal orchestration: selection presentation, lobby, bidding, clues, bidder tells, inspection, item disposition, round summary and ads. Normal market preparation and restoration interaction are delegated to dedicated modules.
+- `scenes/AuctionScene.ts` — canonical auction/reveal orchestration and gameplay state: selection preparation, lobby, bidding, clues, inspection, item disposition, round summary and ads. P7 presentation overrides inherit this behavior rather than duplicating rules.
+- `scenes/PolishedAuctionScene.ts` — P7 lot-selection presentation with authored environment cards, Dealer Memory/status hierarchy, hover/selection motion and a one-shot selection lock that prevents queued multi-card selection races.
+- `scenes/PolishedAuctionSceneV2.ts` — P7 active-bidding, win, reveal and appraisal presentation: current-bid focal treatment, persistent rival cards/tells, staged item hero reveal, rarity/value feedback and locale-safe action controls.
 - `lotMarket.ts` — normal-auction tier validation, three-choice generation, visible modifier application and page-session market-cycle cache.
 - `lotMarket.test.ts` — deterministic tier fallback/distinct-choice/cache regression coverage.
 - `restorationUi.ts` — Safe/Pro/Risky choice cards plus Phaser timing challenge; formula/reward truth remains in `src/domain/restoration.ts`.
@@ -85,7 +88,8 @@ Static content/tuning inputs.
 - `historyTracking.ts` — turns canonical typed analytics outcomes into capped persisted history; Dealer Memory reads this existing save data rather than introducing a new schema.
 - `preferences.ts` — device-local sound/reduced-motion/high-contrast preferences.
 - `feedback.ts` — lightweight Web Audio cues and motion-aware camera juice.
-- `ui.ts` — shared buttons with mobile hit slop/contrast handling.
+- `motion.ts` — shared interaction/reveal/value timing tokens and reduced-motion-aware scene motion helpers.
+- `ui.ts` — shared buttons with mobile hit slop, fixed hit targets, feedback/motion options and locale-specific font-size overrides where a compact action needs them.
 - `art.ts` — preloads direct catalog item art and declared lot environments, rasterizing SVG at explicit 512×360 dimensions; runtime fallback is defensive only.
 - `config.ts`, `lifecycle.ts` — rendering/runtime infrastructure.
 
@@ -114,19 +118,20 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 - `tests/lot-selection.spec.ts` — browser funnel coverage for three unique options, market-cycle semantics, Dealer Memory rendering path, committed choice and delayed auction start.
 - `tests/restoration.spec.ts` — compatibility-level condition/value and Safe/Pro/Risky restoration contract coverage.
 - Other `tests/*.spec.ts` cover system contracts used by Playwright QA.
-- `scripts/capture-yandex-screenshots.mjs` doubles as a production-build core-loop smoke test and rejects visually blank lot/item art.
+- `scripts/capture-yandex-screenshots.mjs` doubles as a production-build core-loop smoke test: it verifies a single lot selection remains stable through a legitimate auction win, advances reveal/appraisal by observed analytics events and rejects visually blank lot/item art.
 
 ## Where to make common changes
 - Add/tune lots and clue signals: `src/data/catalog.ts` + `docs/CONTENT_MODEL.md`.
 - Add/change stable or randomized collectible traits: `src/data/itemTraits.ts` + `src/domain/auction.ts` + `docs/BUYER_MARKET.md`.
 - Change concrete owned-copy persistence: `src/game/save.ts` + `src/game/store.ts` + migration tests. Keep `collection: string[]` synchronized while legacy set/progression logic depends on it.
 - Change Buyer Market buyers/premiums/matching: `src/data/buyers.ts`; transaction semantics live in `src/game/store.ts`; presentation lives in `src/game/scenes/BuyerMarketScene.ts`.
-- Change normal-auction option sampling/cache behavior: `src/domain/lotSelection.ts` + `src/game/lotMarket.ts`; change selection presentation in `src/game/scenes/AuctionScene.ts`.
+- Change normal-auction option sampling/cache behavior: `src/domain/lotSelection.ts` + `src/game/lotMarket.ts`; change polished selection presentation in `src/game/scenes/PolishedAuctionScene.ts`.
+- Change active bidding/win/reveal/appraisal presentation without changing auction rules: `src/game/scenes/PolishedAuctionSceneV2.ts`.
 - Change restoration mode difficulty/reward rules: `src/domain/restoration.ts`; change restoration choice/timing presentation in `src/game/restorationUi.ts`.
-- Change Dealer Memory aggregation: `src/domain/history.ts`; change its presentation in `src/game/scenes/AuctionScene.ts`.
+- Change Dealer Memory aggregation: `src/domain/history.ts`; change its polished lot-card presentation in `src/game/scenes/PolishedAuctionScene.ts`.
 - Add/change catalog art: `public/assets/`, `src/data/artManifest.ts`, lot `artId` assignments and `src/data/artCoverage.test.ts`.
 - Change Yandex icon/cover: `release/promotional/*.svg` + `scripts/render-yandex-promos.mjs`; never hand-edit generated PNGs.
-- Change Yandex gameplay screenshot scenarios: `scripts/capture-yandex-screenshots.mjs`; keep them on the production build and real scene transitions.
+- Change Yandex gameplay screenshot scenarios: `scripts/capture-yandex-screenshots.mjs`; keep them on the production build, real scene transitions and analytics-confirmed state changes.
 - Change submission-bundle structure/checksums: `scripts/build-yandex-submission.mjs` + both GitHub workflows.
 - Tune NPC/economy ranges: `src/data/balance.ts` + `docs/ECONOMY_AND_RETENTION.md`.
 - Change clue generation/resale/inspection formulas: matching `src/domain/` module + focused unit tests.
