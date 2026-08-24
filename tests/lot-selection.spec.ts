@@ -14,7 +14,16 @@ async function clickGame(page: Page, gameX: number, gameY: number): Promise<void
   );
 }
 
-test('normal auction flow presents three unique lots before bidding starts', async ({ page }, testInfo) => {
+async function presentedPayloads(page: Page): Promise<Array<{ tierId: string; lotIds: string[]; modifierIds: Array<string | null> }>> {
+  return page.evaluate(() => {
+    const events = (window as any).__lotSelectionEvents ?? [];
+    return events
+      .filter((event: any) => event?.eventName === 'lot_options_presented')
+      .map((event: any) => event.payload);
+  });
+}
+
+test('normal auction flow presents stable unique lots and locks the committed choice', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-1280x720', 'One desktop interaction pass is sufficient');
 
   await page.addInitScript(({ saveKey }) => {
@@ -36,22 +45,26 @@ test('normal auction flow presents three unique lots before bidding starts', asy
 
   await page.goto('/');
   await expect(page.locator('canvas')).toBeVisible();
+  await expect.poll(async () => (await presentedPayloads(page)).length).toBe(1);
 
-  const presented = await expect.poll(async () => page.evaluate(() => {
-    const events = (window as any).__lotSelectionEvents ?? [];
-    return events.find((event: any) => event?.eventName === 'lot_options_presented')?.payload ?? null;
-  })).not.toBeNull();
-  void presented;
+  const initialCollector = (await presentedPayloads(page))[0];
+  expect(initialCollector?.tierId).toBe('collector');
+  expect(initialCollector?.lotIds).toHaveLength(3);
+  expect(new Set(initialCollector?.lotIds).size).toBe(3);
+  expect(initialCollector?.modifierIds).toHaveLength(3);
 
-  const payload = await page.evaluate(() => {
-    const events = (window as any).__lotSelectionEvents ?? [];
-    return events.find((event: any) => event?.eventName === 'lot_options_presented')?.payload;
-  });
-  expect(payload.lotIds).toHaveLength(3);
-  expect(new Set(payload.lotIds).size).toBe(3);
-  expect(payload.modifierIds).toHaveLength(3);
+  await clickGame(page, 640, 151); // Estate.
+  await expect.poll(async () => (await presentedPayloads(page)).length).toBe(2);
+  expect((await presentedPayloads(page))[1]?.tierId).toBe('estate');
 
-  await clickGame(page, 240, 625);
+  await clickGame(page, 1030, 151); // Back to Collector in the same market cycle.
+  await expect.poll(async () => (await presentedPayloads(page)).length).toBe(3);
+  const collectorAgain = (await presentedPayloads(page))[2];
+  expect(collectorAgain?.tierId).toBe('collector');
+  expect(collectorAgain?.lotIds).toEqual(initialCollector?.lotIds);
+  expect(collectorAgain?.modifierIds).toEqual(initialCollector?.modifierIds);
+
+  await clickGame(page, 240, 625); // Commit first Collector option.
   await expect.poll(() => page.evaluate(() => {
     const events = (window as any).__lotSelectionEvents ?? [];
     return events.filter((event: any) => event?.eventName === 'lot_option_selected').length;
@@ -60,6 +73,11 @@ test('normal auction flow presents three unique lots before bidding starts', asy
     const events = (window as any).__lotSelectionEvents ?? [];
     return events.some((event: any) => event?.eventName === 'auction_started');
   })).toBe(false);
+
+  const presentationsAtCommit = (await presentedPayloads(page)).length;
+  await clickGame(page, 640, 151); // Tier tabs are visible but intentionally locked after Choose.
+  await page.waitForTimeout(150);
+  expect((await presentedPayloads(page)).length).toBe(presentationsAtCommit);
 
   await clickGame(page, 1038, 620);
   await expect.poll(() => page.evaluate(() => {
