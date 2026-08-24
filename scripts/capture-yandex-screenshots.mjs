@@ -143,8 +143,23 @@ async function bootPage(context, platformLocale, save = seedSave) {
   return page;
 }
 
+async function eventCount(page, eventName) {
+  return page.evaluate((name) => (
+    window.__auctionHunterScreenshotEvents?.filter((event) => event?.eventName === name).length ?? 0
+  ), eventName);
+}
+
 async function eventSeen(page, eventName) {
-  return page.evaluate((name) => window.__auctionHunterScreenshotEvents?.some((event) => event?.eventName === name) ?? false, eventName);
+  return (await eventCount(page, eventName)) > 0;
+}
+
+async function waitForEventCount(page, eventName, minimum, timeoutMs = 2_500) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if ((await eventCount(page, eventName)) >= minimum) return;
+    await page.waitForTimeout(50);
+  }
+  throw new Error(`Timed out waiting for ${eventName} count >= ${minimum}`);
 }
 
 async function captureDiagnostic(page, name) {
@@ -167,19 +182,46 @@ async function activateUntilEvent(page, x, y, eventName, attempts = 10, waitMs =
   throw new Error(`${eventName} was not observed after ${attempts} interaction attempts`);
 }
 
+async function chooseLotAndStartAuction(page) {
+  const selectionsBefore = await eventCount(page, 'lot_option_selected');
+  await clickGame(page, 240, 625); // Choose first visible lot.
+  await waitForEventCount(page, 'lot_option_selected', selectionsBefore + 1);
+
+  const confirmedSelections = await eventCount(page, 'lot_option_selected');
+  assert(
+    confirmedSelections === selectionsBefore + 1,
+    `Expected one lot selection, observed ${confirmedSelections - selectionsBefore}`,
+  );
+
+  const startsBefore = await eventCount(page, 'auction_started');
+  await clickGame(page, 1038, 620); // Enter the chosen auction only after selection animation commits.
+  await waitForEventCount(page, 'auction_started', startsBefore + 1);
+  await page.waitForTimeout(120);
+
+  assert(
+    (await eventCount(page, 'lot_option_selected')) === confirmedSelections,
+    'A second lot selection fired after auction start',
+  );
+}
+
 async function winCurrentAuction(page) {
   // Use the real Garage tier tab for a shorter deterministic submission capture while
   // preserving the production selection -> bidding -> win -> reveal path.
+  const tiersBefore = await eventCount(page, 'tier_selected');
   await clickGame(page, 250, 151);
-  await page.waitForTimeout(180);
-  await clickGame(page, 240, 625); // Choose the first Garage lot option.
-  await page.waitForTimeout(180);
-  await clickGame(page, 1038, 620); // Enter the chosen auction.
-  await page.waitForTimeout(350);
-  assert(await eventSeen(page, 'auction_started'), 'Auction did not start before screenshot win loop');
+  await waitForEventCount(page, 'tier_selected', tiersBefore + 1);
+  await chooseLotAndStartAuction(page);
 
+  const stableSelectionCount = await eventCount(page, 'lot_option_selected');
+  const winsBefore = await eventCount(page, 'auction_won');
   for (let attempt = 0; attempt < 120; attempt += 1) {
-    if (await eventSeen(page, 'auction_won')) return;
+    if ((await eventCount(page, 'auction_won')) > winsBefore) {
+      assert(
+        (await eventCount(page, 'lot_option_selected')) === stableSelectionCount,
+        'Lot selection changed while the auction was in progress',
+      );
+      return;
+    }
     await clickGame(page, 226, 626); // Polished primary bid action.
     await page.waitForTimeout(750);
   }
@@ -270,8 +312,7 @@ async function captureLocale(browser, localeCode, locale) {
       path.join(desktopDir, '01-lot-selection.png'),
       { x: 90, y: 292, width: 300, height: 105 },
     );
-    await pageWaitAndClick(page, 240, 625, 180); // Choose first visible lot.
-    await pageWaitAndClick(page, 1038, 620, 300); // Enter auction.
+    await chooseLotAndStartAuction(page);
     await saveViewport(
       page,
       path.join(desktopDir, '02-active-bidding.png'),
@@ -295,8 +336,7 @@ async function captureLocale(browser, localeCode, locale) {
     const revealPage = await bootPage(mobile, localeCode, revealSeed);
     await winCurrentAuction(revealPage);
     await captureDiagnostic(revealPage, `${localeCode}-after-win`);
-    // The Open Lot and Reveal buttons overlap this safe center point across their two sequential screens.
-    // Alternate mouse/touch activation until the actual reveal analytics event confirms progression.
+    // Open Lot and Reveal share this stable center corridor across their sequential screens.
     await activateUntilEvent(revealPage, 640, 596, 'item_revealed', 10, 280);
     await activateUntilEvent(revealPage, 1016, 560, 'item_appraised', 10, 300);
     await page.waitForTimeout(420); // Let appraisal value count-up settle for the production capture.
