@@ -47,6 +47,7 @@ Official references:
 - `ah_auction_passed`
 - `ah_restoration_completed`
 - `ah_item_dispositioned`
+- `ah_buyer_sale_completed`
 - `ah_collection_set_reward_claimed`
 - `ah_daily_special_completed`
 - `ah_daily_contract_reward_claimed`
@@ -73,6 +74,7 @@ All other typed events are still sent through `params`; they do not need to be c
 - `item_appraised`
 - `restoration_completed`
 - `item_dispositioned`
+- `buyer_sale_completed`
 - `collection_set_reward_claimed`
 - `daily_special_completed`
 - `daily_contract_reward_claimed`
@@ -96,6 +98,19 @@ This rule keeps the option-funnel denominator tied to actual distinct tier expos
 
 Hidden item identity, condition, market factor and NPC bidding limits are deliberately absent from these events at decision time. The selected lot is a Metrica JavaScript goal; the presentation event remains detailed `params` telemetry. Together with `auction_started`, these events separate market-choice abandonment from later auction abandonment.
 
+## Buyer Market telemetry
+`buyer_sale_completed` is emitted only after a valid daily buyer transaction has removed one owned copy and persisted the resulting economy state. Its payload records:
+- buyer ID;
+- sold item ID;
+- local buyer-market day key;
+- realized sale value;
+- configured premium multiplier;
+- stable collectible trait IDs attached to the item.
+
+Buyer sales also emit the generic `item_dispositioned` collection-sale event so total disposition analysis remains comparable with quick sales. `buyer_sale_completed` is a Metrica goal because buyer-market adoption, specialist-vs-category demand and realized premium are direct retention/economy signals.
+
+Useful launch analyses include buyer-offer completion rate, premium sale value by buyer type, trait demand, repeat-day market usage and whether Buyer Market users retain or monetize differently from players who only quick-sell.
+
 ## Core funnel coverage
 The playable flow emits the first-session and economy funnel needed for post-release tuning:
 - tier selection and three-option normal-auction presentation/choice, with one presentation impression per tier per market cycle;
@@ -107,11 +122,12 @@ The playable flow emits the first-session and economy funnel needed for post-rel
 - item reveal and appraisal;
 - restoration outcome;
 - sell/keep decision;
+- Buyer Market premium inventory sale;
 - exactly one `round_completed` event per cleared lot even when the summary screen is redrawn for ad state;
 - collection-set, Daily Contract, achievement and business-upgrade progression;
 - rewarded/interstitial request and completion state.
 
-This supports option-level selection rate, modifier preference, reserve-price sensitivity, selection-to-auction conversion, auction pass behavior, inspection usage, reveal/appraisal completion, restoration usage, disposition mix, lot-level estimated result and meta-progression behavior once remote Metrica transport is configured.
+This supports option-level selection rate, modifier preference, reserve-price sensitivity, selection-to-auction conversion, auction pass behavior, inspection usage, reveal/appraisal completion, restoration usage, disposition mix, Buyer Market adoption, lot-level estimated result and meta-progression behavior once remote Metrica transport is configured.
 
 ## Monetization telemetry
 Rewarded events include the summary placement and exact cash reward. The close event records whether an impression opened, whether `onRewarded` occurred and the final adapter outcome.
