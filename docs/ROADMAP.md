@@ -71,8 +71,20 @@
 - [x] Expand Collection Book to 12 sets while preserving existing set IDs/rewards and save compatibility.
 - [x] Keep all new lot clues truthful and all new items represented in at least one collection set.
 - [x] Raise automated content/replayability floors to the expanded catalog.
-- [ ] Run economy simulation and browser/release CI against the expanded pack.
-- [ ] After the first candidate is submitted, build a second breadth pack toward roughly 48 items / 30 lots / 16 sets on top of the submitted commit rather than idling during moderation.
-- [ ] Decide any new core mechanic only after the current auction/collection loop has real session and D1 data.
+- [ ] Run economy simulation and browser/release CI against the expanded pack plus Buyer Market.
+- [ ] During/after first moderation, continue breadth toward roughly 72 items / 42 lots / 24 sets rather than stopping development at the first submitted build.
 
-See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.
+## P6 — retention and trading depth
+- [x] Stable collectible traits/provenance tags for selected item identities.
+- [x] Daily Buyer Market with two category buyers and one specialist buyer.
+- [x] One premium sale per buyer offer per local day with cloud-persisted claim state.
+- [x] Buyer sales feed cash, lifetime sales, daily contracts and typed analytics/Metrica.
+- [x] Collection Book exposes market traits and a direct Buyer Market entry point.
+- [ ] Decompose `AuctionScene.ts` before adding another major reveal/trading mechanic directly to it.
+- [ ] Per-copy randomized traits/defects/serial-number rarity with inventory-instance persistence after the scene/save refactor.
+- [ ] Deeper restoration choices with distinct safe/pro/risky paths.
+- [ ] Persistent rival-dealer specialties and learned behavior.
+- [ ] Collection-set perks that unlock lasting expertise rather than only cash rewards.
+- [ ] Legendary multi-auction discovery chains.
+
+See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks, `BUYER_MARKET.md` for the trading loop and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.
