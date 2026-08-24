@@ -7,6 +7,7 @@ import {
   uniqueCollectionCount,
   type CollectionSetDefinition,
 } from '../../data/collections';
+import { itemTraitNames } from '../../data/itemTraits';
 import { collectionResaleValue, ownedCopies } from '../../domain/collection';
 import { collectionResaleRate, setRewardValue } from '../../domain/meta';
 import type { Locale, Rarity } from '../../domain/types';
@@ -60,13 +61,18 @@ export class CollectionScene extends Phaser.Scene {
     this.label(660, 137, `${t(this.locale, 'cash')}: ${this.money(save.cash)}`, 18, '#63d28d', 'bold');
     this.label(70, 170, t(this.locale, 'collectionManageHint'), 13, '#737b88');
 
-    button(this, 875, 72, t(this.locale, 'office'), () => this.scene.start('office'), {
+    button(this, 775, 72, this.locale === 'ru' ? 'Рынок покупателей' : 'Buyer Market', () => this.scene.start('buyer-market'), {
       width: 190,
+      height: 48,
+      background: 0xc4773a,
+    });
+    button(this, 970, 72, t(this.locale, 'office'), () => this.scene.start('office'), {
+      width: 160,
       height: 48,
       background: 0xe9b949,
     });
-    button(this, 1110, 72, t(this.locale, 'backToAuction'), () => this.scene.start('auction'), {
-      width: 220,
+    button(this, 1140, 72, t(this.locale, 'backToAuction'), () => this.scene.start('auction'), {
+      width: 170,
       height: 48,
       background: 0x61a8ff,
     });
@@ -173,6 +179,7 @@ export class CollectionScene extends Phaser.Scene {
 
     const rate = collectionResaleRate(COLLECTION_RESALE_RATE, save.businessUpgrades.warehouse);
     const resale = collectionResaleValue(item.baseValue, rate);
+    const traits = itemTraitNames(itemId, this.locale);
     const overlay = this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x05070a, 0.78)
       .setInteractive({ useHandCursor: true });
     overlay.on('pointerup', () => {
@@ -188,9 +195,15 @@ export class CollectionScene extends Phaser.Scene {
     this.label(635, 226, item.name[this.locale], 25, '#f7f8fa', 'bold');
     this.label(635, 273, t(this.locale, 'ownedCopies', { count: copies }), 17, '#aeb5c0');
     this.label(635, 309, t(this.locale, 'resaleValue', { amount: this.money(resale) }), 19, '#63d28d', 'bold');
-    this.label(635, 350, t(this.locale, 'sellCollectionWarning'), 14, '#8b93a1')
+
+    if (traits.length > 0) {
+      this.label(635, 340, `${this.locale === 'ru' ? 'Признаки' : 'Traits'}: ${traits.join(' · ')}`, 13, '#61a8ff', 'bold')
+        .setWordWrapWidth(255);
+    }
+
+    this.label(635, traits.length > 0 ? 380 : 350, t(this.locale, 'sellCollectionWarning'), 13, '#8b93a1')
       .setWordWrapWidth(255)
-      .setLineSpacing(4);
+      .setLineSpacing(3);
 
     button(this, 690, 485, t(this.locale, 'sellOne', { amount: this.money(resale) }), () => {
       if (this.store.sellCollectionItem(itemId, resale)) playFeedbackCue(this, 'sell');
