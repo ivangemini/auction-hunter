@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { normalizeSave } from './save';
 
 describe('save normalization', () => {
-  it('keeps legacy v1 saves compatible when history fields are absent', () => {
+  it('keeps legacy v1 saves compatible when newer fields are absent', () => {
     const save = normalizeSave({
       version: 1,
       updatedAt: 123,
@@ -21,6 +21,8 @@ describe('save normalization', () => {
     expect(save.collection).toEqual(['film-camera']);
     expect(save.auctionHistory).toEqual([]);
     expect(save.highestCash).toBe(4321);
+    expect(save.buyerMarketDayKey).toBeNull();
+    expect(save.claimedBuyerOfferIds).toEqual([]);
   });
 
   it('sanitizes persisted auction history without destroying negative results', () => {
@@ -48,5 +50,17 @@ describe('save normalization', () => {
     expect(save.auctionHistory).toHaveLength(1);
     expect(save.auctionHistory[0]?.estimatedResult).toBe(-800);
     expect(save.auctionHistory[0]?.modifierId).toBe('collector-buzz');
+  });
+
+  it('sanitizes buyer market state while preserving same-day claims', () => {
+    const save = normalizeSave({
+      version: 1,
+      cash: 2500,
+      buyerMarketDayKey: '2026-08-24',
+      claimedBuyerOfferIds: ['watch-specialist', 123, '', 'prototype-broker'],
+    });
+
+    expect(save.buyerMarketDayKey).toBe('2026-08-24');
+    expect(save.claimedBuyerOfferIds).toEqual(['watch-specialist', '', 'prototype-broker']);
   });
 });
