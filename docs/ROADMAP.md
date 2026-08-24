@@ -83,8 +83,8 @@
 - [x] Per-copy randomized positive/negative traits with appraisal multipliers.
 - [x] Inventory-instance persistence retains each copy's appraisal, condition, restoration and traits while preserving the legacy ID index for sets/save compatibility.
 - [x] Buyer Market prices and removes the exact concrete copy; Collection quick-sale intentionally sells the lowest-value duplicate first.
-- [ ] Decompose `AuctionScene.ts` before adding another major reveal/trading mechanic directly to it.
-- [ ] Deeper restoration choices with distinct safe/pro/risky paths.
+- [x] Decompose `AuctionScene.ts` before adding another major reveal/trading mechanic directly to it — lot-market preparation/cache and restoration interaction now live in dedicated game modules.
+- [x] Deeper restoration choices with distinct safe/pro/risky paths.
 - [ ] Persistent rival-dealer specialties and learned behavior.
 - [ ] Collection-set perks that unlock lasting expertise rather than only cash rewards.
 - [ ] Legendary multi-auction discovery chains.

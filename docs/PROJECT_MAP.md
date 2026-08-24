@@ -39,7 +39,7 @@ Fast navigation map for humans and coding agents.
 Startup orchestration: SDK, sticky-banner gameplay policy, localized orientation guard, accessibility preferences, lifecycle, cloud sync, auction-history analytics sink, optional Metrica analytics sink and Phaser boot.
 
 ### `src/analytics.ts`
-Versioned vendor-neutral gameplay analytics boundary, including lot-selection, per-find appraisal traits, auction, buyer-market, monetization, meta-progression and advanced-inspection events.
+Versioned vendor-neutral gameplay analytics boundary, including lot-selection, per-find appraisal traits, auction, restoration-mode, buyer-market, monetization, meta-progression and advanced-inspection events.
 
 ### `src/domain/`
 Pure platform-agnostic rules and types.
@@ -47,7 +47,7 @@ Pure platform-agnostic rules and types.
 - `lotSelection.ts` — deterministic distinct-option sampling for the pre-auction market choice.
 - `lotModifier.ts` — deterministic effects for rare visible lot events.
 - `inspection.ts` — late-game inspection report rules.
-- `restoration.ts` — condition/value formulas.
+- `restoration.ts` — condition/value formulas plus Safe/Pro/Risky restoration-mode timing/reward rules.
 - `collection.ts` — collection resale/copy-count helpers.
 - `meta.ts` — meta-progression calculations.
 - `history.ts` — capped recent-auction history plus pure per-lot Dealer Memory summaries used by the selection screen.
@@ -73,7 +73,10 @@ Static content/tuning inputs.
 - `replayability.test.ts`, `contentScale.test.ts` — expanded content/replayability regression floors.
 
 ### `src/game/`
-- `scenes/AuctionScene.ts` — three-option normal-auction selection with Dealer Memory, detailed lot lobby, bidding, clues, modifiers, bidder tells, advanced inspection, per-find trait display, one-per-lot restoration and round summary/ads.
+- `scenes/AuctionScene.ts` — auction/reveal orchestration: selection presentation, lobby, bidding, clues, bidder tells, inspection, item disposition, round summary and ads. Normal market preparation and restoration interaction are delegated to dedicated modules.
+- `lotMarket.ts` — normal-auction tier validation, three-choice generation, visible modifier application and page-session market-cycle cache.
+- `lotMarket.test.ts` — deterministic tier fallback/distinct-choice/cache regression coverage.
+- `restorationUi.ts` — Safe/Pro/Risky choice cards plus Phaser timing challenge; formula/reward truth remains in `src/domain/restoration.ts`.
 - `scenes/CollectionScene.ts` — paged collection sets, concrete-copy appraisal/condition/trait display, Buyer Market navigation and lowest-value-first inventory quick sale.
 - `scenes/BuyerMarketScene.ts` — three deterministic daily buyers, exact-copy premium inventory matching and one completed sale per offer/day.
 - `scenes/OfficeScene.ts` — contracts, upgrades, achievements, stats, recent auction history and accessibility settings.
@@ -98,16 +101,18 @@ Static content/tuning inputs.
 - `metrica.ts` — optional Yandex Metrica tag loader and typed analytics transport; Buyer Market sales are stable goals; no-op without a real counter ID.
 
 ### `src/i18n.ts`
-RU/EN gameplay, lot-selection/Dealer Memory, Office, inspection, accessibility and orientation copy. The Buyer Market keeps its compact RU/EN scene copy beside the isolated market UI for now. The visible game brand is `Auction Hunter` in both locales to match Yandex draft materials.
+RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspection, accessibility and orientation copy. The Buyer Market keeps its compact RU/EN scene copy beside the isolated market UI for now. The visible game brand is `Auction Hunter` in both locales to match Yandex draft materials.
 
 ## Tests
-- `src/domain/*.test.ts` — fast economy/game-rule unit tests, including deterministic lot-option sampling, per-find appraisal variance and Dealer Memory aggregation.
+- `src/domain/*.test.ts` — fast economy/game-rule unit tests, including deterministic lot-option sampling, per-find appraisal variance, restoration-mode tradeoffs and Dealer Memory aggregation.
 - `src/data/*.test.ts` — content integrity, item-trait compatibility, Buyer Market exact-copy rules, direct-art coverage, 36/24/12 scale and replayability regression coverage.
+- `src/game/lotMarket.test.ts` — isolated normal-market tier/cache behavior.
 - `src/game/save.test.ts` — save normalization, legacy-to-instance collection migration and persisted-instance sanitization.
 - `src/game/buyerMarket.test.ts` — focused persistence/transaction coverage for exact-copy sale, one-offer-per-day and daily reset semantics.
 - `src/platform/*.test.ts` — platform adapter contracts, including cloud-save ordering, that can be verified without live Yandex services.
 - `tests/browser.spec.ts` — responsive/runtime/orientation smoke coverage.
 - `tests/lot-selection.spec.ts` — browser funnel coverage for three unique options, market-cycle semantics, Dealer Memory rendering path, committed choice and delayed auction start.
+- `tests/restoration.spec.ts` — compatibility-level condition/value and Safe/Pro/Risky restoration contract coverage.
 - Other `tests/*.spec.ts` cover system contracts used by Playwright QA.
 - `scripts/capture-yandex-screenshots.mjs` doubles as a production-build core-loop smoke test and rejects visually blank lot/item art.
 
@@ -116,16 +121,17 @@ RU/EN gameplay, lot-selection/Dealer Memory, Office, inspection, accessibility a
 - Add/change stable or randomized collectible traits: `src/data/itemTraits.ts` + `src/domain/auction.ts` + `docs/BUYER_MARKET.md`.
 - Change concrete owned-copy persistence: `src/game/save.ts` + `src/game/store.ts` + migration tests. Keep `collection: string[]` synchronized while legacy set/progression logic depends on it.
 - Change Buyer Market buyers/premiums/matching: `src/data/buyers.ts`; transaction semantics live in `src/game/store.ts`; presentation lives in `src/game/scenes/BuyerMarketScene.ts`.
-- Change normal-auction option sampling/selection behavior: `src/domain/lotSelection.ts` + `src/game/scenes/AuctionScene.ts` + focused browser coverage.
+- Change normal-auction option sampling/cache behavior: `src/domain/lotSelection.ts` + `src/game/lotMarket.ts`; change selection presentation in `src/game/scenes/AuctionScene.ts`.
+- Change restoration mode difficulty/reward rules: `src/domain/restoration.ts`; change restoration choice/timing presentation in `src/game/restorationUi.ts`.
 - Change Dealer Memory aggregation: `src/domain/history.ts`; change its presentation in `src/game/scenes/AuctionScene.ts`.
 - Add/change catalog art: `public/assets/`, `src/data/artManifest.ts`, lot `artId` assignments and `src/data/artCoverage.test.ts`.
 - Change Yandex icon/cover: `release/promotional/*.svg` + `scripts/render-yandex-promos.mjs`; never hand-edit generated PNGs.
 - Change Yandex gameplay screenshot scenarios: `scripts/capture-yandex-screenshots.mjs`; keep them on the production build and real scene transitions.
 - Change submission-bundle structure/checksums: `scripts/build-yandex-submission.mjs` + both GitHub workflows.
 - Tune NPC/economy ranges: `src/data/balance.ts` + `docs/ECONOMY_AND_RETENTION.md`.
-- Change clue generation/restoration/resale/inspection formulas: matching `src/domain/` module + focused unit tests.
+- Change clue generation/resale/inspection formulas: matching `src/domain/` module + focused unit tests.
 - Change contracts/achievements/upgrades: `src/data/meta.ts` + `src/domain/meta.ts`.
-- Change presentation: `src/game/scenes/`.
+- Change presentation: `src/game/scenes/` plus dedicated `src/game/*Ui.ts` helpers when a responsibility is already extracted.
 - Change local/cloud save schema: `src/game/save.ts` + migration/normalization tests.
 - Change device-local accessibility preferences: `src/game/preferences.ts`.
 - Change Yandex Games/cloud/ads/lifecycle/Metrica: `src/platform/` + platform docs/tests.
