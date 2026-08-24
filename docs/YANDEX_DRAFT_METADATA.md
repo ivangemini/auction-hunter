@@ -12,9 +12,19 @@ Reference: https://yandex.com/dev/games/doc/en/console/add-new-game/draft
 - Supported platforms: Desktop + Mobile
 - Orientation: Landscape
 - Languages: Russian + English.
+- The game uses cloud save: Yes.
+- Postpone publication: Enable for the first v1 submission. After moderation reaches Verified, run the final real-device/Draft checks and publish manually.
 - Preferred release artifact: `auction-hunter-yandex-submission` from `Yandex Release Archive`.
 - The unified submission ZIP contains the actual game archive, catalog icon/cover, RU/EN desktop/mobile screenshots, this metadata and SHA-256 manifests.
 - If only the playable archive is needed, use `game/auction-hunter-yandex.zip` from inside the submission bundle or the standalone `auction-hunter-yandex` artifact.
+
+## Developer's comment
+
+Paste the following into the Yandex Draft `Developer's comment` field. The same text is stored in `release/yandex-draft-metadata.json` and validated against the 2048-character limit.
+
+> Auction Hunter is a replayable auction and collection game rather than a linear level game. The v1 build contains 18 varied lot templates across three auction tiers, 24 collectible items, truthful clue-driven decisions, bidder behavior, rare lot modifiers, daily auctions and contracts, collection sets, achievements, recent auction history and permanent Office upgrades. Progress is saved locally and synchronized with Yandex Player data when available. Ads appear only at natural breaks and rewarded ads are optional. The game supports RU and EN through Yandex SDK language detection and landscape play on desktop and mobile. Please evaluate the 10+ minute content requirement through repeated auction runs and the metagame; our timed Draft verification procedure is documented in CONTENT_DURATION.md.
+
+The comment is deliberately factual: it tells moderation where the replayability comes from, how saving works, and that ads are placed at natural breaks without claiming that the manual 10+ minute Draft check has already been completed.
 
 ## Russian
 
@@ -121,6 +131,9 @@ These satisfy the automated 16:9/1280×720 candidate requirement. Before submiss
 - Select the closest available categories/tags that describe auction, collecting and casual simulation gameplay; do not use unrelated high-traffic tags.
 - Confirm the age rating matches the actual non-violent content.
 - Set Desktop + Mobile and Landscape exactly as declared above.
+- Mark that the game uses cloud save.
+- Enable Postpone publication for the first v1 submission so a Verified build can receive one final Draft/device pass before publication.
+- Paste the validated Developer's comment above.
 - Upload `game/auction-hunter-yandex.zip` from the current unified submission bundle, not an older local build.
 - Upload `promotional/icon.png`, `promotional/cover.png` and the localized screenshots from the same bundle.
 - Add the real Yandex Metrica counter ID to the GitHub Actions variable `YANDEX_METRICA_ID` before the final telemetry-enabled archive build if custom telemetry is desired at launch.
@@ -130,11 +143,11 @@ These satisfy the automated 16:9/1280×720 candidate requirement. Before submiss
 
 The release pipeline runs:
 
-- `validate-yandex-draft.mjs` — field lengths, title casing/consistency and visual spec constants.
+- `validate-yandex-draft.mjs` — field lengths, package/release version parity, title casing/consistency, Draft defaults, Developer's comment and visual spec constants.
 - typecheck + unit tests + production build + browser QA.
 - `render-yandex-promos.mjs` — promo text policy and exact PNG dimensions.
 - `capture-yandex-screenshots.mjs` — production gameplay screenshots and non-blank art validation.
-- `validate-yandex-archive.mjs` — archive root/path/size/SDK/title checks.
+- `validate-yandex-archive.mjs` — archive root/path/size/SDK/title checks and no production source maps.
 - `build-yandex-submission.mjs` — exact file-count/structure checks and SHA-256 manifest generation.
 
 Automated gates reduce moderation risk but do not replace final checks inside the actual Yandex Draft.
