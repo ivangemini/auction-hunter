@@ -158,15 +158,68 @@ async function winCurrentAuction(page) {
   throw new Error('Unable to reach a legitimate Garage auction win while capturing screenshots');
 }
 
-async function saveViewport(page, outputPath) {
-  await page.screenshot({ path: outputPath, type: 'png', fullPage: false });
-  const bytes = fs.statSync(outputPath).size;
+async function regionStats(page, screenshot, region) {
+  return page.evaluate(async ({ pngBase64, sample }) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${pngBase64}`;
+    await image.decode();
+
+    const canvas = document.createElement('canvas');
+    canvas.width = sample.width;
+    canvas.height = sample.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) throw new Error('Unable to create screenshot analysis canvas');
+    context.drawImage(
+      image,
+      sample.x,
+      sample.y,
+      sample.width,
+      sample.height,
+      0,
+      0,
+      sample.width,
+      sample.height,
+    );
+
+    const pixels = context.getImageData(0, 0, sample.width, sample.height).data;
+    const buckets = new Set();
+    let sampled = 0;
+    let visiblyLit = 0;
+
+    for (let index = 0; index < pixels.length; index += 16) {
+      const red = pixels[index] ?? 0;
+      const green = pixels[index + 1] ?? 0;
+      const blue = pixels[index + 2] ?? 0;
+      const alpha = pixels[index + 3] ?? 0;
+      if (alpha < 16) continue;
+      sampled += 1;
+      if ((red + green + blue) / 3 > 38) visiblyLit += 1;
+      buckets.add(`${red >> 4}:${green >> 4}:${blue >> 4}`);
+    }
+
+    return {
+      sampled,
+      visiblyLitRatio: sampled > 0 ? visiblyLit / sampled : 0,
+      colorBuckets: buckets.size,
+    };
+  }, { pngBase64: screenshot.toString('base64'), sample: region });
+}
+
+async function saveViewport(page, outputPath, artRegion = null) {
+  const screenshot = await page.screenshot({ path: outputPath, type: 'png', fullPage: false });
+  const bytes = screenshot.length;
   assert(bytes > 30_000, `${outputPath} looks unexpectedly small (${bytes} bytes)`);
-  const screenshot = fs.readFileSync(outputPath);
   assert(screenshot.subarray(12, 16).toString('ascii') === 'IHDR', `${outputPath} is not a PNG`);
   const width = screenshot.readUInt32BE(16);
   const height = screenshot.readUInt32BE(20);
   assert(width === 1280 && height === 720, `${outputPath} is ${width}x${height}; expected 1280x720`);
+
+  if (artRegion) {
+    const stats = await regionStats(page, screenshot, artRegion);
+    assert(stats.sampled > 500, `${outputPath} art region could not be sampled`);
+    assert(stats.colorBuckets >= 6, `${outputPath} art region is visually blank (${stats.colorBuckets} color buckets)`);
+    assert(stats.visiblyLitRatio >= 0.08, `${outputPath} art region is too dark/blank (${Math.round(stats.visiblyLitRatio * 100)}% lit pixels)`);
+  }
 }
 
 async function captureLocale(browser, localeCode, locale) {
@@ -182,10 +235,18 @@ async function captureLocale(browser, localeCode, locale) {
   });
   try {
     const page = await bootPage(desktop, localeCode);
-    await saveViewport(page, path.join(desktopDir, '01-lot-lobby.png'));
+    await saveViewport(
+      page,
+      path.join(desktopDir, '01-lot-lobby.png'),
+      { x: 120, y: 360, width: 330, height: 160 },
+    );
     await clickGame(page, 1038, 620);
     await page.waitForTimeout(300);
-    await saveViewport(page, path.join(desktopDir, '02-active-bidding.png'));
+    await saveViewport(
+      page,
+      path.join(desktopDir, '02-active-bidding.png'),
+      { x: 510, y: 280, width: 270, height: 120 },
+    );
     await page.close();
   } finally {
     await desktop.close();
@@ -206,7 +267,11 @@ async function captureLocale(browser, localeCode, locale) {
     await pageWaitAndClick(revealPage, 640, 555, 260); // Reveal first item.
     await pageWaitAndClick(revealPage, 640, 568, 300); // Appraise first item.
     assert(await eventSeen(revealPage, 'item_appraised'), 'Appraisal event was not observed before screenshot');
-    await saveViewport(revealPage, path.join(mobileDir, '01-appraised-find.png'));
+    await saveViewport(
+      revealPage,
+      path.join(mobileDir, '01-appraised-find.png'),
+      { x: 500, y: 200, width: 280, height: 180 },
+    );
     await revealPage.close();
 
     const officePage = await bootPage(mobile, localeCode);
