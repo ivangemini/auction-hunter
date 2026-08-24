@@ -19,6 +19,7 @@ import { button } from '../ui';
 
 const WIDTH = 1280;
 const HEIGHT = 720;
+const SETS_PER_PAGE = 4;
 
 const RARITY_COLORS: Record<Rarity, number> = {
   common: 0xaeb5c0,
@@ -32,6 +33,7 @@ export class CollectionScene extends Phaser.Scene {
   private readonly store = new GameStore();
   private locale: Locale = 'en';
   private selectedItemId: string | null = null;
+  private pageIndex = 0;
 
   constructor() {
     super('collection');
@@ -69,11 +71,30 @@ export class CollectionScene extends Phaser.Scene {
       background: 0x61a8ff,
     });
 
-    COLLECTION_SETS.forEach((set, index) => {
+    const pageCount = Math.max(1, Math.ceil(COLLECTION_SETS.length / SETS_PER_PAGE));
+    this.pageIndex = Phaser.Math.Clamp(this.pageIndex, 0, pageCount - 1);
+    const pageSets = COLLECTION_SETS.slice(
+      this.pageIndex * SETS_PER_PAGE,
+      this.pageIndex * SETS_PER_PAGE + SETS_PER_PAGE,
+    );
+
+    pageSets.forEach((set, index) => {
       const column = index % 2;
       const row = Math.floor(index / 2);
       this.renderSetCard(set, 70 + column * 585, 195 + row * 230);
     });
+
+    if (pageCount > 1) {
+      button(this, 545, 670, '‹', () => {
+        this.pageIndex = Math.max(0, this.pageIndex - 1);
+        this.renderBook();
+      }, { width: 58, height: 42, background: 0x2c313a, disabled: this.pageIndex === 0, hitSlop: 8 });
+      this.centerLabel(640, 670, `${this.pageIndex + 1}/${pageCount}`, 16, '#aeb5c0', 'bold');
+      button(this, 735, 670, '›', () => {
+        this.pageIndex = Math.min(pageCount - 1, this.pageIndex + 1);
+        this.renderBook();
+      }, { width: 58, height: 42, background: 0x2c313a, disabled: this.pageIndex >= pageCount - 1, hitSlop: 8 });
+    }
 
     if (this.selectedItemId) this.renderInventoryModal(this.selectedItemId);
   }

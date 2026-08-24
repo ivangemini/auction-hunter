@@ -40,6 +40,30 @@ export const COLLECTION_SETS: CollectionSetDefinition[] = [
     itemIds: ['toolbox', 'vinyl-box', 'telescope', 'signed-poster', 'silver-ring'],
     reward: 1600,
   },
+  {
+    id: 'field-tech',
+    name: { ru: 'Полевая техника', en: 'Field Tech' },
+    itemIds: ['multimeter', 'portable-radio', 'instant-camera'],
+    reward: 1100,
+  },
+  {
+    id: 'street-nostalgia',
+    name: { ru: 'Уличная ностальгия', en: 'Street Nostalgia' },
+    itemIds: ['tin-car', 'mini-console', 'preproduction-figure'],
+    reward: 1500,
+  },
+  {
+    id: 'optics-and-print',
+    name: { ru: 'Оптика и печать', en: 'Optics & Print' },
+    itemIds: ['binoculars', 'gallery-print', 'comic-stack'],
+    reward: 1300,
+  },
+  {
+    id: 'travel-case',
+    name: { ru: 'Дорожный футляр', en: 'Travel Case' },
+    itemIds: ['travel-clock', 'enamel-brooch', 'military-watch'],
+    reward: 1600,
+  },
 ];
 
 export function uniqueCollectionCount(collectionIds: readonly string[]): number {

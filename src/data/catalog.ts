@@ -13,6 +13,18 @@ export const ITEMS: ItemDefinition[] = [
   { id: 'arcade-handheld', name: { ru: 'Редкая портативная консоль', en: 'Rare handheld console' }, category: 'electronics', rarity: 'epic', baseValue: 2100 },
   { id: 'pocket-watch', name: { ru: 'Карманные часы 1930-х', en: '1930s pocket watch' }, category: 'watches', rarity: 'legendary', baseValue: 4800 },
   { id: 'prototype-toy', name: { ru: 'Прототип коллекционной игрушки', en: 'Prototype collectible toy' }, category: 'toys', rarity: 'legendary', baseValue: 5600 },
+  { id: 'multimeter', name: { ru: 'Аналоговый мультиметр', en: 'Analog multimeter' }, category: 'tools', rarity: 'common', baseValue: 150 },
+  { id: 'portable-radio', name: { ru: 'Карманный радиоприёмник', en: 'Pocket radio' }, category: 'electronics', rarity: 'common', baseValue: 180 },
+  { id: 'comic-stack', name: { ru: 'Стопка старых комиксов', en: 'Stack of old comics' }, category: 'collectibles', rarity: 'uncommon', baseValue: 300 },
+  { id: 'tin-car', name: { ru: 'Жестяная заводная машинка', en: 'Tin wind-up car' }, category: 'toys', rarity: 'uncommon', baseValue: 380 },
+  { id: 'travel-clock', name: { ru: 'Дорожные механические часы', en: 'Mechanical travel clock' }, category: 'watches', rarity: 'uncommon', baseValue: 460 },
+  { id: 'instant-camera', name: { ru: 'Моментальная камера', en: 'Instant camera' }, category: 'electronics', rarity: 'rare', baseValue: 850 },
+  { id: 'binoculars', name: { ru: 'Винтажный бинокль', en: 'Vintage binoculars' }, category: 'collectibles', rarity: 'rare', baseValue: 1050 },
+  { id: 'gallery-print', name: { ru: 'Номерной галерейный принт', en: 'Numbered gallery print' }, category: 'art', rarity: 'rare', baseValue: 1150 },
+  { id: 'enamel-brooch', name: { ru: 'Старинная эмалевая брошь', en: 'Antique enamel brooch' }, category: 'collectibles', rarity: 'epic', baseValue: 1650 },
+  { id: 'mini-console', name: { ru: 'Мини-консоль первого выпуска', en: 'First-run mini console' }, category: 'electronics', rarity: 'epic', baseValue: 2300 },
+  { id: 'military-watch', name: { ru: 'Военные наручные часы', en: 'Military wristwatch' }, category: 'watches', rarity: 'epic', baseValue: 2600 },
+  { id: 'preproduction-figure', name: { ru: 'Предсерийная коллекционная фигурка', en: 'Pre-production collectible figure' }, category: 'toys', rarity: 'legendary', baseValue: 6200 },
 ];
 
 export const LOTS: LotTemplate[] = [
@@ -53,6 +65,42 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['cassette-player', 'vinyl-box', 'toy-robot', 'brass-clock', 'film-camera', 'telescope', 'silver-ring'],
   },
   {
+    id: 'flea-storage-12', artId: 'garage-17',
+    name: { ru: 'Склад барахолки №12', en: 'Flea Market Storage #12' },
+    location: { ru: 'Задний двор крытого рынка', en: 'Covered market back lot' },
+    clues: [
+      { text: { ru: 'Из открытого кейса виден измерительный прибор', en: 'A measuring instrument is visible in an open case' }, signal: { categories: ['tools'] } },
+      { text: { ru: 'Перевязанные стопки печатных выпусков', en: 'Bundled stacks of printed issues' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'Коробка с антенной и проводами', en: 'A box contains an antenna and loose cables' }, signal: { categories: ['electronics'] } },
+    ],
+    reservePrice: 300, bidIncrement: 75, itemCount: 4,
+    itemPool: ['toolbox', 'multimeter', 'portable-radio', 'comic-stack', 'tin-car', 'vinyl-box', 'instant-camera'],
+  },
+  {
+    id: 'repair-shop-4', artId: 'garage-17',
+    name: { ru: 'Ремонтная мастерская №4', en: 'Repair Shop Unit #4' },
+    location: { ru: 'Старый сервисный квартал', en: 'Old service district' },
+    clues: [
+      { text: { ru: 'На верстаке лежат щупы и отвёртки', en: 'Test probes and screwdrivers lie on the bench' }, signal: { categories: ['tools'] } },
+      { text: { ru: 'Рядом сложены корпуса портативной техники', en: 'Portable electronics shells are stacked nearby' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'В ящике виден складной часовой футляр', en: 'A folding clock case is visible in a drawer' }, signal: { categories: ['watches'] } },
+    ],
+    reservePrice: 375, bidIncrement: 75, itemCount: 4,
+    itemPool: ['toolbox', 'multimeter', 'cassette-player', 'portable-radio', 'travel-clock', 'film-camera', 'instant-camera'],
+  },
+  {
+    id: 'student-locker-28', artId: 'garage-17',
+    name: { ru: 'Студенческий склад №28', en: 'Student Storage #28' },
+    location: { ru: 'Склад у бывшего общежития', en: 'Storage by an old dormitory' },
+    clues: [
+      { text: { ru: 'Плакаты и комиксы торчат из пластиковой коробки', en: 'Posters and comics stick out of a plastic bin' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'В рюкзаке видны наушники и зарядные кабели', en: 'Headphones and charging cables show inside a backpack' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'На верхней полке стоит металлическая игрушка', en: 'A metal toy sits on the top shelf' }, signal: { categories: ['toys'] } },
+    ],
+    reservePrice: 350, bidIncrement: 75, itemCount: 4,
+    itemPool: ['portable-radio', 'comic-stack', 'tin-car', 'vinyl-box', 'cassette-player', 'mini-console', 'instant-camera'],
+  },
+  {
     id: 'estate-42', artId: 'estate-42',
     name: { ru: 'Наследственный склад №42', en: 'Estate Locker #42' },
     location: { ru: 'Частное хранилище', en: 'Private storage facility' },
@@ -89,6 +137,42 @@ export const LOTS: LotTemplate[] = [
     itemPool: ['vinyl-box', 'toy-robot', 'film-camera', 'signed-poster', 'silver-ring', 'arcade-handheld', 'prototype-toy'],
   },
   {
+    id: 'manor-basement-5', artId: 'estate-42',
+    name: { ru: 'Подвал особняка №5', en: 'Manor Basement #5' },
+    location: { ru: 'Семейное хранилище за городом', en: 'Family storage outside town' },
+    clues: [
+      { text: { ru: 'Несколько старых часовых футляров лежат вместе', en: 'Several old watch cases are grouped together' }, signal: { categories: ['watches'] } },
+      { text: { ru: 'Маленькая шкатулка обита тёмным бархатом', en: 'A small box is lined with dark velvet' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'У стены стоят рамки под защитной бумагой', en: 'Frames stand wrapped in protective paper' }, signal: { categories: ['art'] } },
+    ],
+    reservePrice: 650, bidIncrement: 100, itemCount: 4,
+    itemPool: ['travel-clock', 'binoculars', 'enamel-brooch', 'gallery-print', 'silver-ring', 'pocket-watch', 'telescope'],
+  },
+  {
+    id: 'photo-estate-13', artId: 'estate-42',
+    name: { ru: 'Фотоархив №13', en: 'Photo Estate #13' },
+    location: { ru: 'Хранилище бывшей фотостудии', en: 'Former photo studio storage' },
+    clues: [
+      { text: { ru: 'На полке лежат камеры разных эпох', en: 'Cameras from different eras sit on a shelf' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'За шкафом видны отпечатки в паспарту', en: 'Matted prints are visible behind a cabinet' }, signal: { categories: ['art'] } },
+      { text: { ru: 'В кофре лежит тяжёлая оптика', en: 'Heavy optics sit inside a carrying case' }, signal: { categories: ['collectibles'] } },
+    ],
+    reservePrice: 650, bidIncrement: 100, itemCount: 4,
+    itemPool: ['film-camera', 'instant-camera', 'gallery-print', 'signed-poster', 'binoculars', 'enamel-brooch', 'arcade-handheld'],
+  },
+  {
+    id: 'theater-storage-7', artId: 'estate-42',
+    name: { ru: 'Театральный склад №7', en: 'Theater Storage #7' },
+    location: { ru: 'Закрытая городская сцена', en: 'Closed city theater' },
+    clues: [
+      { text: { ru: 'В тубусах лежат афиши и номерные принты', en: 'Poster tubes hold playbills and numbered prints' }, signal: { categories: ['art'] } },
+      { text: { ru: 'В реквизите видны старые игрушки', en: 'Old toys are mixed into the prop crates' }, signal: { categories: ['toys'] } },
+      { text: { ru: 'В архивной коробке лежат печатные выпуски', en: 'Printed issues fill an archive box' }, signal: { categories: ['collectibles'] } },
+    ],
+    reservePrice: 700, bidIncrement: 100, itemCount: 4,
+    itemPool: ['signed-poster', 'gallery-print', 'tin-car', 'preproduction-figure', 'comic-stack', 'enamel-brooch', 'mini-console'],
+  },
+  {
     id: 'collector-8', artId: 'collector-8',
     name: { ru: 'Бокс коллекционера №8', en: 'Collector Locker #8' },
     location: { ru: 'Закрытый клубный аукцион', en: 'Members-only auction house' },
@@ -123,6 +207,42 @@ export const LOTS: LotTemplate[] = [
     ],
     reservePrice: 1000, bidIncrement: 150, itemCount: 4,
     itemPool: ['toy-robot', 'telescope', 'signed-poster', 'silver-ring', 'arcade-handheld', 'pocket-watch', 'prototype-toy'],
+  },
+  {
+    id: 'archive-vault-2', artId: 'collector-8',
+    name: { ru: 'Архивное хранилище №2', en: 'Archive Vault #2' },
+    location: { ru: 'Частный аукционный архив', en: 'Private auction archive' },
+    clues: [
+      { text: { ru: 'В лотке лежат ремешки и часовые документы', en: 'Watch straps and service papers sit in a tray' }, signal: { categories: ['watches'] } },
+      { text: { ru: 'В маленьком сейфе видны ювелирные коробочки', en: 'Jewelry boxes are visible inside a small safe' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'Архивные папки подписаны именами художников', en: 'Archive folders carry artists’ names' }, signal: { categories: ['art'] } },
+    ],
+    reservePrice: 1050, bidIncrement: 150, itemCount: 4,
+    itemPool: ['military-watch', 'pocket-watch', 'enamel-brooch', 'silver-ring', 'gallery-print', 'signed-poster', 'preproduction-figure'],
+  },
+  {
+    id: 'retro-dealer-14', artId: 'collector-8',
+    name: { ru: 'Склад ретро-дилера №14', en: 'Retro Dealer Unit #14' },
+    location: { ru: 'Закрытая торговая галерея', en: 'Closed dealer gallery' },
+    clues: [
+      { text: { ru: 'Несколько заводских коробок от портативной электроники', en: 'Several factory boxes for portable electronics' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'За стеклом стоит необычная коллекционная фигурка', en: 'An unusual collectible figure stands behind glass' }, signal: { categories: ['toys'] } },
+      { text: { ru: 'В витрине лежит подписанный часовой футляр', en: 'A labeled watch case sits in the display' }, signal: { categories: ['watches'] } },
+    ],
+    reservePrice: 1100, bidIncrement: 150, itemCount: 4,
+    itemPool: ['arcade-handheld', 'mini-console', 'instant-camera', 'film-camera', 'portable-radio', 'preproduction-figure', 'pocket-watch'],
+  },
+  {
+    id: 'private-gallery-6', artId: 'collector-8',
+    name: { ru: 'Частная галерея №6', en: 'Private Gallery #6' },
+    location: { ru: 'Закрытый зал коллекционера', en: 'Collector’s private gallery' },
+    clues: [
+      { text: { ru: 'На стене стоят запакованные принты и афиши', en: 'Wrapped prints and posters line the wall' }, signal: { categories: ['art'] } },
+      { text: { ru: 'В витрине лежат броши и небольшие футляры', en: 'Brooches and small cases sit in a display' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'Отдельный ящик подписан как часовая коллекция', en: 'A separate crate is labeled as a watch collection' }, signal: { categories: ['watches'] } },
+    ],
+    reservePrice: 1200, bidIncrement: 150, itemCount: 4,
+    itemPool: ['signed-poster', 'gallery-print', 'enamel-brooch', 'silver-ring', 'military-watch', 'binoculars', 'preproduction-figure'],
   },
 ];
 

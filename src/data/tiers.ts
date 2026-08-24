@@ -17,7 +17,7 @@ export const AUCTION_TIERS: AuctionTierDefinition[] = [
     name: { ru: 'Гаражные торги', en: 'Garage Auctions' },
     minReputationXp: 0,
     winXp: 35,
-    lotIds: ['garage-17', 'garage-31', 'moving-unit-6'],
+    lotIds: ['garage-17', 'garage-31', 'moving-unit-6', 'flea-storage-12', 'repair-shop-4', 'student-locker-28'],
     accent: 0xaeb5c0,
   },
   {
@@ -25,7 +25,7 @@ export const AUCTION_TIERS: AuctionTierDefinition[] = [
     name: { ru: 'Наследственные лоты', en: 'Estate Auctions' },
     minReputationXp: 120,
     winXp: 60,
-    lotIds: ['estate-42', 'estate-attic-9', 'studio-estate-21'],
+    lotIds: ['estate-42', 'estate-attic-9', 'studio-estate-21', 'manor-basement-5', 'photo-estate-13', 'theater-storage-7'],
     accent: 0x61a8ff,
   },
   {
@@ -33,7 +33,7 @@ export const AUCTION_TIERS: AuctionTierDefinition[] = [
     name: { ru: 'Клуб коллекционеров', en: 'Collector Club' },
     minReputationXp: 320,
     winXp: 100,
-    lotIds: ['collector-8', 'dealer-vault-3', 'expo-crate-11'],
+    lotIds: ['collector-8', 'dealer-vault-3', 'expo-crate-11', 'archive-vault-2', 'retro-dealer-14', 'private-gallery-6'],
     accent: 0xe9b949,
   },
 ];
