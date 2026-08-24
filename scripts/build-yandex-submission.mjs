@@ -64,6 +64,12 @@ assert(metadata.locales?.ru?.title === 'Auction Hunter', 'RU title must be Aucti
 assert(metadata.locales?.en?.title === 'Auction Hunter', 'EN title must be Auction Hunter');
 assert(screenshotPaths.length === 8, `Expected 8 screenshot sources, found ${screenshotPaths.length}`);
 
+const sourceCommitSha = process.env.SOURCE_COMMIT_SHA || process.env.GITHUB_SHA || 'local';
+assert(
+  sourceCommitSha === 'local' || /^[0-9a-f]{40}$/i.test(sourceCommitSha),
+  `Invalid source commit SHA: ${sourceCommitSha}`,
+);
+
 fs.rmSync(outputRoot, { recursive: true, force: true });
 fs.mkdirSync(outputRoot, { recursive: true });
 
@@ -94,7 +100,7 @@ const manifest = {
   schemaVersion: 1,
   product: 'Auction Hunter',
   releaseVersion: metadata.version,
-  commitSha: process.env.GITHUB_SHA || 'local',
+  commitSha: sourceCommitSha,
   files: manifestFiles,
 };
 
