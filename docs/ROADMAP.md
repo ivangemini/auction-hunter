@@ -37,3 +37,19 @@
 - [x] Full RU/EN localization.
 - [x] Yandex moderation checklist and archive build pipeline.
 - [ ] Retention/economy tuning from real telemetry — requires released traffic.
+
+## P3 — v1.0 depth
+- [x] Daily contracts.
+- [x] Achievement milestones.
+- [x] Business Office hub.
+- [x] Three cash-funded business upgrade paths.
+- [x] Lifetime statistics dashboard.
+- [ ] Recent auction history.
+- [ ] Bidder personality tells/reactions.
+- [ ] Rare lot modifiers/events.
+- [ ] Expand to at least 18 lot templates and 24 items.
+- [ ] Second art/content pass for the expanded catalog.
+- [ ] Economy strategy simulation regression gate.
+- [ ] Real Yandex draft/device QA and first telemetry-driven tuning pass.
+
+See `V1_ROADMAP.md` for the detailed v1.0 plan.

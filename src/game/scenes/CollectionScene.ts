@@ -8,6 +8,7 @@ import {
   type CollectionSetDefinition,
 } from '../../data/collections';
 import { collectionResaleValue, ownedCopies } from '../../domain/collection';
+import { collectionResaleRate, setRewardValue } from '../../domain/meta';
 import type { Locale, Rarity } from '../../domain/types';
 import { t } from '../../i18n';
 import { getPlatformLocale } from '../../platform/yandex';
@@ -57,6 +58,11 @@ export class CollectionScene extends Phaser.Scene {
     this.label(660, 137, `${t(this.locale, 'cash')}: ${this.money(save.cash)}`, 18, '#63d28d', 'bold');
     this.label(70, 170, t(this.locale, 'collectionManageHint'), 13, '#737b88');
 
+    button(this, 875, 72, t(this.locale, 'office'), () => this.scene.start('office'), {
+      width: 190,
+      height: 48,
+      background: 0xe9b949,
+    });
     button(this, 1110, 72, t(this.locale, 'backToAuction'), () => this.scene.start('auction'), {
       width: 220,
       height: 48,
@@ -76,13 +82,14 @@ export class CollectionScene extends Phaser.Scene {
     const save = this.store.snapshot;
     const progress = collectionSetProgress(save.collection, set);
     const claimed = save.claimedSetRewards.includes(set.id);
+    const reward = setRewardValue(set.reward, save.businessUpgrades.showroom);
 
     this.add.rectangle(x, y, 555, 205, 0x15181e, 1)
       .setOrigin(0)
       .setStrokeStyle(1, progress.complete ? 0xe9b949 : 0xffffff, progress.complete ? 0.45 : 0.08);
     this.label(x + 24, y + 18, set.name[this.locale], 22, '#f7f8fa', 'bold');
     this.label(x + 24, y + 52, `${t(this.locale, 'setProgress')}: ${progress.collected}/${progress.total}`, 15, progress.complete ? '#63d28d' : '#8b93a1', 'bold');
-    this.label(x + 245, y + 52, `${t(this.locale, 'reward')}: ${this.money(set.reward)}`, 15, '#e9b949', 'bold');
+    this.label(x + 245, y + 52, `${t(this.locale, 'reward')}: ${this.money(reward)}`, 15, '#e9b949', 'bold');
 
     set.itemIds.forEach((itemId, index) => {
       const item = ITEM_BY_ID.get(itemId);
@@ -143,7 +150,8 @@ export class CollectionScene extends Phaser.Scene {
       return;
     }
 
-    const resale = collectionResaleValue(item.baseValue, COLLECTION_RESALE_RATE);
+    const rate = collectionResaleRate(COLLECTION_RESALE_RATE, save.businessUpgrades.warehouse);
+    const resale = collectionResaleValue(item.baseValue, rate);
     const overlay = this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x05070a, 0.78)
       .setInteractive({ useHandCursor: true });
     overlay.on('pointerup', () => {
@@ -175,7 +183,6 @@ export class CollectionScene extends Phaser.Scene {
       this.renderBook();
     }, { width: 200, height: 48, background: 0x2c313a });
 
-    // Keep references alive/top-most and silence lint-style unused concerns for the blocking panel.
     void panel;
   }
 

@@ -1,0 +1,162 @@
+import { selectDailyContracts } from '../domain/meta';
+import type {
+  AchievementMetric,
+  BusinessUpgradeId,
+  ContractMetric,
+  LocalizedText,
+} from '../domain/types';
+
+export interface DailyContractDefinition {
+  id: string;
+  title: LocalizedText;
+  description: LocalizedText;
+  metric: ContractMetric;
+  target: number;
+  reward: number;
+}
+
+export interface AchievementDefinition {
+  id: string;
+  title: LocalizedText;
+  description: LocalizedText;
+  metric: AchievementMetric;
+  target: number;
+  reward: number;
+}
+
+export interface BusinessUpgradeDefinition {
+  id: BusinessUpgradeId;
+  title: LocalizedText;
+  description: LocalizedText;
+  costs: readonly number[];
+  effects: readonly LocalizedText[];
+}
+
+export const DAILY_CONTRACT_POOL: readonly DailyContractDefinition[] = [
+  {
+    id: 'play-4',
+    title: { ru: 'Войти в ритм', en: 'Get into the rhythm' },
+    description: { ru: 'Сыграй 4 аукциона сегодня.', en: 'Play 4 auctions today.' },
+    metric: 'auctionsPlayed', target: 4, reward: 300,
+  },
+  {
+    id: 'win-2',
+    title: { ru: 'Охотник за лотами', en: 'Lot hunter' },
+    description: { ru: 'Выиграй 2 аукциона сегодня.', en: 'Win 2 auctions today.' },
+    metric: 'auctionsWon', target: 2, reward: 500,
+  },
+  {
+    id: 'sell-5',
+    title: { ru: 'Быстрый оборот', en: 'Quick turnover' },
+    description: { ru: 'Продай 5 предметов.', en: 'Sell 5 items.' },
+    metric: 'itemsSold', target: 5, reward: 400,
+  },
+  {
+    id: 'keep-2',
+    title: { ru: 'Пополнение витрины', en: 'Fill the display' },
+    description: { ru: 'Оставь 2 находки в коллекции.', en: 'Keep 2 finds in your collection.' },
+    metric: 'itemsKept', target: 2, reward: 450,
+  },
+  {
+    id: 'sales-2500',
+    title: { ru: 'Кассовый день', en: 'Cash day' },
+    description: { ru: 'Получи 2 500 ₽ выручки от продаж.', en: 'Generate 2,500 ₽ in sales.' },
+    metric: 'salesValue', target: 2500, reward: 600,
+  },
+];
+
+export function dailyContractsForDay(dayKey: string): DailyContractDefinition[] {
+  return selectDailyContracts(DAILY_CONTRACT_POOL, dayKey, 3);
+}
+
+export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
+  {
+    id: 'first-win',
+    title: { ru: 'Первая покупка', en: 'First purchase' },
+    description: { ru: 'Выиграй первый аукцион.', en: 'Win your first auction.' },
+    metric: 'auctionsWon', target: 1, reward: 250,
+  },
+  {
+    id: 'ten-auctions',
+    title: { ru: 'Завсегдатай', en: 'Regular bidder' },
+    description: { ru: 'Сыграй 10 аукционов.', en: 'Play 10 auctions.' },
+    metric: 'auctionsPlayed', target: 10, reward: 500,
+  },
+  {
+    id: 'five-wins',
+    title: { ru: 'Уверенная рука', en: 'Steady hand' },
+    description: { ru: 'Выиграй 5 лотов.', en: 'Win 5 lots.' },
+    metric: 'auctionsWon', target: 5, reward: 700,
+  },
+  {
+    id: 'collector-eight',
+    title: { ru: 'Настоящая коллекция', en: 'A real collection' },
+    description: { ru: 'Собери 8 уникальных находок.', en: 'Own 8 unique finds.' },
+    metric: 'uniqueCollection', target: 8, reward: 800,
+  },
+  {
+    id: 'sales-ten-k',
+    title: { ru: 'Оборот 10K', en: '10K turnover' },
+    description: { ru: 'Продай предметов суммарно на 10 000 ₽.', en: 'Reach 10,000 ₽ in lifetime sales.' },
+    metric: 'lifetimeSales', target: 10000, reward: 1000,
+  },
+  {
+    id: 'two-sets',
+    title: { ru: 'Куратор', en: 'Curator' },
+    description: { ru: 'Забери награды за 2 набора.', en: 'Claim rewards for 2 collection sets.' },
+    metric: 'claimedSets', target: 2, reward: 1200,
+  },
+  {
+    id: 'collector-tier',
+    title: { ru: 'Доступ в клуб', en: 'Club access' },
+    description: { ru: 'Достигни 320 REP.', en: 'Reach 320 REP.' },
+    metric: 'reputationXp', target: 320, reward: 1500,
+  },
+  {
+    id: 'cash-ten-k',
+    title: { ru: 'Пятизначный банк', en: 'Five-digit bankroll' },
+    description: { ru: 'Подними банк до 10 000 ₽.', en: 'Reach a 10,000 ₽ bankroll.' },
+    metric: 'highestCash', target: 10000, reward: 1500,
+  },
+];
+
+export const BUSINESS_UPGRADE_ORDER: readonly BusinessUpgradeId[] = ['warehouse', 'contractsDesk', 'showroom'];
+
+export const BUSINESS_UPGRADES: Record<BusinessUpgradeId, BusinessUpgradeDefinition> = {
+  warehouse: {
+    id: 'warehouse',
+    title: { ru: 'Склад и логистика', en: 'Warehouse & logistics' },
+    description: { ru: 'Повышает цену быстрой перепродажи предметов из коллекции.', en: 'Improves quick-sale value for collection inventory.' },
+    costs: [2000, 5000, 11000],
+    effects: [
+      { ru: 'Быстрая продажа: 65%', en: 'Quick sale: 65%' },
+      { ru: 'Быстрая продажа: 70%', en: 'Quick sale: 70%' },
+      { ru: 'Быстрая продажа: 75%', en: 'Quick sale: 75%' },
+      { ru: 'Быстрая продажа: 80%', en: 'Quick sale: 80%' },
+    ],
+  },
+  contractsDesk: {
+    id: 'contractsDesk',
+    title: { ru: 'Контрактный стол', en: 'Contracts desk' },
+    description: { ru: 'Увеличивает денежные награды ежедневных контрактов.', en: 'Increases cash rewards from daily contracts.' },
+    costs: [2500, 6000, 13000],
+    effects: [
+      { ru: 'Награды контрактов: ×1.00', en: 'Contract rewards: ×1.00' },
+      { ru: 'Награды контрактов: ×1.10', en: 'Contract rewards: ×1.10' },
+      { ru: 'Награды контрактов: ×1.20', en: 'Contract rewards: ×1.20' },
+      { ru: 'Награды контрактов: ×1.30', en: 'Contract rewards: ×1.30' },
+    ],
+  },
+  showroom: {
+    id: 'showroom',
+    title: { ru: 'Выставочный зал', en: 'Showroom' },
+    description: { ru: 'Увеличивает награды за завершённые коллекционные наборы.', en: 'Increases rewards for completed collection sets.' },
+    costs: [3000, 7500, 16000],
+    effects: [
+      { ru: 'Награды наборов: ×1.00', en: 'Set rewards: ×1.00' },
+      { ru: 'Награды наборов: ×1.10', en: 'Set rewards: ×1.10' },
+      { ru: 'Награды наборов: ×1.20', en: 'Set rewards: ×1.20' },
+      { ru: 'Награды наборов: ×1.30', en: 'Set rewards: ×1.30' },
+    ],
+  },
+};

@@ -3,6 +3,9 @@ export type Locale = 'ru' | 'en';
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type RestorationGrade = 'perfect' | 'good' | 'rough';
 export type ItemCategory = 'electronics' | 'watches' | 'toys' | 'art' | 'tools' | 'collectibles';
+export type ContractMetric = 'auctionsPlayed' | 'auctionsWon' | 'itemsSold' | 'itemsKept' | 'salesValue';
+export type AchievementMetric = 'auctionsPlayed' | 'auctionsWon' | 'uniqueCollection' | 'lifetimeSales' | 'claimedSets' | 'reputationXp' | 'highestCash';
+export type BusinessUpgradeId = 'warehouse' | 'contractsDesk' | 'showroom';
 
 export interface LocalizedText {
   ru: string;
@@ -47,6 +50,12 @@ export interface RevealedItem {
   restorationGain?: number;
 }
 
+export interface BusinessUpgradeState {
+  warehouse: number;
+  contractsDesk: number;
+  showroom: number;
+}
+
 export interface PlayerSave {
   version: 1;
   updatedAt: number;
@@ -59,4 +68,10 @@ export interface PlayerSave {
   auctionsWon: number;
   auctionsPlayed: number;
   lifetimeSales: number;
+  highestCash: number;
+  contractDayKey: string | null;
+  contractProgress: Record<string, number>;
+  claimedContractRewards: string[];
+  claimedAchievements: string[];
+  businessUpgrades: BusinessUpgradeState;
 }

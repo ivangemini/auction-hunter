@@ -1,4 +1,4 @@
-import type { Locale, RestorationGrade } from './domain/types';
+import type { BusinessUpgradeId, Locale, RestorationGrade } from './domain/types';
 import type { AuctionTierId } from './data/tiers';
 
 export const ANALYTICS_SCHEMA_VERSION = 1 as const;
@@ -43,6 +43,9 @@ export interface AnalyticsEventMap {
   };
   collection_set_reward_claimed: { setId: string; reward: number };
   daily_special_completed: { dayKey: string; reputationGain: number };
+  daily_contract_reward_claimed: { contractId: string; dayKey: string; reward: number };
+  achievement_reward_claimed: { achievementId: string; reward: number };
+  business_upgrade_purchased: { upgradeId: BusinessUpgradeId; level: number; cost: number };
   round_completed: {
     lotId: string;
     tierId: AuctionTierId;

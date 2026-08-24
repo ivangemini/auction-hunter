@@ -115,10 +115,13 @@ function sameSave(left: PlayerSave, right: PlayerSave): boolean {
 }
 
 function progressScore(save: PlayerSave): number {
+  const upgradeScore = Object.values(save.businessUpgrades).reduce((sum, level) => sum + level, 0);
   return save.auctionsWon * 1_000_000
     + save.reputationXp * 10_000
     + save.collection.length * 1_000
     + save.claimedSetRewards.length * 500
+    + save.claimedAchievements.length * 300
+    + upgradeScore * 250
     + Math.min(save.lifetimeSales, 999_999);
 }
 
