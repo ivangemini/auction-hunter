@@ -30,21 +30,27 @@ Use this checklist before submitting a build. Requirements can change; re-check 
 - [ ] Local progress survives refresh/restart.
 - [ ] Authorized Yandex Player progress restores from cloud on a second browser/device test where available.
 - [ ] Offline/SDK failure continues with local progress.
-- [ ] Older v1 local saves migrate without reset.
+- [ ] Older v1 local saves normalize without reset.
+- [ ] Recent auction history survives restart/cloud reconciliation without duplicate entries.
 
-## Localization / UI
+## Localization / UI / accessibility
 - [ ] Russian draft opens with RU game UI from `ysdk.environment.i18n.lang`.
 - [ ] English/non-Russian draft opens with EN fallback UI.
 - [ ] Draft title, description, instructions and promotional materials are localized for every declared language.
 - [ ] No system context menu appears on right-click or long press in the game area.
 - [ ] No scrollbars, clipping or dead-end screens at supported desktop/mobile sizes.
 - [ ] Real-device landscape controls remain tappable after rotation/background/foreground cycles.
+- [ ] Sound feedback toggle works and platform pause still silences audio.
+- [ ] Reduced-motion mode suppresses camera shake.
+- [ ] Higher-contrast mode remains readable without hiding controls or clipping text.
 
 ## Content / policy
-- [ ] Game provides more than 10 minutes of replayable content through repeated variable auctions and progression.
+- [ ] Read `docs/CONTENT_DURATION.md` and confirm the current build still satisfies its replayability evidence assumptions.
+- [ ] On a fresh Yandex draft save, run a timed natural session for at least 10 minutes; confirm meaningful progression/replay goals still remain after minute 10.
+- [ ] During that run, complete multiple auctions and verify different lots/items/NPC outcomes or modifiers occur rather than a fixed one-shot sequence.
 - [ ] Genre/description accurately match auction, appraisal, restoration and collection gameplay.
 - [ ] No interactive AI runs inside the published game. Pre-generated AI-assisted art/content, if used, is static game material.
 - [ ] No third-party ads or unapproved external links are present.
 
 ## Final manual gate
-Do not submit for moderation until `docs/QA.md` manual Yandex draft/device checks are complete. Automated browser tests and the archive workflow reduce regressions but do not replace real draft/device moderation QA.
+Do not submit for moderation until `docs/QA.md` manual Yandex draft/device checks and the timed content-duration check above are complete. Automated browser/content/economy tests and the archive workflow reduce regressions but do not replace real draft/device moderation QA.
