@@ -1,10 +1,18 @@
 import Phaser from 'phaser';
 import { ITEMS, ITEM_BY_ID } from '../../data/catalog';
-import { COLLECTION_SETS, collectionSetProgress, uniqueCollectionCount, type CollectionSetDefinition } from '../../data/collections';
+import {
+  COLLECTION_RESALE_RATE,
+  COLLECTION_SETS,
+  collectionSetProgress,
+  uniqueCollectionCount,
+  type CollectionSetDefinition,
+} from '../../data/collections';
+import { collectionResaleValue, ownedCopies } from '../../domain/collection';
 import type { Locale, Rarity } from '../../domain/types';
 import { t } from '../../i18n';
 import { getPlatformLocale } from '../../platform/yandex';
 import { resolveItemTexture } from '../art';
+import { playFeedbackCue } from '../feedback';
 import { GameStore } from '../store';
 import { button } from '../ui';
 
@@ -22,6 +30,7 @@ const RARITY_COLORS: Record<Rarity, number> = {
 export class CollectionScene extends Phaser.Scene {
   private readonly store = new GameStore();
   private locale: Locale = 'en';
+  private selectedItemId: string | null = null;
 
   constructor() {
     super('collection');
@@ -43,8 +52,10 @@ export class CollectionScene extends Phaser.Scene {
 
     const save = this.store.snapshot;
     const uniqueCount = uniqueCollectionCount(save.collection);
-    this.label(70, 145, `${t(this.locale, 'uniqueFinds')}: ${uniqueCount}/${ITEMS.length}`, 20, '#e9b949', 'bold');
-    this.label(350, 145, `${t(this.locale, 'setRewardsClaimed')}: ${save.claimedSetRewards.length}/${COLLECTION_SETS.length}`, 18, '#aeb5c0');
+    this.label(70, 137, `${t(this.locale, 'uniqueFinds')}: ${uniqueCount}/${ITEMS.length}`, 19, '#e9b949', 'bold');
+    this.label(345, 137, `${t(this.locale, 'setRewardsClaimed')}: ${save.claimedSetRewards.length}/${COLLECTION_SETS.length}`, 17, '#aeb5c0');
+    this.label(660, 137, `${t(this.locale, 'cash')}: ${this.money(save.cash)}`, 18, '#63d28d', 'bold');
+    this.label(70, 170, t(this.locale, 'collectionManageHint'), 13, '#737b88');
 
     button(this, 1110, 72, t(this.locale, 'backToAuction'), () => this.scene.start('auction'), {
       width: 220,
@@ -55,8 +66,10 @@ export class CollectionScene extends Phaser.Scene {
     COLLECTION_SETS.forEach((set, index) => {
       const column = index % 2;
       const row = Math.floor(index / 2);
-      this.renderSetCard(set, 70 + column * 585, 200 + row * 225);
+      this.renderSetCard(set, 70 + column * 585, 195 + row * 230);
     });
+
+    if (this.selectedItemId) this.renderInventoryModal(this.selectedItemId);
   }
 
   private renderSetCard(set: CollectionSetDefinition, x: number, y: number): void {
@@ -64,7 +77,9 @@ export class CollectionScene extends Phaser.Scene {
     const progress = collectionSetProgress(save.collection, set);
     const claimed = save.claimedSetRewards.includes(set.id);
 
-    this.add.rectangle(x, y, 555, 200, 0x15181e, 1).setOrigin(0).setStrokeStyle(1, progress.complete ? 0xe9b949 : 0xffffff, progress.complete ? 0.45 : 0.08);
+    this.add.rectangle(x, y, 555, 205, 0x15181e, 1)
+      .setOrigin(0)
+      .setStrokeStyle(1, progress.complete ? 0xe9b949 : 0xffffff, progress.complete ? 0.45 : 0.08);
     this.label(x + 24, y + 18, set.name[this.locale], 22, '#f7f8fa', 'bold');
     this.label(x + 24, y + 52, `${t(this.locale, 'setProgress')}: ${progress.collected}/${progress.total}`, 15, progress.complete ? '#63d28d' : '#8b93a1', 'bold');
     this.label(x + 245, y + 52, `${t(this.locale, 'reward')}: ${this.money(set.reward)}`, 15, '#e9b949', 'bold');
@@ -73,32 +88,95 @@ export class CollectionScene extends Phaser.Scene {
       const item = ITEM_BY_ID.get(itemId);
       if (!item) return;
 
-      const owned = save.collection.includes(itemId);
+      const copies = ownedCopies(save.collection, itemId);
+      const owned = copies > 0;
       const iconX = x + 54 + index * 74;
       const iconY = y + 118;
       const rarityColor = RARITY_COLORS[item.rarity];
 
-      this.add.rectangle(iconX, iconY, 62, 62, rarityColor, owned ? 0.09 : 0.025)
+      const frame = this.add.rectangle(iconX, iconY, 62, 62, rarityColor, owned ? 0.09 : 0.025)
         .setStrokeStyle(1, rarityColor, owned ? 0.5 : 0.12);
       this.add.image(iconX, iconY, resolveItemTexture(this, itemId))
         .setDisplaySize(58, 42)
         .setAlpha(owned ? 1 : 0.18);
+
+      if (owned) {
+        this.centerLabel(iconX, y + 156, `×${copies}`, 12, '#aeb5c0', 'bold');
+        frame.setInteractive({ useHandCursor: true });
+        frame.on('pointerover', () => frame.setStrokeStyle(2, rarityColor, 0.95));
+        frame.on('pointerout', () => frame.setStrokeStyle(1, rarityColor, 0.5));
+        frame.on('pointerup', () => {
+          playFeedbackCue(this, 'ui');
+          this.selectedItemId = itemId;
+          this.renderBook();
+        });
+      }
     });
 
     if (claimed) {
-      this.label(x + 420, y + 151, t(this.locale, 'rewardClaimed'), 15, '#63d28d', 'bold');
+      this.label(x + 405, y + 151, t(this.locale, 'rewardClaimed'), 14, '#63d28d', 'bold');
       return;
     }
 
     if (progress.complete) {
-      button(this, x + 455, y + 165, t(this.locale, 'claimReward'), () => {
+      button(this, x + 455, y + 166, t(this.locale, 'claimReward'), () => {
         this.store.claimSetReward(set.id, set.reward, set.itemIds);
         this.renderBook();
-      }, { width: 170, height: 44 });
+      }, { width: 170, height: 42 });
       return;
     }
 
     this.label(x + 395, y + 151, t(this.locale, 'completeSet'), 14, '#737b88');
+  }
+
+  private renderInventoryModal(itemId: string): void {
+    const item = ITEM_BY_ID.get(itemId);
+    if (!item) {
+      this.selectedItemId = null;
+      return;
+    }
+
+    const save = this.store.snapshot;
+    const copies = ownedCopies(save.collection, itemId);
+    if (copies <= 0) {
+      this.selectedItemId = null;
+      return;
+    }
+
+    const resale = collectionResaleValue(item.baseValue, COLLECTION_RESALE_RATE);
+    const overlay = this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x05070a, 0.78)
+      .setInteractive({ useHandCursor: true });
+    overlay.on('pointerup', () => {
+      this.selectedItemId = null;
+      this.renderBook();
+    });
+
+    const panel = this.add.rectangle(640, 365, 600, 390, 0x171a20, 1)
+      .setStrokeStyle(1, RARITY_COLORS[item.rarity], 0.55)
+      .setInteractive();
+
+    this.add.image(500, 330, resolveItemTexture(this, itemId)).setDisplaySize(190, 138);
+    this.label(635, 226, item.name[this.locale], 25, '#f7f8fa', 'bold');
+    this.label(635, 273, t(this.locale, 'ownedCopies', { count: copies }), 17, '#aeb5c0');
+    this.label(635, 309, t(this.locale, 'resaleValue', { amount: this.money(resale) }), 19, '#63d28d', 'bold');
+    this.label(635, 350, t(this.locale, 'sellCollectionWarning'), 14, '#8b93a1')
+      .setWordWrapWidth(255)
+      .setLineSpacing(4);
+
+    button(this, 690, 485, t(this.locale, 'sellOne', { amount: this.money(resale) }), () => {
+      if (this.store.sellCollectionItem(itemId, resale)) playFeedbackCue(this, 'sell');
+      const remaining = ownedCopies(this.store.snapshot.collection, itemId);
+      this.selectedItemId = remaining > 0 ? itemId : null;
+      this.renderBook();
+    }, { width: 260, height: 54 });
+
+    button(this, 690, 555, t(this.locale, 'close'), () => {
+      this.selectedItemId = null;
+      this.renderBook();
+    }, { width: 200, height: 48, background: 0x2c313a });
+
+    // Keep references alive/top-most and silence lint-style unused concerns for the blocking panel.
+    void panel;
   }
 
   private label(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
@@ -108,6 +186,10 @@ export class CollectionScene extends Phaser.Scene {
       fontStyle: style,
       color,
     });
+  }
+
+  private centerLabel(x: number, y: number, text: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {
+    return this.label(x, y, text, size, color, style).setOrigin(0.5);
   }
 
   private money(value: number): string {
