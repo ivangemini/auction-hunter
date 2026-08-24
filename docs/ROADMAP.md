@@ -105,7 +105,7 @@ This pass is a product-quality priority, not optional decoration. Complete it be
   - [x] First item-fidelity batch: nine high-visibility reveal/restoration finds upgraded with authored 512×360 vector art plus deterministic 3×3 CI visual review.
   - [x] Second item-fidelity batch: nine more electronics, collectibles, watch, optics and paper/metal finds upgraded; CI permanently reviews Batch 01 and Batch 02 as separate 3×3 contact sheets.
   - [ ] Remaining item fidelity: 18 catalog identities still need the same authored-quality pass.
-  - [ ] Remaining environment fidelity: Garage and Collector semantic lot archetypes still need the higher-fidelity treatment already applied to Estate.
+  - [x] Environment fidelity: all nine semantic lot environments now meet the P7 floor — three Estate WebPs plus upgraded Garage/Collector SVGs — with deterministic 3×2 Garage/Collector CI visual review.
 - [ ] Add restrained game-feel polish across important actions: press/selection response, number tweens, reveal highlights, particles/reactions and staged transitions with reduced-motion support.
 - [ ] Add production screenshot review as an explicit acceptance step for each major screen family and keep desktop + mobile-landscape captures visually credible.
 
