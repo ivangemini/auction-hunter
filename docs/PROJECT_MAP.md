@@ -10,10 +10,13 @@ Fast navigation map for humans and coding agents.
 - `index.html` — browser shell, Yandex SDK script and portrait orientation guard.
 - `vite.config.ts` — relative build configuration.
 - `playwright.config.ts` — desktop/landscape/portrait browser QA.
-- `.github/workflows/ci.yml` — CI gates, including draft-metadata validation.
-- `.github/workflows/yandex-release.yml` — moderation-ready ZIP build workflow; validates draft metadata and injects optional `YANDEX_METRICA_ID` into the release build.
+- `.github/workflows/ci.yml` — CI gates, draft/archive validation, candidate ZIP and promotional PNG artifacts.
+- `.github/workflows/yandex-release.yml` — moderation-ready ZIP + promotional-art release workflow; validates draft metadata and injects optional `YANDEX_METRICA_ID` into the release build.
 - `release/yandex-draft-metadata.json` — machine-readable RU/EN draft copy and current visual-field constraints.
+- `release/promotional/` — reviewed SVG sources for the Yandex catalog icon/cover; `generated/` is produced by CI/release rather than committed.
 - `scripts/validate-yandex-draft.mjs` — release metadata length/casing/consistency/spec validator.
+- `scripts/validate-yandex-archive.mjs` — built archive root/path/size/SDK/title validator.
+- `scripts/render-yandex-promos.mjs` — deterministic 512×512 icon and 800×470 cover PNG renderer/validator.
 
 ## Documentation
 - `GAME_DESIGN.md`, `ROADMAP.md`, `V1_ROADMAP.md` — product intent and delivery status.
@@ -21,7 +24,7 @@ Fast navigation map for humans and coding agents.
 - `CONTENT_MODEL.md`, `ECONOMY_AND_RETENTION.md`, `CONTENT_DURATION.md` — content/economy/replayability rules and moderation evidence.
 - `RESTORATION.md`, `COLLECTIONS.md`, `TIERS.md`, `DAILY_SPECIAL.md`, `FIRST_SESSION.md` — gameplay contracts.
 - `CLOUD_SAVE.md`, `YANDEX_INTEGRATION.md`, `MONETIZATION.md`, `MODERATION.md` — persistence/platform/release contracts.
-- `YANDEX_DRAFT_METADATA.md` — ready-to-paste draft fields plus required visual specs and screenshot shot-list.
+- `YANDEX_DRAFT_METADATA.md` — ready-to-paste draft fields, generated promotional-art workflow and required gameplay screenshot shot-list.
 - `ANALYTICS.md` — typed event schema plus optional Yandex Metrica transport/setup.
 - `ART_DIRECTION.md`, `QA.md` — visual/device QA contracts.
 
@@ -93,6 +96,7 @@ RU/EN gameplay, Office, inspection, accessibility and orientation copy. The visi
 ## Where to make common changes
 - Add/tune lots and clue signals: `src/data/catalog.ts` + `docs/CONTENT_MODEL.md`.
 - Add/change catalog art: `public/assets/`, `src/data/artManifest.ts`, lot `artId` assignments and `src/data/artCoverage.test.ts`.
+- Change Yandex icon/cover: `release/promotional/*.svg` + `scripts/render-yandex-promos.mjs`; never hand-edit generated PNGs.
 - Tune NPC/economy ranges: `src/data/balance.ts` + `docs/ECONOMY_AND_RETENTION.md`.
 - Change clue generation/restoration/resale/inspection formulas: matching `src/domain/` module + focused unit tests.
 - Change contracts/achievements/upgrades: `src/data/meta.ts` + `src/domain/meta.ts`.
