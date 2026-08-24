@@ -5,8 +5,8 @@ import { localDayKey } from '../../data/daily';
 import { itemTraitNames } from '../../data/itemTraits';
 import type { Locale } from '../../domain/types';
 import { t } from '../../i18n';
-import { getPlatformLocale } from '../../platform/yandex';
-import { resolveItemTexture } from '../art';
+import { getPlatformLocale, setGameplayActive } from '../../platform/yandex';
+import { preloadArt, resolveItemTexture } from '../art';
 import { playFeedbackCue } from '../feedback';
 import { GameStore } from '../store';
 import { button } from '../ui';
@@ -22,7 +22,12 @@ export class BuyerMarketScene extends Phaser.Scene {
     super('buyer-market');
   }
 
+  preload(): void {
+    preloadArt(this);
+  }
+
   create(): void {
+    setGameplayActive(false);
     this.locale = getPlatformLocale();
     this.store.prepareBuyerMarket(localDayKey());
     this.renderMarket();
