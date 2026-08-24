@@ -1,6 +1,6 @@
 import { itemTraitValueMultiplier, rollItemTraits } from '../data/itemTraits';
 import { estimateItemValue } from './restoration';
-import type { ItemDefinition, LocalizedText, LotClue, LotTemplate, RevealedItem } from './types';
+import type { ItemCategory, ItemDefinition, LocalizedText, LotClue, LotTemplate, RevealedItem } from './types';
 
 export type RandomSource = () => number;
 export type BidderTell = 'calm' | 'watching' | 'hesitating' | 'out';
@@ -15,6 +15,8 @@ export interface BidderProfile {
   name: LocalizedText;
   hiddenValueFactor: NumericRange;
   trait?: LocalizedText;
+  specialtyCategories?: readonly ItemCategory[];
+  specialtyValueMultiplier?: number;
 }
 
 export interface AuctionOpponent {
@@ -22,6 +24,8 @@ export interface AuctionOpponent {
   name: LocalizedText;
   maxBid: number;
   trait?: LocalizedText;
+  specialtyCategories?: readonly ItemCategory[];
+  specialtyValueMultiplier?: number;
 }
 
 const DEFAULT_RANDOM: RandomSource = Math.random;
@@ -122,19 +126,37 @@ export function totalAppraisedValue(items: readonly RevealedItem[]): number {
   return items.reduce((sum, item) => sum + item.appraisedValue, 0);
 }
 
+export function rivalValuation(items: readonly RevealedItem[], profile: BidderProfile): number {
+  const hiddenValue = totalAppraisedValue(items);
+  const specialtyCategories = profile.specialtyCategories ?? [];
+  if (specialtyCategories.length === 0) return hiddenValue;
+
+  const multiplier = Number.isFinite(profile.specialtyValueMultiplier)
+    ? Math.max(1, Math.min(2, profile.specialtyValueMultiplier ?? 1))
+    : 1;
+  if (multiplier <= 1) return hiddenValue;
+
+  const specialtySet = new Set(specialtyCategories);
+  const specialtyValue = items.reduce(
+    (sum, item) => specialtySet.has(item.definition.category) ? sum + item.appraisedValue : sum,
+    0,
+  );
+  return hiddenValue + specialtyValue * (multiplier - 1);
+}
+
 export function createAuctionOpponents(
   lot: LotTemplate,
   items: readonly RevealedItem[],
   profiles: readonly BidderProfile[],
   random: RandomSource = DEFAULT_RANDOM,
 ): AuctionOpponent[] {
-  const hiddenValue = totalAppraisedValue(items);
-
   return profiles.map((profile) => ({
     id: profile.id,
     name: profile.name,
     trait: profile.trait,
-    maxBid: roundToBid(hiddenValue * randomBetween(profile.hiddenValueFactor, random), lot),
+    specialtyCategories: profile.specialtyCategories,
+    specialtyValueMultiplier: profile.specialtyValueMultiplier,
+    maxBid: roundToBid(rivalValuation(items, profile) * randomBetween(profile.hiddenValueFactor, random), lot),
   }));
 }
 

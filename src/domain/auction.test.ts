@@ -5,6 +5,7 @@ import {
   createLotItems,
   eligibleOpponents,
   nextBid,
+  rivalValuation,
   roundToBid,
   totalAppraisedValue,
 } from './auction';
@@ -144,5 +145,36 @@ describe('auction domain', () => {
 
     expect(opponents.map((opponent) => opponent.maxBid)).toEqual([100, 200]);
     expect(eligibleOpponents(opponents, 100, lot).map((opponent) => opponent.id)).toEqual(['aggressive']);
+  });
+
+  it('lets stable rival specialties raise willingness to pay only for matching finds', () => {
+    const generated = [
+      { definition: items[0]!, appraisedValue: 100, condition: 0.8, restored: false },
+      { definition: items[1]!, appraisedValue: 100, condition: 0.8, restored: false },
+    ];
+    const electronicsSpecialist: BidderProfile = {
+      id: 'electronics-specialist',
+      name: { ru: 'Технарь', en: 'Tech dealer' },
+      hiddenValueFactor: { min: 1, max: 1 },
+      specialtyCategories: ['electronics'],
+      specialtyValueMultiplier: 1.5,
+    };
+    const toySpecialist: BidderProfile = {
+      ...electronicsSpecialist,
+      id: 'toy-specialist',
+      specialtyCategories: ['toys'],
+    };
+
+    expect(rivalValuation(generated, electronicsSpecialist)).toBe(250);
+    expect(rivalValuation(generated, toySpecialist)).toBe(200);
+
+    const [electronicsOpponent, toyOpponent] = createAuctionOpponents(
+      lot,
+      generated,
+      [electronicsSpecialist, toySpecialist],
+      () => 0,
+    );
+    expect(electronicsOpponent?.maxBid).toBe(250);
+    expect(toyOpponent?.maxBid).toBe(200);
   });
 });

@@ -15,20 +15,26 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
   {
     id: 'npc-0',
     name: { ru: 'Виктор', en: 'Victor' },
-    trait: { ru: 'Осторожный перекупщик', en: 'Cautious reseller' },
+    trait: { ru: 'Осторожный · техника и инструменты', en: 'Cautious · electronics & tools' },
     hiddenValueFactor: { min: 0.45, max: 0.65 },
+    specialtyCategories: ['electronics', 'tools'],
+    specialtyValueMultiplier: 1.08,
   },
   {
     id: 'npc-1',
     name: { ru: 'Мира', en: 'Mira' },
-    trait: { ru: 'Считает каждую маржу', en: 'Margin-focused' },
+    trait: { ru: 'Считает маржу · часы и искусство', en: 'Margin-focused · watches & art' },
     hiddenValueFactor: { min: 0.6, max: 0.85 },
+    specialtyCategories: ['watches', 'art'],
+    specialtyValueMultiplier: 1.1,
   },
   {
     id: 'npc-2',
     name: { ru: 'Антон', en: 'Anton' },
-    trait: { ru: 'Любит дожимать торги', en: 'Pushes auctions hard' },
+    trait: { ru: 'Дожимает · игрушки и коллекционка', en: 'Pushes hard · toys & collectibles' },
     hiddenValueFactor: { min: 0.75, max: 1.02 },
+    specialtyCategories: ['toys', 'collectibles'],
+    specialtyValueMultiplier: 1.12,
   },
 ];
 

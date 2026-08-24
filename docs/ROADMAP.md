@@ -71,7 +71,7 @@
 - [x] Expand Collection Book to 12 sets while preserving existing set IDs/rewards and save compatibility.
 - [x] Keep all new lot clues truthful and all new items represented in at least one collection set.
 - [x] Raise automated content/replayability floors to the expanded catalog.
-- [ ] Run economy simulation and browser/release CI against the expanded pack plus Buyer Market/per-copy traits.
+- [x] Run economy simulation and browser/release CI against the expanded pack plus Buyer Market/per-copy traits.
 - [ ] During/after first moderation, continue breadth toward roughly 72 items / 42 lots / 24 sets rather than stopping development at the first submitted build.
 
 ## P6 — retention and trading depth
@@ -85,8 +85,8 @@
 - [x] Buyer Market prices and removes the exact concrete copy; Collection quick-sale intentionally sells the lowest-value duplicate first.
 - [x] Decompose `AuctionScene.ts` before adding another major reveal/trading mechanic directly to it — lot-market preparation/cache and restoration interaction now live in dedicated game modules.
 - [x] Deeper restoration choices with distinct safe/pro/risky paths.
-- [ ] Persistent rival-dealer specialties and learned behavior.
+- [x] Persistent rival-dealer specialties and learned behavior.
 - [ ] Collection-set perks that unlock lasting expertise rather than only cash rewards.
 - [ ] Legendary multi-auction discovery chains.
 
-See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks, `BUYER_MARKET.md` for the trading loop and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.
+See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks, `BUYER_MARKET.md` for the trading loop, `RIVALS.md` for stable dealer specialties and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.
