@@ -3,11 +3,11 @@
 This roadmap starts from the current MVP+ build. It is intentionally ordered by player value, not by implementation novelty.
 
 ## A. Long-term goals and meta
-- [ ] Daily contracts: three deterministic goals per local day with claimable cash rewards.
-- [ ] Achievement milestones with one-time rewards.
-- [ ] Business Office scene as the meta-progression hub.
-- [ ] Three cash-funded business upgrade paths.
-- [ ] Lifetime statistics dashboard.
+- [x] Daily contracts: three deterministic goals per local day with claimable cash rewards.
+- [x] Achievement milestones with one-time rewards.
+- [x] Business Office scene as the meta-progression hub.
+- [x] Three cash-funded business upgrade paths.
+- [x] Lifetime statistics dashboard.
 - [ ] Daily login/return streak only if retention data shows it adds value without harmful FOMO.
 - [ ] Recent auction history with the last 10–20 lot outcomes.
 
@@ -26,19 +26,19 @@ This roadmap starts from the current MVP+ build. It is intentionally ordered by 
 - [ ] Grow to at least 24 collectible items before calling content scope v1.0-complete.
 - [ ] Expand collection sets around the larger catalog.
 - [ ] Second art pass for new items/lots instead of generic fallback art.
-- [ ] Content validation for all IDs, pools, clue signals, localization and asset references.
+- [x] Content validation for IDs, pools and clue signals; asset coverage expands with the next art pass.
 
 ## D. Return loops
 - [x] Daily Special.
-- [ ] Daily contracts.
-- [ ] Achievement completion chase.
+- [x] Daily contracts.
+- [x] Achievement completion chase.
 - [ ] Weekly/featured objective only after daily behavior is measured.
 - [ ] Featured collection/set rotation if collection engagement justifies it.
 
 ## E. Economy and telemetry
 - [x] Anti-soft-lock collection resale.
 - [x] Rewarded ads do not penalize keeping collectibles.
-- [ ] Business upgrade sinks to prevent meaningless cash inflation.
+- [x] Business upgrade sinks to prevent meaningless cash inflation.
 - [ ] Economy simulation/regression tests for representative player strategies.
 - [ ] First real-traffic tuning pass using win/loss, bankruptcy, lot-profit and retention telemetry.
 - [ ] IAP/store decision remains gated on retention and monetization data.
