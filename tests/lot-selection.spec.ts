@@ -4,6 +4,15 @@ const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const SAVE_KEY = 'auction-hunter.save.v1';
 
+const COLLECTOR_LOT_IDS = [
+  'collector-8',
+  'dealer-vault-3',
+  'expo-crate-11',
+  'archive-vault-2',
+  'retro-dealer-14',
+  'private-gallery-6',
+] as const;
+
 type PresentedPayload = {
   tierId: string;
   lotIds: string[];
@@ -49,7 +58,20 @@ async function selectedPayloads(page: Page): Promise<SelectedPayload[]> {
 test('normal auction flow presents stable unique lots and counts one impression per tier per market cycle', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-1280x720', 'One desktop interaction pass is sufficient');
 
-  await page.addInitScript(({ saveKey }) => {
+  await page.addInitScript(({ saveKey, collectorLotIds }) => {
+    const auctionHistory = collectorLotIds.map((lotId, index) => ({
+      id: `history-${lotId}`,
+      occurredAt: `2026-08-23T12:${String(index).padStart(2, '0')}:00.000Z`,
+      lotId,
+      tierId: 'collector',
+      outcome: 'won',
+      finalBid: 5000 + index * 100,
+      sales: 6200 + index * 100,
+      keptValue: 0,
+      estimatedResult: 1200,
+      daily: false,
+    }));
+
     localStorage.setItem(saveKey, JSON.stringify({
       version: 1,
       updatedAt: 1,
@@ -59,12 +81,13 @@ test('normal auction flow presents stable unique lots and counts one impression 
       onboardingComplete: true,
       auctionsWon: 10,
       auctionsPlayed: 10,
+      auctionHistory,
     }));
     (window as any).__lotSelectionEvents = [];
     window.addEventListener('auction-hunter:analytics', (event) => {
       (window as any).__lotSelectionEvents.push((event as CustomEvent).detail);
     });
-  }, { saveKey: SAVE_KEY });
+  }, { saveKey: SAVE_KEY, collectorLotIds: COLLECTOR_LOT_IDS });
 
   await page.goto('/');
   await expect(page.locator('canvas')).toBeVisible();
@@ -87,7 +110,7 @@ test('normal auction flow presents stable unique lots and counts one impression 
   await page.waitForTimeout(150);
   expect((await presentedPayloads(page)).length).toBe(2); // Same cached Collector market is not a new impression.
 
-  await clickGame(page, 240, 625); // Commit first Collector option.
+  await clickGame(page, 240, 625); // Old button coordinate remains inside the Dealer Memory layout's hit target.
   await expect.poll(async () => (await selectedPayloads(page)).length).toBe(1);
   const selected = (await selectedPayloads(page))[0];
   expect(selected?.tierId).toBe('collector');
