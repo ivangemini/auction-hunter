@@ -33,6 +33,14 @@ Use this checklist before submitting a build. Requirements can change; re-check 
 - [ ] Older v1 local saves normalize without reset.
 - [ ] Recent auction history survives restart/cloud reconciliation without duplicate entries.
 
+## Analytics
+- [ ] Built-in Yandex Games metrics appear for the draft/test traffic where applicable.
+- [ ] If detailed custom telemetry is required for launch, create a Yandex Metrica counter and clear **Receive data only from specified addresses**.
+- [ ] Set GitHub Actions repository variable `YANDEX_METRICA_ID` to the real numeric counter ID before building the candidate archive.
+- [ ] Create the stable `ah_*` JavaScript goals listed in `docs/ANALYTICS.md`.
+- [ ] Run a draft session and confirm `round_completed`, auction outcome and progression parameters arrive in Metrica.
+- [ ] Do not claim the first telemetry-driven tuning pass is possible until this verification succeeds.
+
 ## Localization / UI / accessibility
 - [ ] Russian draft opens with RU game UI from `ysdk.environment.i18n.lang`.
 - [ ] English/non-Russian draft opens with EN fallback UI.
@@ -53,4 +61,4 @@ Use this checklist before submitting a build. Requirements can change; re-check 
 - [ ] No third-party ads or unapproved external links are present.
 
 ## Final manual gate
-Do not submit for moderation until `docs/QA.md` manual Yandex draft/device checks and the timed content-duration check above are complete. Automated browser/content/economy tests and the archive workflow reduce regressions but do not replace real draft/device moderation QA.
+Do not submit for moderation until `docs/QA.md` manual Yandex draft/device checks, analytics verification (if custom telemetry is enabled) and the timed content-duration check above are complete. Automated browser/content/economy tests and the archive workflow reduce regressions but do not replace real draft/device moderation QA.

@@ -8,6 +8,7 @@ import { applyAccessibilityPreferences } from './game/preferences';
 import { t } from './i18n';
 import { initializeCloudSave } from './platform/cloudSave';
 import { initializePlatformLifecycle } from './platform/lifecycle';
+import { initializeMetricaAnalytics } from './platform/metrica';
 import { getPlatformLocale, initYandexSdk } from './platform/yandex';
 import type { Locale } from './domain/types';
 
@@ -32,6 +33,7 @@ async function bootstrap(): Promise<void> {
   initializePlatformLifecycle();
   await initializeCloudSave();
   installAuctionHistoryTracking();
+  initializeMetricaAnalytics();
   trackEvent('session_started', { locale });
   const game = new Phaser.Game(gameConfig);
   installGameLifecycle(game);
