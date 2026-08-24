@@ -6,7 +6,7 @@ const V1_STRESS_BUDGET_BYTES = 150 * 1024;
 const INVENTORY_STRESS_COPIES = 5_000;
 
 function utf8Bytes(value: unknown): number {
-  return Buffer.byteLength(JSON.stringify(value), 'utf8');
+  return new TextEncoder().encode(JSON.stringify(value)).byteLength;
 }
 
 describe('Yandex cloud-save payload budget', () => {
