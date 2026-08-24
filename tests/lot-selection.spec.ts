@@ -4,6 +4,20 @@ const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const SAVE_KEY = 'auction-hunter.save.v1';
 
+type PresentedPayload = {
+  tierId: string;
+  lotIds: string[];
+  modifierIds: Array<string | null>;
+  marketCycle?: number;
+};
+
+type SelectedPayload = {
+  tierId: string;
+  lotId: string;
+  optionIndex: number;
+  marketCycle?: number;
+};
+
 async function clickGame(page: Page, gameX: number, gameY: number): Promise<void> {
   const canvas = page.locator('canvas');
   const box = await canvas.boundingBox();
@@ -14,7 +28,7 @@ async function clickGame(page: Page, gameX: number, gameY: number): Promise<void
   );
 }
 
-async function presentedPayloads(page: Page): Promise<Array<{ tierId: string; lotIds: string[]; modifierIds: Array<string | null> }>> {
+async function presentedPayloads(page: Page): Promise<PresentedPayload[]> {
   return page.evaluate(() => {
     const events = (window as any).__lotSelectionEvents ?? [];
     return events
@@ -23,7 +37,16 @@ async function presentedPayloads(page: Page): Promise<Array<{ tierId: string; lo
   });
 }
 
-test('normal auction flow presents stable unique lots and locks the committed choice', async ({ page }, testInfo) => {
+async function selectedPayloads(page: Page): Promise<SelectedPayload[]> {
+  return page.evaluate(() => {
+    const events = (window as any).__lotSelectionEvents ?? [];
+    return events
+      .filter((event: any) => event?.eventName === 'lot_option_selected')
+      .map((event: any) => event.payload);
+  });
+}
+
+test('normal auction flow presents stable unique lots and counts one impression per tier per market cycle', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop-1280x720', 'One desktop interaction pass is sufficient');
 
   await page.addInitScript(({ saveKey }) => {
@@ -52,23 +75,25 @@ test('normal auction flow presents stable unique lots and locks the committed ch
   expect(initialCollector?.lotIds).toHaveLength(3);
   expect(new Set(initialCollector?.lotIds).size).toBe(3);
   expect(initialCollector?.modifierIds).toHaveLength(3);
+  expect(initialCollector?.marketCycle).toBe(1);
 
   await clickGame(page, 640, 151); // Estate.
   await expect.poll(async () => (await presentedPayloads(page)).length).toBe(2);
-  expect((await presentedPayloads(page))[1]?.tierId).toBe('estate');
+  const estate = (await presentedPayloads(page))[1];
+  expect(estate?.tierId).toBe('estate');
+  expect(estate?.marketCycle).toBe(1);
 
   await clickGame(page, 1030, 151); // Back to Collector in the same market cycle.
-  await expect.poll(async () => (await presentedPayloads(page)).length).toBe(3);
-  const collectorAgain = (await presentedPayloads(page))[2];
-  expect(collectorAgain?.tierId).toBe('collector');
-  expect(collectorAgain?.lotIds).toEqual(initialCollector?.lotIds);
-  expect(collectorAgain?.modifierIds).toEqual(initialCollector?.modifierIds);
+  await page.waitForTimeout(150);
+  expect((await presentedPayloads(page)).length).toBe(2); // Same cached Collector market is not a new impression.
 
   await clickGame(page, 240, 625); // Commit first Collector option.
-  await expect.poll(() => page.evaluate(() => {
-    const events = (window as any).__lotSelectionEvents ?? [];
-    return events.filter((event: any) => event?.eventName === 'lot_option_selected').length;
-  })).toBe(1);
+  await expect.poll(async () => (await selectedPayloads(page)).length).toBe(1);
+  const selected = (await selectedPayloads(page))[0];
+  expect(selected?.tierId).toBe('collector');
+  expect(selected?.lotId).toBe(initialCollector?.lotIds[0]);
+  expect(selected?.optionIndex).toBe(0);
+  expect(selected?.marketCycle).toBe(1);
   expect(await page.evaluate(() => {
     const events = (window as any).__lotSelectionEvents ?? [];
     return events.some((event: any) => event?.eventName === 'auction_started');
@@ -84,4 +109,18 @@ test('normal auction flow presents stable unique lots and locks the committed ch
     const events = (window as any).__lotSelectionEvents ?? [];
     return events.filter((event: any) => event?.eventName === 'auction_started').length;
   })).toBe(1);
+
+  await clickGame(page, 560, 555); // Pass immediately.
+  await expect.poll(() => page.evaluate(() => {
+    const events = (window as any).__lotSelectionEvents ?? [];
+    return events.filter((event: any) => event?.eventName === 'auction_passed').length;
+  })).toBe(1);
+
+  await clickGame(page, 640, 465); // Next auction opens a fresh market cycle.
+  await expect.poll(async () => (await presentedPayloads(page)).length).toBe(3);
+  const nextCollector = (await presentedPayloads(page))[2];
+  expect(nextCollector?.tierId).toBe('collector');
+  expect(nextCollector?.marketCycle).toBe(2);
+  expect(nextCollector?.lotIds).toHaveLength(3);
+  expect(new Set(nextCollector?.lotIds).size).toBe(3);
 });

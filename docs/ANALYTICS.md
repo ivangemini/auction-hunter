@@ -86,15 +86,19 @@ All other typed events are still sent through `params`; they do not need to be c
 - `interstitial_ad_closed`
 
 ## Lot-selection telemetry
-Normal auctions now expose a choice funnel before bidding:
-- `lot_options_presented` records the tier, the three presented lot IDs and the aligned visible modifier IDs (`null` when no modifier is present);
-- `lot_option_selected` records the committed option index, lot ID, visible reserve price/item count and selected modifier.
+Normal auctions expose a choice funnel before bidding:
+- `lot_options_presented` records the tier, the three presented lot IDs, the aligned visible modifier IDs (`null` when no modifier is present) and the page-session `marketCycle` ordinal;
+- `lot_option_selected` records the committed option index, lot ID, visible reserve price/item count, selected modifier and the same `marketCycle` ordinal.
+
+A market cycle starts at `1` for the first normal market in a page session and advances whenever `auction_started` fires, including Daily Special auctions. Within one market cycle, each tier can emit at most one `lot_options_presented` event. Returning to a tier whose cached options are already on screen does not create a second impression. After an auction starts, the dedupe set resets and the next normal market can emit fresh impressions again.
+
+This rule keeps the option-funnel denominator tied to actual distinct tier exposures rather than UI tab revisits. `marketCycle` is intentionally session-local rather than a persisted player identifier; Metrica already supplies visit/session context, and avoiding a globally unique cycle ID keeps cardinality bounded.
 
 Hidden item identity, condition, market factor and NPC bidding limits are deliberately absent from these events at decision time. The selected lot is a Metrica JavaScript goal; the presentation event remains detailed `params` telemetry. Together with `auction_started`, these events separate market-choice abandonment from later auction abandonment.
 
 ## Core funnel coverage
 The playable flow emits the first-session and economy funnel needed for post-release tuning:
-- tier selection and three-option normal-auction presentation/choice;
+- tier selection and three-option normal-auction presentation/choice, with one presentation impression per tier per market cycle;
 - Daily activation as a fixed featured-lot path;
 - auction start with lot/tier/opening bid/modifier context;
 - paid advanced-inspection usage;
