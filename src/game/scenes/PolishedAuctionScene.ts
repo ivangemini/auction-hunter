@@ -13,6 +13,7 @@ type AuctionRuntime = Phaser.Scene & {
   locale: 'ru' | 'en';
   lotChoices: LotChoice[];
   currentTierId: string;
+  lotSelectionPending: boolean;
   store: {
     snapshot: {
       cash: number;
@@ -45,12 +46,14 @@ export class PolishedAuctionScene extends AuctionScene {
   constructor() {
     super();
     const runtime = this as unknown as AuctionRuntime;
+    runtime.lotSelectionPending = false;
     runtime.renderLotSelection = () => renderPolishedLotSelection(runtime);
   }
 }
 
 function renderPolishedLotSelection(scene: AuctionRuntime): void {
   setGameplayActive(false);
+  scene.lotSelectionPending = false;
   scene.resetCanvas();
   renderHeader(scene);
   scene.renderTierTabs(true);
@@ -149,6 +152,8 @@ function renderPolishedLotSelection(scene: AuctionRuntime): void {
     }
 
     const choose = button(scene, CARD_WIDTH / 2, 451, t(scene.locale, 'chooseLot'), () => {
+      if (scene.lotSelectionPending) return;
+      scene.lotSelectionPending = true;
       animateSelection(scene, card, accent, () => scene.selectLotChoice(choice, index));
     }, {
       width: 344,
@@ -314,10 +319,22 @@ function animateSelection(
   accent: number,
   onComplete: () => void,
 ): void {
+  if (!scene.input.enabled) return;
+  scene.input.enabled = false;
+
+  const complete = (): void => {
+    try {
+      onComplete();
+    } finally {
+      scene.input.enabled = true;
+    }
+  };
+
   if (prefersReducedMotion()) {
-    onComplete();
+    complete();
     return;
   }
+
   scene.tweens.killTweensOf(card);
   const flash = scene.add.rectangle(CARD_WIDTH / 2, CARD_HEIGHT / 2, CARD_WIDTH - 10, CARD_HEIGHT - 10, accent, 0);
   card.add(flash);
@@ -334,7 +351,7 @@ function animateSelection(
     yoyo: true,
     duration: MOTION.selectMs,
     ease: 'Sine.Out',
-    onComplete: () => onComplete(),
+    onComplete: complete,
   });
 }
 

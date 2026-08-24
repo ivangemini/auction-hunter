@@ -6,6 +6,7 @@ import { chromium } from '@playwright/test';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = path.join(root, 'release', 'screenshots', 'generated');
+const debugRoot = path.join(root, 'release', 'screenshots', 'debug');
 const previewUrl = 'http://127.0.0.1:4174';
 const viteCli = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
 const GAME_WIDTH = 1280;
@@ -99,18 +100,23 @@ async function stopPreview(preview) {
   }
 }
 
-async function clickGame(page, gameX, gameY) {
+async function clickGame(page, gameX, gameY, inputMode = 'auto') {
   const canvas = page.locator('canvas');
   const box = await canvas.boundingBox();
   assert(box, 'Game canvas has no bounding box');
-  await page.mouse.click(
-    box.x + (gameX / GAME_WIDTH) * box.width,
-    box.y + (gameY / GAME_HEIGHT) * box.height,
-  );
+  const pageX = box.x + (gameX / GAME_WIDTH) * box.width;
+  const pageY = box.y + (gameY / GAME_HEIGHT) * box.height;
+  const touchPoints = await page.evaluate(() => navigator.maxTouchPoints);
+
+  if (inputMode === 'mouse' || (inputMode === 'auto' && touchPoints <= 0)) {
+    await page.mouse.click(pageX, pageY);
+    return;
+  }
+  await page.touchscreen.tap(pageX, pageY);
 }
 
-async function installSeed(page, platformLocale) {
-  await page.addInitScript(({ key, save, lang }) => {
+async function installSeed(page, platformLocale, save = seedSave) {
+  await page.addInitScript(({ key, save: seededSave, lang }) => {
     window.YaGames = {
       init: async () => ({
         environment: { i18n: { lang } },
@@ -120,43 +126,107 @@ async function installSeed(page, platformLocale) {
         },
       }),
     };
-    localStorage.setItem(key, JSON.stringify(save));
+    localStorage.setItem(key, JSON.stringify(seededSave));
     window.__auctionHunterScreenshotEvents = [];
     window.addEventListener('auction-hunter:analytics', (event) => {
       window.__auctionHunterScreenshotEvents.push(event.detail);
     });
-  }, { key: SAVE_KEY, save: seedSave, lang: platformLocale });
+  }, { key: SAVE_KEY, save, lang: platformLocale });
 }
 
-async function bootPage(context, platformLocale) {
+async function bootPage(context, platformLocale, save = seedSave) {
   const page = await context.newPage();
-  await installSeed(page, platformLocale);
+  await installSeed(page, platformLocale, save);
   await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
   await page.locator('canvas').waitFor({ state: 'visible' });
   await page.waitForTimeout(650);
   return page;
 }
 
+async function eventCount(page, eventName) {
+  return page.evaluate((name) => (
+    window.__auctionHunterScreenshotEvents?.filter((event) => event?.eventName === name).length ?? 0
+  ), eventName);
+}
+
 async function eventSeen(page, eventName) {
-  return page.evaluate((name) => window.__auctionHunterScreenshotEvents?.some((event) => event?.eventName === name) ?? false, eventName);
+  return (await eventCount(page, eventName)) > 0;
+}
+
+async function waitForEventCount(page, eventName, minimum, timeoutMs = 2_500) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if ((await eventCount(page, eventName)) >= minimum) return;
+    await page.waitForTimeout(50);
+  }
+  throw new Error(`Timed out waiting for ${eventName} count >= ${minimum}`);
+}
+
+async function captureDiagnostic(page, name) {
+  ensureDirectory(debugRoot);
+  await page.screenshot({ path: path.join(debugRoot, `${name}.png`), type: 'png', fullPage: false });
+}
+
+async function activateUntilEvent(page, x, y, eventName, attempts = 10, waitMs = 280) {
+  const touchPoints = await page.evaluate(() => navigator.maxTouchPoints);
+  const modes = touchPoints > 0 ? ['mouse', 'touch'] : ['mouse'];
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (await eventSeen(page, eventName)) return;
+    await clickGame(page, x, y, modes[attempt % modes.length]);
+    await page.waitForTimeout(waitMs);
+    if (await eventSeen(page, eventName)) return;
+  }
+  const eventNames = await page.evaluate(() => (window.__auctionHunterScreenshotEvents ?? []).map((event) => event?.eventName));
+  console.error(`Screenshot interaction failed waiting for ${eventName}; observed events: ${eventNames.join(', ')}`);
+  await captureDiagnostic(page, `failed-${eventName}`);
+  throw new Error(`${eventName} was not observed after ${attempts} interaction attempts`);
+}
+
+async function chooseLotAndStartAuction(page) {
+  const selectionsBefore = await eventCount(page, 'lot_option_selected');
+  await clickGame(page, 240, 625); // Choose first visible lot.
+  await waitForEventCount(page, 'lot_option_selected', selectionsBefore + 1);
+
+  const confirmedSelections = await eventCount(page, 'lot_option_selected');
+  assert(
+    confirmedSelections === selectionsBefore + 1,
+    `Expected one lot selection, observed ${confirmedSelections - selectionsBefore}`,
+  );
+
+  const startsBefore = await eventCount(page, 'auction_started');
+  await clickGame(page, 1038, 620); // Enter the chosen auction only after selection animation commits.
+  await waitForEventCount(page, 'auction_started', startsBefore + 1);
+  await page.waitForTimeout(120);
+
+  assert(
+    (await eventCount(page, 'lot_option_selected')) === confirmedSelections,
+    'A second lot selection fired after auction start',
+  );
 }
 
 async function winCurrentAuction(page) {
   // Use the real Garage tier tab for a shorter deterministic submission capture while
   // preserving the production selection -> bidding -> win -> reveal path.
+  const tiersBefore = await eventCount(page, 'tier_selected');
   await clickGame(page, 250, 151);
-  await page.waitForTimeout(180);
-  await clickGame(page, 240, 625); // Choose the first Garage lot option.
-  await page.waitForTimeout(180);
-  await clickGame(page, 1038, 620); // Enter the chosen auction.
-  await page.waitForTimeout(300);
+  await waitForEventCount(page, 'tier_selected', tiersBefore + 1);
+  await chooseLotAndStartAuction(page);
 
-  for (let attempt = 0; attempt < 30; attempt += 1) {
-    if (await eventSeen(page, 'auction_won')) return;
-    await clickGame(page, 250, 555);
-    await page.waitForTimeout(1_000);
+  const stableSelectionCount = await eventCount(page, 'lot_option_selected');
+  const winsBefore = await eventCount(page, 'auction_won');
+  for (let attempt = 0; attempt < 120; attempt += 1) {
+    if ((await eventCount(page, 'auction_won')) > winsBefore) {
+      assert(
+        (await eventCount(page, 'lot_option_selected')) === stableSelectionCount,
+        'Lot selection changed while the auction was in progress',
+      );
+      return;
+    }
+    await clickGame(page, 226, 626); // Polished primary bid action.
+    await page.waitForTimeout(750);
   }
 
+  await captureDiagnostic(page, 'failed-auction-win');
   throw new Error('Unable to reach a legitimate Garage auction win while capturing screenshots');
 }
 
@@ -242,12 +312,11 @@ async function captureLocale(browser, localeCode, locale) {
       path.join(desktopDir, '01-lot-selection.png'),
       { x: 90, y: 292, width: 300, height: 105 },
     );
-    await pageWaitAndClick(page, 240, 625, 180); // Choose first visible lot.
-    await pageWaitAndClick(page, 1038, 620, 300); // Enter auction.
+    await chooseLotAndStartAuction(page);
     await saveViewport(
       page,
       path.join(desktopDir, '02-active-bidding.png'),
-      { x: 510, y: 280, width: 270, height: 120 },
+      { x: 510, y: 200, width: 270, height: 150 },
     );
     await page.close();
   } finally {
@@ -263,22 +332,24 @@ async function captureLocale(browser, localeCode, locale) {
     userAgent: 'Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/140.0.0.0 Mobile Safari/537.36',
   });
   try {
-    const revealPage = await bootPage(mobile, localeCode);
+    const revealSeed = { ...seedSave, cash: 500000, highestCash: 500000 };
+    const revealPage = await bootPage(mobile, localeCode, revealSeed);
     await winCurrentAuction(revealPage);
-    await pageWaitAndClick(revealPage, 640, 560, 250); // Open lot.
-    await pageWaitAndClick(revealPage, 640, 555, 260); // Reveal first item.
-    await pageWaitAndClick(revealPage, 640, 568, 300); // Appraise first item.
-    assert(await eventSeen(revealPage, 'item_appraised'), 'Appraisal event was not observed before screenshot');
+    await captureDiagnostic(revealPage, `${localeCode}-after-win`);
+    // Open Lot and Reveal share this stable center corridor across their sequential screens.
+    await activateUntilEvent(revealPage, 640, 596, 'item_revealed', 10, 280);
+    await activateUntilEvent(revealPage, 1016, 560, 'item_appraised', 10, 300);
+    await revealPage.waitForTimeout(420); // Let appraisal value count-up settle for the production capture.
     await saveViewport(
       revealPage,
       path.join(mobileDir, '01-appraised-find.png'),
-      { x: 500, y: 200, width: 280, height: 180 },
+      { x: 250, y: 190, width: 330, height: 230 },
     );
     await revealPage.close();
 
     const officePage = await bootPage(mobile, localeCode);
-    await pageWaitAndClick(officePage, 940, 218, 260); // Collection Book from lot selection.
-    await pageWaitAndClick(officePage, 875, 72, 350); // Office.
+    await pageWaitAndClick(officePage, 1000, 112, 260); // Collection Book from polished lot selection.
+    await pageWaitAndClick(officePage, 970, 72, 350); // Office.
     await saveViewport(officePage, path.join(mobileDir, '02-office-progression.png'));
     await officePage.close();
   } finally {
@@ -292,6 +363,7 @@ async function pageWaitAndClick(page, x, y, waitMs) {
 }
 
 fs.rmSync(outputRoot, { recursive: true, force: true });
+fs.rmSync(debugRoot, { recursive: true, force: true });
 ensureDirectory(outputRoot);
 
 const preview = spawn(process.execPath, [viteCli, 'preview', '--host', '127.0.0.1', '--port', '4174'], {
