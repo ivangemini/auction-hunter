@@ -219,12 +219,26 @@ async function captureLocale(browser, localeCode, locale) {
     await clickGame(page, 80, 120);
     await page.waitForTimeout(320);
 
+    // Twenty collection sets produce five pages at four cards per page. Walk the
+    // real pager to the final page so content growth cannot silently overflow it.
+    for (let pageIndex = 1; pageIndex < 5; pageIndex += 1) {
+      await clickGame(page, 735, 674);
+      await page.waitForTimeout(240);
+    }
+    const collectionLastPage = await page.screenshot({ type: 'png' });
+    validatePng(collectionLastPage, `${localeCode} Collection Book final page`);
+    fs.writeFileSync(path.join(outputDir, '03-collection-last-page.png'), collectionLastPage);
+    assert(
+      (await imageDifferenceRatio(page, collection, collectionLastPage)) > 0.08,
+      `${localeCode} Collection Book pager did not visibly reach the final page`,
+    );
+
     // Collection Book -> Discovery Board through the real navigation button.
     await clickGame(page, 646, 70);
     await page.waitForTimeout(720);
     const discovery = await page.screenshot({ type: 'png' });
     validatePng(discovery, `${localeCode} Discovery Board`);
-    fs.writeFileSync(path.join(outputDir, '03-discovery-board.png'), discovery);
+    fs.writeFileSync(path.join(outputDir, '04-discovery-board.png'), discovery);
     const discoveryDifference = await imageDifferenceRatio(page, collection, discovery);
     assert(discoveryDifference > 0.18, `${localeCode} Discovery Board did not visibly replace Collection Book (${discoveryDifference.toFixed(3)})`);
 
@@ -235,7 +249,7 @@ async function captureLocale(browser, localeCode, locale) {
     await page.waitForTimeout(720);
     const market = await page.screenshot({ type: 'png' });
     validatePng(market, `${localeCode} Buyer Market`);
-    fs.writeFileSync(path.join(outputDir, '04-buyer-market.png'), market);
+    fs.writeFileSync(path.join(outputDir, '05-buyer-market.png'), market);
     const marketDifference = await imageDifferenceRatio(page, collection, market);
     assert(marketDifference > 0.22, `${localeCode} Buyer Market did not visibly replace Collection Book (${marketDifference.toFixed(3)})`);
 
@@ -275,8 +289,14 @@ try {
 }
 
 for (const locale of ['ru', 'en']) {
-  for (const file of ['01-collection-book.png', '02-copy-traits.png', '03-discovery-board.png', '04-buyer-market.png']) {
+  for (const file of [
+    '01-collection-book.png',
+    '02-copy-traits.png',
+    '03-collection-last-page.png',
+    '04-discovery-board.png',
+    '05-buyer-market.png',
+  ]) {
     console.log(path.relative(root, path.join(reviewRoot, locale, file)).split(path.sep).join('/'));
   }
 }
-console.log('P7 Collection/copy-traits/Discovery/Buyer Market visual review capture OK');
+console.log('P7 Collection/copy-traits/final-page/Discovery/Buyer Market visual review capture OK');

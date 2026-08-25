@@ -201,6 +201,50 @@ export const COLLECTION_SETS: CollectionSetDefinition[] = [
       resaleRateBonus: 0.03,
     },
   },
+  {
+    id: 'portable-era',
+    name: { ru: 'Портативная эпоха', en: 'Portable Era' },
+    itemIds: ['cassette-player', 'portable-radio', 'pocket-tv', 'mini-console'],
+    reward: 2400,
+    perk: {
+      description: { ru: '+3% к быстрой продаже электроники', en: '+3% quick-sale value for electronics' },
+      categories: ['electronics'],
+      resaleRateBonus: 0.03,
+    },
+  },
+  {
+    id: 'mechanical-heritage',
+    name: { ru: 'Механическое наследие', en: 'Mechanical Heritage' },
+    itemIds: ['travel-clock', 'brass-clock', 'military-watch', 'pocket-watch', 'clockwork-automaton'],
+    reward: 3400,
+    perk: {
+      description: { ru: '+2% к продаже часов и механических игрушек', en: '+2% quick-sale value for watches and toys' },
+      categories: ['watches', 'toys'],
+      resaleRateBonus: 0.02,
+    },
+  },
+  {
+    id: 'paper-trail',
+    name: { ru: 'Бумажный след', en: 'Paper Trail' },
+    itemIds: ['comic-stack', 'manual-typewriter', 'fountain-pen', 'first-edition-book', 'signed-poster'],
+    reward: 2900,
+    perk: {
+      description: { ru: '+2% к продаже искусства и редкостей', en: '+2% quick-sale value for art and collectibles' },
+      categories: ['art', 'collectibles'],
+      resaleRateBonus: 0.02,
+    },
+  },
+  {
+    id: 'cabinet-curios',
+    name: { ru: 'Кабинет редкостей', en: 'Cabinet of Curiosities' },
+    itemIds: ['silver-ring', 'enamel-brooch', 'porcelain-figurine', 'binoculars', 'telescope'],
+    reward: 3100,
+    perk: {
+      description: { ru: '+3% к быстрой продаже коллекционных вещей', en: '+3% quick-sale value for collectibles' },
+      categories: ['collectibles'],
+      resaleRateBonus: 0.03,
+    },
+  },
 ];
 
 export function uniqueCollectionCount(collectionIds: readonly string[]): number {
