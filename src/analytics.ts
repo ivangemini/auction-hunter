@@ -7,6 +7,11 @@ import type { RivalSignatureBehavior } from './domain/auction';
 export const ANALYTICS_SCHEMA_VERSION = 1 as const;
 export const ANALYTICS_DOM_EVENT = 'auction-hunter:analytics';
 
+interface MarketTrendAnalyticsContext {
+  marketTrendId?: string;
+  marketTrendRemainingAuctions?: number;
+}
+
 export interface AnalyticsEventMap {
   session_started: { locale: Locale };
   onboarding_completed: Record<string, never>;
@@ -177,8 +182,20 @@ export type AnalyticsSink = (event: AnalyticsEnvelope) => void;
 const sessionId = createId('session');
 let sequence = 0;
 let marketCycle = 1;
+let marketTrendContext: MarketTrendAnalyticsContext = {};
 const presentedTiersInMarketCycle = new Set<AuctionTierId>();
 const sinks = new Set<AnalyticsSink>();
+
+export function setMarketTrendAnalyticsContext(context: MarketTrendAnalyticsContext | null): void {
+  marketTrendContext = context
+    ? {
+      ...(context.marketTrendId ? { marketTrendId: context.marketTrendId } : {}),
+      ...(context.marketTrendRemainingAuctions === undefined
+        ? {}
+        : { marketTrendRemainingAuctions: Math.max(0, Math.floor(context.marketTrendRemainingAuctions)) }),
+    }
+    : {};
+}
 
 export function trackEvent<K extends AnalyticsEventName>(
   eventName: K,
@@ -189,7 +206,7 @@ export function trackEvent<K extends AnalyticsEventName>(
 
   if (eventName === 'lot_options_presented') {
     const selectionPayload = payload as AnalyticsEventMap['lot_options_presented'];
-    effectivePayload = { ...selectionPayload, marketCycle } as AnalyticsEventMap[K];
+    effectivePayload = { ...selectionPayload, ...marketTrendContext, marketCycle } as AnalyticsEventMap[K];
     if (presentedTiersInMarketCycle.has(selectionPayload.tierId)) {
       shouldDispatch = false;
     } else {
@@ -197,7 +214,7 @@ export function trackEvent<K extends AnalyticsEventName>(
     }
   } else if (eventName === 'lot_option_selected') {
     const selectionPayload = payload as AnalyticsEventMap['lot_option_selected'];
-    effectivePayload = { ...selectionPayload, marketCycle } as AnalyticsEventMap[K];
+    effectivePayload = { ...selectionPayload, ...marketTrendContext, marketCycle } as AnalyticsEventMap[K];
   }
 
   sequence += 1;
