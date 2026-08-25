@@ -8,7 +8,10 @@ const sampleLot: LotTemplate = {
   artId: 'garage-17',
   name: { ru: 'Тест', en: 'Test' },
   location: { ru: 'Тест', en: 'Test' },
-  clues: [],
+  clues: [
+    { text: { ru: 'Первая', en: 'First' }, signal: { categories: ['watches'] } },
+    { text: { ru: 'Вторая', en: 'Second' }, signal: { categories: ['electronics'] } },
+  ],
   reservePrice: 400,
   bidIncrement: 100,
   itemCount: 4,
@@ -16,9 +19,9 @@ const sampleLot: LotTemplate = {
 };
 
 describe('lot modifier breadth', () => {
-  it('ships eight unique bilingual modifier identities', () => {
-    expect(LOT_MODIFIERS).toHaveLength(8);
-    expect(new Set(LOT_MODIFIERS.map((modifier) => modifier.id)).size).toBe(8);
+  it('ships at least thirteen unique bilingual modifier identities', () => {
+    expect(LOT_MODIFIERS.length).toBeGreaterThanOrEqual(13);
+    expect(new Set(LOT_MODIFIERS.map((modifier) => modifier.id)).size).toBe(LOT_MODIFIERS.length);
     for (const modifier of LOT_MODIFIERS) {
       expect(modifier.name.ru.length).toBeGreaterThan(0);
       expect(modifier.name.en.length).toBeGreaterThan(0);
@@ -37,16 +40,21 @@ describe('lot modifier breadth', () => {
         expect(Number.isFinite(modifier.marketMultiplier), modifier.id).toBe(true);
         expect(modifier.marketMultiplier, modifier.id).toBeGreaterThan(0);
       }
+      if (modifier.bidIncrementMultiplier !== undefined) {
+        expect(Number.isFinite(modifier.bidIncrementMultiplier), modifier.id).toBe(true);
+        expect(modifier.bidIncrementMultiplier, modifier.id).toBeGreaterThan(0);
+      }
     }
   });
 
-  it('never creates an impossible item count or reserve', () => {
+  it('never creates an impossible item count, clue count or reserve', () => {
     for (const modifier of LOT_MODIFIERS) {
       const adjusted = applyLotModifier(sampleLot, modifier);
       expect(adjusted.itemCount, modifier.id).toBeGreaterThanOrEqual(1);
       expect(adjusted.itemCount, modifier.id).toBeLessThanOrEqual(sampleLot.itemPool.length);
-      expect(adjusted.reservePrice, modifier.id).toBeGreaterThanOrEqual(sampleLot.bidIncrement);
-      expect(adjusted.reservePrice % sampleLot.bidIncrement, modifier.id).toBe(0);
+      expect(adjusted.clues.length, modifier.id).toBeLessThanOrEqual(sampleLot.clues.length);
+      expect(adjusted.reservePrice, modifier.id).toBeGreaterThanOrEqual(adjusted.bidIncrement);
+      expect(adjusted.reservePrice % adjusted.bidIncrement, modifier.id).toBe(0);
     }
   });
 
