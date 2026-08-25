@@ -102,11 +102,12 @@ This pass is a product-quality priority, not optional decoration. Complete it be
 - [x] Redesign restoration so condition, tool/strategy choice and result feel tactile rather than form-like.
 - [x] Redesign Collection Book and Buyer Market with stronger collectible/buyer identity, set-progress visualization, concrete-copy hero treatment, premium-sale feedback and dedicated RU/EN visual-review captures.
 - [x] Bring Business Office, contracts, upgrades, achievements, statistics, history and settings onto the shared P7 visual system with distinct content hierarchy and dedicated RU/EN visual-review captures.
-- [ ] Upgrade the most schematic lot/item SVGs with higher-fidelity authored raster/vector art while preserving semantic asset IDs and coverage tests.
+- [x] Upgrade the schematic lot/item art to the authored P7 fidelity floor while preserving semantic asset IDs and coverage tests.
   - [x] First item-fidelity batch: nine high-visibility reveal/restoration finds upgraded with authored 512×360 vector art plus deterministic 3×3 CI visual review.
   - [x] Second item-fidelity batch: nine more electronics, collectibles, watch, optics and paper/metal finds upgraded; CI permanently reviews Batch 01 and Batch 02 as separate 3×3 contact sheets.
-  - [ ] Remaining item fidelity: 18 catalog identities still need the same authored-quality pass.
-  - [x] Environment fidelity: all nine semantic lot environments now meet the P7 floor — three Estate WebPs plus upgraded Garage/Collector SVGs — with deterministic 3×2 Garage/Collector CI visual review.
+  - [x] Third item-fidelity batch: nine mixed prototype/electronics/paper/toy/optics identities upgraded and added to the persistent review gate.
+  - [x] Fourth item-fidelity batch: final nine jewelry/watch/electronics/rail/writing/music identities upgraded; all 36 catalog item identities now meet the accepted P7 fidelity floor.
+  - [x] Environment fidelity: all nine semantic lot environments meet the P7 floor — three Estate WebPs plus upgraded Garage/Collector SVGs — with deterministic 3×2 Garage/Collector CI visual review.
 - [ ] Add restrained game-feel polish across important actions: press/selection response, number tweens, reveal highlights, particles/reactions and staged transitions with reduced-motion support.
 - [ ] Add production screenshot review as an explicit acceptance step for each major screen family and keep desktop + mobile-landscape captures visually credible.
 
