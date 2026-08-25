@@ -88,6 +88,8 @@
 - [x] Persistent rival-dealer specialties and learned behavior.
 - [x] Collection-set perks unlock lasting category expertise after reward claim; expertise is derived from existing `claimedSetRewards`, stacks with Warehouse quick-sale rates and remains capped below Buyer Market premiums.
 - [ ] Legendary multi-auction discovery chains.
+  - [x] Foundation: three authored ordered trails, additive v1 save persistence, one-step-per-auction pacing, Sell/Keep discovery hooks, one-time cash/REP completion rewards and typed analytics.
+  - [ ] Player-facing trail progress, next-clue/completion feedback and RU/EN production visual QA without leaking hidden lot contents.
 
 ## P7 — visual identity and game-feel overhaul
 This pass is a product-quality priority, not optional decoration. Complete it before treating the game as visually release-complete or expanding content indefinitely.
@@ -111,4 +113,4 @@ This pass is a product-quality priority, not optional decoration. Complete it be
 - [ ] Add restrained game-feel polish across important actions: press/selection response, number tweens, reveal highlights, particles/reactions and staged transitions with reduced-motion support.
 - [ ] Add production screenshot review as an explicit acceptance step for each major screen family and keep desktop + mobile-landscape captures visually credible.
 
-See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks, `BUYER_MARKET.md` for the trading loop, `RIVALS.md` for stable dealer specialties, `skills/auction-hunter-visual-design/SKILL.md` for presentation work and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.
+See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks, `BUYER_MARKET.md` for the trading loop, `RIVALS.md` for stable dealer specialties, `DISCOVERY_CHAINS.md` for the multi-auction treasure-trail contract, `skills/auction-hunter-visual-design/SKILL.md` for presentation work and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.
