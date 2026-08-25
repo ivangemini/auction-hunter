@@ -15,6 +15,8 @@ export interface AnalyticsEventMap {
     tierId: AuctionTierId;
     lotIds: string[];
     modifierIds: Array<string | null>;
+    marketTrendId?: string;
+    marketTrendRemainingAuctions?: number;
     marketCycle?: number;
   };
   lot_option_selected: {
@@ -24,6 +26,8 @@ export interface AnalyticsEventMap {
     reservePrice: number;
     itemCount: number;
     modifierId?: string;
+    marketTrendId?: string;
+    marketTrendRemainingAuctions?: number;
     marketCycle?: number;
   };
   daily_special_activated: { dayKey: string; tierId: AuctionTierId; lotId: string };
@@ -110,6 +114,8 @@ export interface AnalyticsEventMap {
     value: number;
     premiumMultiplier: number;
     traitIds: ItemTraitId[];
+    marketTrendId?: string;
+    marketTrendMultiplier?: number;
   };
   collector_request_completed: {
     requestId: string;
