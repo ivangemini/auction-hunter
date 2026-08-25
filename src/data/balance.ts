@@ -78,6 +78,28 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
     specialtyCategories: ['watches', 'tools'],
     specialtyValueMultiplier: 1.13,
   },
+  {
+    id: 'npc-6',
+    name: { ru: 'Надя', en: 'Nadia' },
+    trait: { ru: 'Охотница за архивами · коллекционка и инструменты', en: 'Archive hunter · collectibles & tools' },
+    weakness: { ru: 'После раннего давления становится заметно осторожнее на следующих шагах.', en: 'After early pressure she becomes noticeably more conservative on later steps.' },
+    behavior: 'cautious',
+    signatureBehavior: 'counterpunch',
+    hiddenValueFactor: { min: 0.5, max: 0.76 },
+    specialtyCategories: ['collectibles', 'tools'],
+    specialtyValueMultiplier: 1.12,
+  },
+  {
+    id: 'npc-7',
+    name: { ru: 'Феликс', en: 'Felix' },
+    trait: { ru: 'Дилер техники · электроника и часы', en: 'Tech dealer · electronics & watches' },
+    weakness: { ru: 'Чаще сохраняет деньги до конца и редко делает второй поздний рывок.', en: 'Usually saves cash for the end and rarely makes a second late push.' },
+    behavior: 'cautious',
+    signatureBehavior: 'last-stand',
+    hiddenValueFactor: { min: 0.58, max: 0.84 },
+    specialtyCategories: ['electronics', 'watches'],
+    specialtyValueMultiplier: 1.12,
+  },
 ];
 
 export const BIDDER_TELL_TEXT: Record<BidderTell, LocalizedText> = {
