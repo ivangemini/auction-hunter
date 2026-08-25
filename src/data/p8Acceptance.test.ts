@@ -51,8 +51,8 @@ describe('P8 systemic replayability acceptance', () => {
     for (const jackpot of JACKPOT_VARIANTS) {
       expect(jackpot.name.ru.length).toBeGreaterThan(0);
       expect(jackpot.name.en.length).toBeGreaterThan(0);
-      expect(jackpot.multiplier).toBeGreaterThan(1);
-      expect(jackpot.multiplier).toBeLessThanOrEqual(1.25);
+      expect(jackpot.bonusMultiplier).toBeGreaterThan(1);
+      expect(jackpot.bonusMultiplier).toBeLessThanOrEqual(1.25);
     }
   });
 });
