@@ -78,6 +78,6 @@ describe('lot market preparation', () => {
     });
 
     expect(result.choices.every((choice) => choice.modifier?.id.includes('+market-watch-fever'))).toBe(true);
-    expect(result.choices.every((choice) => choice.modifier?.description.en.includes('Watch'))).toBe(true);
+    expect(result.choices.every((choice) => choice.modifier?.description.en.includes('chasing watches'))).toBe(true);
   });
 });
