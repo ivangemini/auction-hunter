@@ -24,6 +24,13 @@ const REVIEW_BATCHES = [
       'silver-ring', 'mini-console', 'chronograph-watch', 'first-edition-book',
     ],
   },
+  {
+    id: '03',
+    items: [
+      'prototype-toy', 'multimeter', 'portable-radio', 'comic-stack', 'tin-car',
+      'travel-clock', 'instant-camera', 'binoculars', 'gallery-print',
+    ],
+  },
 ];
 
 function assert(condition, message) {
@@ -54,6 +61,7 @@ async function validateSourceContracts(itemIds) {
       /viewBox=["']\s*0\s+0\s+512\s+360\s*["']/i.test(source),
       `${id} must preserve the 512x360 SVG viewBox contract`,
     );
+    assert(!/<text\b/i.test(source), `${id} must not embed UI/pseudo-text in production art`);
   }
 }
 
