@@ -115,4 +115,46 @@ This pass is a product-quality priority, not optional decoration. Complete it be
   - [x] Add a true compact 844×390 RU/EN mobile+touch gate for lot selection, active bidding, Collection Book, Discovery Board, Buyer Market and Business Office; validate FIT canvas/orientation behavior and inspect the generated CI artifact.
   - [x] Extend compact mobile-landscape evidence to reveal/appraisal/restoration and inspect the generated RU/EN CI artifact before closing the overall acceptance item.
 
+## P8 — systemic replayability and long-horizon depth
+Build on the systems already in the game instead of adding duplicate daily/meta layers. The target is more meaningful variation per auction and stronger multi-session goals without turning the project into a content-heavy campaign.
+
+### P8.1 — Rival depth
+- [x] Expand the persistent rival roster beyond the original three; six authored dealers now participate through category-aware selection.
+- [ ] Grow the roster toward 8–10 dealers only when each new dealer has a distinct bidding identity, specialty or readable weakness rather than being a numeric reskin.
+- [ ] Add rival memory/relationship state: repeated wins/losses against a dealer should unlock lightweight dossier knowledge without revealing exact max bids.
+- [ ] Add rare rival-specific auction behaviors while preserving deterministic economy bounds and accessibility of tells.
+
+### P8.2 — Market events and auction variation
+- [x] Establish rare visible lot modifiers as the local-event foundation.
+- [ ] Expand the modifier pool with more risk/reward combinations while keeping every modifier legible before commitment.
+- [ ] Add persistent market trends lasting several normal auctions (category demand/supply shifts) with an explicit remaining-duration indicator.
+- [ ] Let Buyer Market, rival specialties and lot selection react to persistent trends without exposing hidden item identities.
+- [ ] Add event-history analytics so retention/economy effects can be measured separately from normal auctions.
+
+### P8.3 — Collector Requests
+- [ ] Add multi-session collector requests that demand a category, trait, condition threshold or combination rather than generic activity counts.
+- [ ] Allow qualifying concrete inventory copies to fulfill requests at a bounded premium; do not duplicate the daily Buyer Market offer model.
+- [ ] Include common, demanding and rare request tiers with clear expiry/progress rules and no irreversible soft-locks.
+- [ ] Surface request relevance in Collection/Buyer Market without leaking hidden contents of active lots.
+
+### P8.4 — Special auction rulesets
+- [ ] Prototype one genuinely different auction ruleset before adding more environments: sealed/storage-style lots with less information and a different risk envelope.
+- [ ] Add a high-reputation VIP ruleset with stronger competition and higher-value pools after the first prototype is proven fun.
+- [ ] Keep special formats inside the existing appraisal/restoration/collection economy instead of creating a parallel game.
+
+### P8.5 — Discovery, jackpots and completionism
+- [ ] Expand Discovery Chains beyond the initial three with longer authored cases and occasional branching leads.
+- [ ] Add ultra-rare provenance/variant combinations that create jackpot stories using existing concrete-copy traits rather than a cosmetic Mythic color tier.
+- [ ] Add Collection completion statistics for identity discovery, best condition/value and discovered variant breadth where persistence cost remains reasonable.
+
+### P8.6 — Long-run progression gate
+- [ ] Extend reputation milestones and late-game unlock cadence after P8 systems create enough differentiated content.
+- [ ] Evaluate Prestige/New Game+ only after telemetry shows players reaching the current late game; do not use resets as a substitute for content depth.
+- [ ] Run long-horizon economy simulations and 30/60/120-minute scripted playthroughs before shipping systemic multipliers together.
+
+### P8 acceptance
+- [ ] No new system may duplicate Daily Special, Daily Contracts, Buyer Market, Office upgrades or Discovery Board responsibilities without a documented reason.
+- [ ] Every new systemic layer needs RU/EN copy, save compatibility, analytics, deterministic tests and compact-landscape QA where player-facing.
+- [ ] Validate that optimal play is not reduced to always buying the same category, always force-winning, or hoarding every item indefinitely.
+
 See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks, `BUYER_MARKET.md` for the trading loop, `RIVALS.md` for stable dealer specialties, `DISCOVERY_CHAINS.md` for the multi-auction treasure-trail contract, `skills/auction-hunter-visual-design/SKILL.md` for presentation work and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.
