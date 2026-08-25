@@ -16,7 +16,7 @@ Fast navigation map for humans and coding agents.
 - `release/promotional/` — reviewed SVG sources for the Yandex catalog icon/cover; `generated/` is produced by CI/release rather than committed.
 - `release/screenshots/generated/` — generated RU/EN desktop/mobile production screenshots; CI/release output only.
 - `release/screenshots/review/` — temporary screen-family visual-review captures used by CI; currently restoration mode/timing evidence and intentionally excluded from Yandex submission assets.
-- `release/screenshots/item-review/generated/` — deterministic 3×3 contact sheets for every accepted P7 item-fidelity batch; CI keeps earlier sheets when a new batch is added.
+- `release/screenshots/item-review/generated/` — four deterministic 3×3 contact sheets covering all 36 accepted P7 item identities; CI preserves all accepted batches.
 - `release/screenshots/environment-review/generated/` — deterministic 3×2 Garage/Collector environment fidelity contact sheet; CI-only visual evidence, excluded from Yandex submission assets.
 - `release/screenshots/collection-market-review/` — RU/EN production-build Collection Book and Buyer Market visual-review captures reached through real canvas navigation; CI-only evidence.
 - `release/screenshots/character-tutorial-review/` — RU/EN first-session onboarding, coached lot-selection and bidding-character review captures; CI-only evidence.
@@ -28,7 +28,7 @@ Fast navigation map for humans and coding agents.
 - `scripts/render-yandex-promos.mjs` — deterministic 512×512 icon and 800×470 cover PNG renderer/validator.
 - `scripts/capture-yandex-screenshots.mjs` — production-build RU/EN gameplay capture plus non-blank art-region checks; core-loop navigation is analytics-event-driven and asserts one committed lot choice remains stable through the auction before reveal/appraisal capture.
 - `scripts/capture-restoration-review.mjs` — drives a production build through the real auction/reveal/appraisal path, then captures RU/EN restoration mode-picker and timing-stage evidence with transition-difference assertions.
-- `scripts/capture-item-art-review.mjs` — deterministically renders every accepted P7 item-fidelity batch as its own 3×3 1280×720 contact sheet, validates the 512×360 SVG viewBox contract and verifies browser decode.
+- `scripts/capture-item-art-review.mjs` — renders all four accepted P7 item-fidelity batches as separate 3×3 1280×720 contact sheets, validates the 512×360 SVG contract, rejects embedded `<text>`/pseudo-text and verifies browser decode.
 - `scripts/capture-environment-art-review.mjs` — validates the six Garage/Collector SVG environments for 512×360 source contract/no embedded text and renders a deterministic 3×2 1280×720 review sheet.
 - `scripts/capture-collection-market-review.mjs` — boots the production build with a broad deterministic inventory, navigates lot selection -> Collection -> Buyer Market through real canvas controls, captures RU/EN states and asserts the screen transition is visually substantial.
 - `scripts/capture-character-tutorial-review.mjs` — captures RU/EN onboarding, coached selection and character bidding through production navigation and validates visible scene changes.
@@ -110,7 +110,7 @@ Static content/tuning inputs.
 - `config.ts`, `lifecycle.ts` — rendering/runtime infrastructure.
 
 ### `public/assets/`
-- `items/` — direct SVG for every one of the 36 catalog item IDs plus defensive `fallback.svg`; P7 fidelity Batch 01 + Batch 02 now upgrade 18 high-visibility identities while preserving semantic IDs and the 512×360 viewBox contract.
+- `items/` — direct authored SVG for all 36 catalog item IDs plus defensive `fallback.svg`; P7 fidelity Batches 01–04 cover the complete catalog while preserving semantic IDs and the 512×360 viewBox contract.
 - `lots/` — nine P7-fidelity semantic lot environments: three Estate WebPs plus three Garage and three Collector authored SVGs. Garage/Collector preserve 512×360 source contracts and are permanently covered by deterministic environment review.
 - `characters/` — authored scalable mentor, auctioneer and rival-dealer portrait SVGs; no UI text is embedded into character art.
 
@@ -138,7 +138,7 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 - Other `tests/*.spec.ts` cover system contracts used by Playwright QA.
 - `scripts/capture-yandex-screenshots.mjs` doubles as a production-build core-loop smoke test: it verifies a single lot selection remains stable through a legitimate auction win, advances reveal/appraisal by observed analytics events and rejects visually blank lot/item art.
 - `scripts/capture-restoration-review.mjs` is the restoration screen-family visual gate: it follows the same production core loop and verifies the mode/timing screens visibly replace their preceding states before CI uploads the four RU/EN review captures.
-- `scripts/capture-item-art-review.mjs` is the persistent item-fidelity asset gate: it validates every accepted batch, preserves earlier review sheets, verifies 512×360 SVG viewBox contracts and emits deterministic contact sheets for human visual review.
+- `scripts/capture-item-art-review.mjs` is the persistent item-fidelity asset gate: it validates all four accepted batches, preserves all four review sheets, verifies 512×360 SVG viewBox/no-embedded-text contracts and emits deterministic contact sheets for human visual review.
 - `scripts/capture-environment-art-review.mjs` is the Garage/Collector environment asset gate: it verifies all six SVGs keep the 512×360 contract, rejects embedded text and emits a deterministic 3×2 contact sheet.
 - `scripts/capture-collection-market-review.mjs` is the Collection/Buyer Market screen-family gate: it uses the production build and real navigation, captures RU/EN at 1280×720 and asserts the two scene states visibly differ.
 - `scripts/capture-character-tutorial-review.mjs` is the first-session character gate: it captures onboarding, coached lot selection and bidding in RU/EN through the production build.
@@ -157,7 +157,7 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 - Change active bidding/win/reveal/appraisal presentation without changing auction rules: `src/game/scenes/PolishedAuctionSceneV2.ts`.
 - Change restoration mode difficulty/reward rules: `src/domain/restoration.ts`; change restoration choice/timing presentation in `src/game/restorationUi.ts`; update visual evidence through `scripts/capture-restoration-review.mjs`.
 - Change Dealer Memory aggregation: `src/domain/history.ts`; change its polished lot-card presentation in `src/game/scenes/PolishedAuctionScene.ts`.
-- Add/change catalog item art: `public/assets/items/`, `src/data/artManifest.ts` and `src/data/artCoverage.test.ts`; append new fidelity batches to `scripts/capture-item-art-review.mjs` without removing previously accepted review batches.
+- Add/change catalog item art: `public/assets/items/`, `src/data/artManifest.ts` and `src/data/artCoverage.test.ts`; update the correct persistent batch in `scripts/capture-item-art-review.mjs` without dropping previously accepted review batches.
 - Add/change Garage/Collector environment art: `public/assets/lots/` plus `scripts/capture-environment-art-review.mjs`; keep semantic lot IDs and the no-embedded-text / 512×360 SVG contract stable.
 - Change Estate raster art routing: `src/game/art.ts` and matching `public/assets/lots/*.webp`; gameplay scenes must continue using semantic texture keys only.
 - Change Yandex icon/cover: `release/promotional/*.svg` + `scripts/render-yandex-promos.mjs`; never hand-edit generated PNGs.
