@@ -25,9 +25,12 @@ interface RunResult {
   minutes: number;
   policy: Policy;
   auctions: number;
+  collectorAuctions: number;
   wins: number;
   finalCash: number;
   maxCash: number;
+  vipOffers: number;
+  vipSelections: number;
   vipWins: number;
   selectedCategories: Record<ItemCategory, number>;
 }
@@ -97,12 +100,16 @@ function simulate(minutes: number, policy: Policy, seed: number): RunResult {
   let maxCash = cash;
   let reputationXp = 0;
   let auctionsPlayed = 0;
+  let collectorAuctions = 0;
   let wins = 0;
+  let vipOffers = 0;
+  let vipSelections = 0;
   let vipWins = 0;
   const selectedCategories = Object.fromEntries(CATEGORIES.map((category) => [category, 0])) as Record<ItemCategory, number>;
 
   for (let index = 0; index < auctions; index += 1) {
     const tier = highestUnlockedAuctionTier(reputationXp);
+    if (tier.id === 'collector') collectorAuctions += 1;
     resetLotMarketCache();
     const market = prepareLotMarket({
       requestedTierId: tier.id,
@@ -110,6 +117,8 @@ function simulate(minutes: number, policy: Policy, seed: number): RunResult {
       auctionsPlayed,
       random,
     });
+    if (market.choices.some((candidate) => candidate.modifier?.id.includes('vip-invitation'))) vipOffers += 1;
+
     const choice = chooseOption(market.choices, policy, selectedCategories);
     const categories = visibleCategories(choice);
     const primaryCategory = categories[0];
@@ -125,6 +134,7 @@ function simulate(minutes: number, policy: Policy, seed: number): RunResult {
     );
     const opponents = createAuctionOpponents(choice.lot, items, BIDDER_PROFILES, random);
     const vip = choice.modifier?.id.includes('vip-invitation') === true;
+    if (vip) vipSelections += 1;
     const highestNpcBid = Math.max(
       choice.lot.reservePrice,
       ...opponents.map((opponent) => {
@@ -147,7 +157,19 @@ function simulate(minutes: number, policy: Policy, seed: number): RunResult {
     auctionsPlayed += 1;
   }
 
-  return { minutes, policy, auctions, wins, finalCash: cash, maxCash, vipWins, selectedCategories };
+  return {
+    minutes,
+    policy,
+    auctions,
+    collectorAuctions,
+    wins,
+    finalCash: cash,
+    maxCash,
+    vipOffers,
+    vipSelections,
+    vipWins,
+    selectedCategories,
+  };
 }
 
 function dominantCategoryShare(result: RunResult): number {
@@ -180,13 +202,16 @@ describe('P8 long-horizon economy gate', () => {
     }
   });
 
-  it('keeps VIP wins occasional rather than turning the late game into a permanent special format', () => {
+  it('keeps VIP availability occasional and optional rather than turning the late game into a permanent special format', () => {
     const runs = Array.from({ length: SEEDS_PER_HORIZON }, (_, index) => simulate(120, 'trend-aware', 73000 + index));
-    const vipWins = runs.reduce((sum, run) => sum + run.vipWins, 0);
-    const totalWins = runs.reduce((sum, run) => sum + run.wins, 0);
-    const share = totalWins > 0 ? vipWins / totalWins : 0;
+    const vipOffers = runs.reduce((sum, run) => sum + run.vipOffers, 0);
+    const vipSelections = runs.reduce((sum, run) => sum + run.vipSelections, 0);
+    const collectorAuctions = runs.reduce((sum, run) => sum + run.collectorAuctions, 0);
+    const offerShare = collectorAuctions > 0 ? vipOffers / collectorAuctions : 0;
 
-    expect(vipWins).toBeGreaterThan(0);
-    expect(share).toBeLessThan(0.25);
+    expect(vipOffers).toBeGreaterThan(0);
+    expect(offerShare).toBeGreaterThan(0.1);
+    expect(offerShare).toBeLessThan(0.3);
+    expect(vipSelections).toBeLessThanOrEqual(vipOffers);
   });
 });
