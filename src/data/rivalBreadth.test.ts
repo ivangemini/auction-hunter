@@ -50,14 +50,17 @@ function matchesCurrentLot(profileId: string): boolean {
 }
 
 describe('rival breadth', () => {
-  it('keeps six stable bilingual profiles with distinct ids', () => {
-    expect(BIDDER_PROFILES).toHaveLength(6);
-    expect(new Set(BIDDER_PROFILES.map((profile) => profile.id)).size).toBe(6);
+  it('keeps eight stable bilingual profiles with authored weaknesses and distinct ids', () => {
+    expect(BIDDER_PROFILES).toHaveLength(8);
+    expect(new Set(BIDDER_PROFILES.map((profile) => profile.id)).size).toBe(8);
     for (const profile of BIDDER_PROFILES) {
       expect(profile.name.ru.length).toBeGreaterThan(0);
       expect(profile.name.en.length).toBeGreaterThan(0);
       expect(profile.trait?.ru.length ?? 0).toBeGreaterThan(0);
       expect(profile.trait?.en.length ?? 0).toBeGreaterThan(0);
+      expect(profile.weakness?.ru.length ?? 0).toBeGreaterThan(0);
+      expect(profile.weakness?.en.length ?? 0).toBeGreaterThan(0);
+      expect(profile.specialtyCategories?.length ?? 0).toBeGreaterThanOrEqual(2);
       expect(profile.hiddenValueFactor.max).toBeGreaterThanOrEqual(profile.hiddenValueFactor.min);
     }
   });
