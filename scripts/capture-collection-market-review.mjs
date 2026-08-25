@@ -38,7 +38,7 @@ const seedSave = {
   updatedAt: 1,
   cash: 125000,
   collection: REVIEW_COLLECTION,
-  claimedSetRewards: [],
+  claimedSetRewards: ['retro-tech'],
   reputationXp: 720,
   lastDailyCompletedDay: null,
   onboardingComplete: true,
