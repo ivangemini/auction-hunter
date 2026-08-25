@@ -1,4 +1,4 @@
-# Auction Hunter — Art Direction v0.8
+# Auction Hunter — Art Direction v0.9
 
 ## Visual thesis
 Auction Hunter should feel like a late-evening storage auction: warm tungsten light, cold industrial shadows, dusty surfaces, taped cardboard, worn paint and small flashes of valuable metal or electronics.
@@ -54,7 +54,7 @@ The shared layer provides:
 - hover-lift treatment that respects reduced motion;
 - shared palette tokens that complement the existing animated `button()` and `MOTION` timing layer.
 
-Shared helpers are a baseline, not a requirement that every card look identical. Lot cards, collection-set showcases and buyer dossiers must still express different purposes through composition, imagery and hierarchy.
+Shared helpers are a baseline, not a requirement that every card look identical. Lot cards, collection-set showcases, buyer dossiers and Office modules must still express different purposes through composition, imagery and hierarchy.
 
 ## Screen composition standard
 Every major screen needs one dominant visual idea and at least three levels of hierarchy.
@@ -74,7 +74,8 @@ The thing the player is deciding about should receive the most visual weight:
 - appraisal -> item plus resolved value;
 - restoration -> item condition and timing interaction;
 - collection -> owned objects/set progress;
-- Buyer Market -> buyer identity and matched item/value.
+- Buyer Market -> buyer identity and matched item/value;
+- Business Office -> current meta task: contract progress, upgrade effect/cost, achievement state, major statistic, history outcome or accessibility state.
 
 Do not let explanatory labels visually outweigh the fantasy or decision.
 
@@ -93,22 +94,33 @@ Clickable elements must communicate hover/touch/press/selection/disabled state. 
 ## Card language
 Generic bordered rectangles are not sufficient as finished cards.
 
-Lot/item/buyer cards should combine a subset of:
-- large image field or image bleed;
+Lot/item/buyer/meta cards should combine a subset of:
+- large image field or strong focal number/state;
 - layered surface/elevation;
 - subtle vignette or gradient behind copy;
 - auction tags, labels, stamps or physical-material motifs;
-- rarity/category/modifier chips;
-- visual selection state;
+- rarity/category/modifier/state chips;
+- visual selection/completion state;
 - clearly separated primary CTA area.
 
-Card types should differ according to purpose. A storage lot, rival dealer and inventory collectible should not feel like the same component with different text.
+Card types should differ according to purpose. A storage lot, rival dealer, inventory collectible, daily contract and business upgrade should not feel like the same component with different text.
 
 ### Collection Book
 Collection sets should read as display cases or archival boards rather than spreadsheet rows. Set progress is visual, item slots have rarity/ownership hierarchy, reward state has its own area and concrete-copy inspection opens as a hero card rather than a small utility modal.
 
 ### Buyer Market
 Daily buyers should read as distinct dossiers/clients. Buyer identity and demand come first, premium is immediately scannable, and a matching concrete item becomes the hero visual. Completed/no-match/match states must be visually different without relying only on copy. Category buyers and specialist buyers may share the card shell but should not collapse into identical visual accents.
+
+### Business Office
+The Office is a business-management room, not a settings dashboard. Its persistent header should establish bankroll/reputation and a warm operational atmosphere, while each tab gets a distinct content grammar:
+- Contracts -> job-board/task cards with obvious progress and payout hierarchy.
+- Upgrades -> investment cards where current level, effect and next cost are the focal decision.
+- Achievements -> compact milestone plaques with completion/claimed states visibly separated.
+- Statistics -> large-value plates; the number is dominant and the label is secondary.
+- History -> ledger-like outcome rows with profit/loss and win/pass state scannable at a glance.
+- Settings -> calm control rows where enabled/disabled state is obvious without reading explanatory text.
+
+The Office may reuse the same surface tokens as other P7 scenes, but tab content must not collapse back into equal-weight generic rectangles.
 
 ## Composition rules
 - Lot art: dense but controlled foreground clutter, a darker back wall, one primary warm light source and 2–3 readable clue silhouettes.
@@ -119,6 +131,8 @@ Daily buyers should read as distinct dossiers/clients. Buyer identity and demand
 - Appraisal state: value UI becomes brighter than the object; the artwork should not compete with the price.
 - Collection sets: progress/reward hierarchy should remain scannable even when an item row contains several identities.
 - Buyer Market: the daily offer value and matched concrete item must visually outweigh descriptive buyer copy.
+- Office contracts/upgrades: action value and state must remain readable before description copy; finished/claimed/max-level states should change the card hierarchy rather than only one text string.
+- Office statistics/history: avoid spreadsheet density; emphasize large values, signed outcomes and state grouping.
 - Use empty space deliberately. Large unused areas that carry neither atmosphere nor decision context should be redesigned.
 
 ## Game feel and motion
@@ -148,9 +162,16 @@ Typography must create hierarchy. At minimum distinguish:
 - body/supporting copy;
 - metadata.
 
-Decision-driving numbers such as current bid, bankroll, appraisal, profit and Buyer Market offer should be visually stronger than their labels.
+Decision-driving numbers such as current bid, bankroll, appraisal, profit, Buyer Market offer, contract payout and upgrade cost should be visually stronger than their labels.
 
 Avoid dense developer-style key/value tables when the same information can be scanned through grouping, chips, icons or spatial hierarchy.
+
+## Current screen-family fidelity
+The core P7 presentation now has dedicated visual languages for lot selection, bidding/reveal/appraisal, restoration, Collection Book, Buyer Market, first-session character coaching and Business Office/meta screens.
+
+The Office uses the shared atmosphere/surface/chip/progress system while preserving distinct tab composition for Contracts, Upgrades, Achievements, Stats, History and Settings. `scripts/capture-office-review.mjs` reaches the scene through real lot-selection -> Collection -> Office navigation, captures RU/EN Contracts/Upgrades/Achievements/Stats at 1280×720 and asserts tab transitions are visibly distinct before CI uploads all eight review images.
+
+This does not close the overall P7 game-feel pass: particles, richer reactions, additional staged transitions and broader desktop/mobile-landscape acceptance remain separate work.
 
 ## Current asset coverage
 The expanded catalog has direct SVG coverage for all 36 collectible item identities. Catalog items do not depend on visual aliases; `fallback.svg` remains only as a defensive runtime fallback for unknown/missing IDs.
@@ -195,5 +216,9 @@ Changes must keep `artManifest.ts`, loader behavior and coverage tests consisten
 For material player-facing changes, run the browser capture flow and inspect the resulting image. Passing functional/browser tests does not by itself establish visual quality.
 
 Collection Book and Buyer Market use `scripts/capture-collection-market-review.mjs` as a dedicated production-build review path. It reaches both scenes through real canvas navigation, captures RU/EN states and verifies Buyer Market visibly replaces Collection Book before CI uploads the four review images.
+
+Business Office uses `scripts/capture-office-review.mjs` as its dedicated production-build review path. The gate captures RU/EN Contracts, Upgrades, Achievements and Stats, checks 1280×720 PNG validity and verifies each selected tab visibly replaces the previous composition. History/Settings remain covered by the same scene implementation and normal browser interaction gates.
+
+First-session character/tutorial presentation uses `scripts/capture-character-tutorial-review.mjs`; restoration and asset families retain their own dedicated review scripts. A new major player-facing family should add comparable deterministic evidence rather than relying on a single generic screenshot.
 
 Use `skills/auction-hunter-visual-design/SKILL.md`, `skills/auction-hunter-animation-game-feel/SKILL.md` and the visual review checklist. If a screenshot still reads primarily as black rectangles, borders, small schematic art and equal-weight text, the visual task is not complete.

@@ -63,6 +63,14 @@ jobs:
           path: release/screenshots/character-tutorial-review/**/*.png
           if-no-files-found: error
           retention-days: 7
+      - run: node scripts/capture-office-review.mjs
+      - name: Upload P7 Office visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-office-review-ci
+          path: release/screenshots/office-review/**/*.png
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload screenshot diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
