@@ -21,8 +21,8 @@ export interface BuyerMatch {
   itemId: string;
   value: number;
   copies: number;
-  expertiseBonus: number;
-  effectiveMultiplier: number;
+  expertiseBonus?: number;
+  effectiveMultiplier?: number;
   instanceId?: string;
   appraisedValue?: number;
   condition?: number;
@@ -170,8 +170,7 @@ export function bestBuyerMatch(
           itemId: item.id,
           value,
           copies: copiesById.get(item.id) ?? 1,
-          expertiseBonus,
-          effectiveMultiplier,
+          ...(expertiseBonus > 0 ? { expertiseBonus, effectiveMultiplier } : {}),
           instanceId: instance.id,
           appraisedValue: instance.appraisedValue,
           condition: instance.condition,
@@ -190,7 +189,14 @@ export function bestBuyerMatch(
     const expertiseBonus = buyerMarketExpertiseBonus(claimedSetIds, item.category);
     const effectiveMultiplier = offer.multiplier + expertiseBonus;
     const value = buyerOfferValue(item, offer, item.baseValue, itemTraitsFor(item.id), expertiseBonus);
-    if (!best || value > best.value) best = { itemId, value, copies, expertiseBonus, effectiveMultiplier };
+    if (!best || value > best.value) {
+      best = {
+        itemId,
+        value,
+        copies,
+        ...(expertiseBonus > 0 ? { expertiseBonus, effectiveMultiplier } : {}),
+      };
+    }
   }
 
   return best;
