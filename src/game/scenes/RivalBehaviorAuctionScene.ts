@@ -31,6 +31,7 @@ type RivalBehaviorRuntime = Phaser.Scene & {
   awaitingNpc: boolean;
   store: {
     snapshot: Readonly<PlayerSave>;
+    sellItem: (value: number, itemId?: string, revealedItem?: RevealedItem) => void;
     recordRivalAuction: (opponentIds: readonly string[], outcome: 'player-win' | 'player-pass', winningRivalId?: string) => void;
   };
   prepareLot: (lot: LotTemplate, modifier: LotModifierDefinition | null, valueMultiplier?: number) => void;
@@ -62,6 +63,11 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
     const finalizeWin = runtime.finalizeWin.bind(runtime);
     const renderBidding = runtime.renderBidding.bind(runtime);
     const renderReveal = runtime.renderReveal.bind(runtime);
+    const sellItem = runtime.store.sellItem.bind(runtime.store);
+
+    runtime.store.sellItem = (value, itemId, revealedItem) => {
+      sellItem(value, itemId, revealedItem ?? runtime.items[runtime.revealIndex]);
+    };
 
     runtime.prepareLot = (lot, modifier, valueMultiplier = 1) => {
       prepareLot(lot, modifier, valueMultiplier);
