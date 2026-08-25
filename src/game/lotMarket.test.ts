@@ -80,4 +80,33 @@ describe('lot market preparation', () => {
     expect(result.choices.every((choice) => choice.modifier?.id.includes('+market-watch-fever'))).toBe(true);
     expect(result.choices.every((choice) => choice.modifier?.description.en.includes('chasing watches'))).toBe(true);
   });
+
+  it('offers exactly one VIP option only at high reputation collector cadence', () => {
+    const vip = prepareLotMarket({
+      requestedTierId: 'collector',
+      reputationXp: 700,
+      auctionsPlayed: 4,
+      random: () => 0.99,
+    });
+    expect(vip.choices.filter((choice) => choice.modifier?.id.includes('vip-invitation'))).toHaveLength(1);
+    expect(vip.choices[0]?.lot.itemCount).toBeGreaterThanOrEqual(2);
+
+    resetLotMarketCache();
+    const lowRep = prepareLotMarket({
+      requestedTierId: 'collector',
+      reputationXp: 400,
+      auctionsPlayed: 4,
+      random: () => 0.99,
+    });
+    expect(lowRep.choices.some((choice) => choice.modifier?.id.includes('vip-invitation'))).toBe(false);
+
+    resetLotMarketCache();
+    const wrongTier = prepareLotMarket({
+      requestedTierId: 'estate',
+      reputationXp: 700,
+      auctionsPlayed: 4,
+      random: () => 0.99,
+    });
+    expect(wrongTier.choices.some((choice) => choice.modifier?.id.includes('vip-invitation'))).toBe(false);
+  });
 });
