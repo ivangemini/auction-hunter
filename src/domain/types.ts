@@ -128,6 +128,10 @@ export interface PlayerSave {
   rivalEncounters: Record<string, number>;
   rivalPlayerWins: Record<string, number>;
   rivalWins: Record<string, number>;
+  discoveredItemIds: string[];
+  bestConditionByItem: Record<string, number>;
+  bestValueByItem: Record<string, number>;
+  discoveredVariantTraitIds: ItemTraitId[];
   discoveryChainProgress: Record<string, number>;
   discoveryChainLastAuction: Record<string, number>;
   completedDiscoveryChains: string[];
