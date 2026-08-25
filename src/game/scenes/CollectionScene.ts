@@ -69,23 +69,30 @@ export class CollectionScene extends Phaser.Scene {
     this.addStatPlate(265, 126, this.locale === 'ru' ? 'НАБОРЫ' : 'SET REWARDS', `${save.claimedSetRewards.length}/${COLLECTION_SETS.length}`, VISUAL.rare);
     this.addStatPlate(468, 126, this.locale === 'ru' ? 'БАЛАНС' : 'CASH', this.money(save.cash), VISUAL.success);
 
-    button(this, 820, 70, this.locale === 'ru' ? 'Рынок покупателей' : 'Buyer Market', () => this.scene.start('buyer-market'), {
-      width: 195,
+    button(this, 646, 70, this.locale === 'ru' ? 'Расследования' : 'Discovery Board', () => this.scene.start('discovery-board'), {
+      width: 145,
+      height: 48,
+      background: VISUAL.steel,
+      accent: VISUAL.copper,
+      fontSize: this.locale === 'ru' ? 12 : 12,
+    });
+    button(this, 817, 70, this.locale === 'ru' ? 'Рынок покупателей' : 'Buyer Market', () => this.scene.start('buyer-market'), {
+      width: 178,
       height: 48,
       background: VISUAL.copper,
       accent: VISUAL.warm,
-      fontSize: this.locale === 'ru' ? 13 : 15,
+      fontSize: this.locale === 'ru' ? 12 : 14,
     });
-    button(this, 1000, 70, t(this.locale, 'office'), () => this.scene.start('office'), {
-      width: 145,
+    button(this, 995, 70, t(this.locale, 'office'), () => this.scene.start('office'), {
+      width: 140,
       height: 48,
       background: VISUAL.warm,
     });
-    button(this, 1160, 70, t(this.locale, 'backToAuction'), () => this.scene.start('auction'), {
-      width: 155,
+    button(this, 1156, 70, t(this.locale, 'backToAuction'), () => this.scene.start('auction'), {
+      width: 150,
       height: 48,
       background: VISUAL.rare,
-      fontSize: this.locale === 'ru' ? 13 : 15,
+      fontSize: this.locale === 'ru' ? 12 : 14,
     });
 
     const pageCount = Math.max(1, Math.ceil(COLLECTION_SETS.length / SETS_PER_PAGE));

@@ -1,12 +1,20 @@
 import Phaser from 'phaser';
+import { DISCOVERY_CHAINS, type DiscoveryChainDefinition } from '../../data/discoveryChains';
 import type { AuctionOpponent } from '../../domain/auction';
 import type { Locale, RevealedItem } from '../../domain/types';
 import { addCharacterPortrait, opponentCharacterId, preloadCharacters } from '../characters';
+import { playFeedbackCue } from '../feedback';
 import { prefersReducedMotion } from '../motion';
 import { endTutorialSession, isTutorialSessionActive } from '../tutorial';
+import { button } from '../ui';
 import { PolishedAuctionSceneV2 } from './PolishedAuctionSceneV2';
 
 type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
+
+type DiscoverySnapshot = {
+  progress: Record<string, number>;
+  completed: string[];
+};
 
 type CharacterRuntime = Phaser.Scene & {
   locale: Locale;
@@ -20,6 +28,8 @@ type CharacterRuntime = Phaser.Scene & {
       onboardingComplete: boolean;
       auctionsPlayed: number;
       auctionsWon: number;
+      discoveryChainProgress: Record<string, number>;
+      completedDiscoveryChains: string[];
     };
     completeOnboarding: () => void;
   };
@@ -28,6 +38,8 @@ type CharacterRuntime = Phaser.Scene & {
   renderWin: () => void;
   renderReveal: () => void;
   renderRoundSummary: () => void;
+  sellCurrentItem: () => void;
+  keepCurrentItem: () => void;
 };
 
 /**
@@ -44,6 +56,8 @@ export class CharacterAuctionScene extends PolishedAuctionSceneV2 {
     const win = runtime.renderWin;
     const reveal = runtime.renderReveal;
     const roundSummary = runtime.renderRoundSummary.bind(runtime);
+    const sellCurrentItem = runtime.sellCurrentItem.bind(runtime);
+    const keepCurrentItem = runtime.keepCurrentItem.bind(runtime);
 
     runtime.renderLotSelection = () => {
       lotSelection();
@@ -69,6 +83,16 @@ export class CharacterAuctionScene extends PolishedAuctionSceneV2 {
         endTutorialSession();
       }
       roundSummary();
+    };
+    runtime.sellCurrentItem = () => {
+      const before = captureDiscoverySnapshot(runtime);
+      sellCurrentItem();
+      renderDiscoveryFeedback(runtime, before, captureDiscoverySnapshot(runtime));
+    };
+    runtime.keepCurrentItem = () => {
+      const before = captureDiscoverySnapshot(runtime);
+      keepCurrentItem();
+      renderDiscoveryFeedback(runtime, before, captureDiscoverySnapshot(runtime));
     };
   }
 
@@ -206,6 +230,126 @@ function renderRevealCoach(scene: CharacterRuntime): void {
   }
 
   tutorialBubble(scene, 130, 575, 316, 573, copy, accent, 62, 78);
+}
+
+function captureDiscoverySnapshot(scene: CharacterRuntime): DiscoverySnapshot {
+  const save = scene.store.snapshot;
+  return {
+    progress: { ...save.discoveryChainProgress },
+    completed: [...save.completedDiscoveryChains],
+  };
+}
+
+function renderDiscoveryFeedback(
+  scene: CharacterRuntime,
+  before: DiscoverySnapshot,
+  after: DiscoverySnapshot,
+): void {
+  const chain = DISCOVERY_CHAINS.find((candidate) => {
+    const beforeStage = before.progress[candidate.id] ?? 0;
+    const afterStage = after.progress[candidate.id] ?? 0;
+    return afterStage > beforeStage;
+  });
+  if (!chain) return;
+
+  const stage = Math.min(chain.steps.length, Math.max(0, after.progress[chain.id] ?? 0));
+  const completed = after.completed.includes(chain.id);
+  showDiscoveryModal(scene, chain, stage, completed);
+}
+
+function showDiscoveryModal(
+  scene: CharacterRuntime,
+  chain: DiscoveryChainDefinition,
+  stage: number,
+  completed: boolean,
+): void {
+  playFeedbackCue(scene, completed ? 'reward' : 'ui');
+  const accent = completed ? 0x63d28d : 0xe9b949;
+  const overlay = scene.add.rectangle(640, 360, 1280, 720, 0x05070a, 0.68)
+    .setDepth(900)
+    .setInteractive({ useHandCursor: false });
+  const modal = scene.add.container(640, 360).setDepth(901);
+  const shadow = scene.add.rectangle(6, 8, 560, 252, 0x000000, 0.42);
+  const body = scene.add.rectangle(0, 0, 560, 252, 0x11151c, 0.99)
+    .setStrokeStyle(2, accent, 0.66);
+  const inner = scene.add.rectangle(0, 0, 536, 228, 0x171c23, 0.58)
+    .setStrokeStyle(1, 0xffffff, 0.05);
+  modal.add([shadow, body, inner]);
+
+  const badge = scene.add.rectangle(-182, -91, 154, 28, accent, 0.14)
+    .setStrokeStyle(1, accent, 0.54);
+  const badgeText = scene.add.text(-182, -91, completed
+    ? (scene.locale === 'ru' ? 'ДЕЛО ЗАКРЫТО' : 'CASE SOLVED')
+    : (scene.locale === 'ru' ? 'НОВАЯ ЗАЦЕПКА' : 'NEW LEAD'), {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '10px',
+    fontStyle: 'bold',
+    color: completed ? '#bfe8ce' : '#f0c969',
+  }).setOrigin(0.5);
+  modal.add([badge, badgeText]);
+
+  modal.add(scene.add.text(-244, -60, chain.title[scene.locale], {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '25px',
+    fontStyle: 'bold',
+    color: '#f7f3e8',
+  }).setWordWrapWidth(488));
+  modal.add(scene.add.text(244, -56, `${stage}/${chain.steps.length}`, {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '18px',
+    fontStyle: 'bold',
+    color: completed ? '#7ee0a0' : '#f0c969',
+  }).setOrigin(1, 0));
+
+  const detail = completed
+    ? `${scene.locale === 'ru' ? 'Награда' : 'Reward'}: ${formatMoney(scene.locale, chain.rewardCash)} · +${chain.rewardReputationXp} REP`
+    : chain.steps[stage]?.clue[scene.locale]
+      ?? (scene.locale === 'ru' ? 'След расследования обновлён.' : 'The investigation trail has been updated.');
+  modal.add(scene.add.text(-244, -18, detail, {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: completed ? '16px' : '14px',
+    fontStyle: 'bold',
+    color: completed ? '#7ee0a0' : '#c8ced6',
+    wordWrap: { width: 488 },
+    lineSpacing: 3,
+  }));
+
+  const close = (): void => {
+    overlay.destroy();
+    modal.destroy();
+  };
+  const continueButton = button(
+    scene,
+    0,
+    83,
+    scene.locale === 'ru' ? 'Продолжить' : 'Continue',
+    close,
+    {
+      width: 220,
+      height: 48,
+      background: completed ? 0x2f6e49 : 0x8f6c22,
+      accent,
+      fontSize: 14,
+    },
+  );
+  modal.add(continueButton);
+
+  if (!prefersReducedMotion()) {
+    modal.setAlpha(0).setScale(0.965);
+    scene.tweens.add({
+      targets: modal,
+      alpha: 1,
+      scaleX: 1,
+      scaleY: 1,
+      duration: completed ? 360 : 260,
+      ease: completed ? 'Back.Out' : 'Cubic.Out',
+    });
+  }
+}
+
+function formatMoney(locale: Locale, value: number): string {
+  const formatted = new Intl.NumberFormat(locale === 'ru' ? 'ru-RU' : 'en-US', { maximumFractionDigits: 0 }).format(value);
+  return `${formatted} ₽`;
 }
 
 function tutorialBubble(

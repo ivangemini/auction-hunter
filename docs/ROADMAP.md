@@ -87,9 +87,9 @@
 - [x] Deeper restoration choices with distinct safe/pro/risky paths.
 - [x] Persistent rival-dealer specialties and learned behavior.
 - [x] Collection-set perks unlock lasting category expertise after reward claim; expertise is derived from existing `claimedSetRewards`, stacks with Warehouse quick-sale rates and remains capped below Buyer Market premiums.
-- [ ] Legendary multi-auction discovery chains.
+- [x] Legendary multi-auction discovery chains.
   - [x] Foundation: three authored ordered trails, additive v1 save persistence, one-step-per-auction pacing, Sell/Keep discovery hooks, one-time cash/REP completion rewards and typed analytics.
-  - [ ] Player-facing trail progress, next-clue/completion feedback and RU/EN production visual QA without leaking hidden lot contents.
+  - [x] Player-facing Discovery Board, next-lead progression, in-loop completion/reward feedback and RU/EN production visual QA without leaking hidden lot contents.
 
 ## P7 — visual identity and game-feel overhaul
 This pass is a product-quality priority, not optional decoration. Complete it before treating the game as visually release-complete or expanding content indefinitely.
