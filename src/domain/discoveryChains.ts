@@ -1,4 +1,4 @@
-import type { DiscoveryChainDefinition } from '../data/discoveryChains';
+import { discoveryStepItemIds, type DiscoveryChainDefinition } from '../data/discoveryChains';
 
 export interface DiscoveryChainState {
   progress: Readonly<Record<string, number>>;
@@ -56,7 +56,7 @@ export function advanceDiscoveryChains(
     }
 
     const expected = chain.steps[stage];
-    if (!expected || expected.itemId !== itemId) continue;
+    if (!expected || !discoveryStepItemIds(expected).includes(itemId)) continue;
     if (lastAuction[chain.id] === normalizedAuctionNumber) continue;
 
     const nextStage = stage + 1;
