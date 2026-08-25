@@ -244,6 +244,38 @@ async function imageDifferenceRatio(page, before, after) {
   });
 }
 
+async function sellReceiptAccentRatio(page, screenshot) {
+  return page.evaluate(async (base64) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${base64}`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) throw new Error('Unable to create sell receipt analysis canvas');
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, image.width, image.height).data;
+    const x0 = Math.floor(image.width * 0.30);
+    const x1 = Math.ceil(image.width * 0.70);
+    const y0 = Math.floor(image.height * 0.77);
+    const y1 = Math.ceil(image.height * 0.91);
+    let green = 0;
+    let sampled = 0;
+    for (let y = y0; y < y1; y += 1) {
+      for (let x = x0; x < x1; x += 1) {
+        const index = (y * image.width + x) * 4;
+        const r = pixels[index];
+        const g = pixels[index + 1];
+        const b = pixels[index + 2];
+        sampled += 1;
+        if (g >= 90 && g > r * 1.12 && g > b * 1.08) green += 1;
+      }
+    }
+    return sampled > 0 ? green / sampled : 0;
+  }, screenshot.toString('base64'));
+}
+
 async function captureLocale(browser, localeCode, locale) {
   const outputDir = path.join(reviewRoot, localeCode);
   ensureDirectory(outputDir);
@@ -297,9 +329,11 @@ async function captureLocale(browser, localeCode, locale) {
     const cashBeforeSale = await readSaveCash(page);
     await clickGame(page, 928, 572);
     const cashAfterSale = await waitForSaveCashAbove(page, cashBeforeSale);
-    await page.waitForTimeout(260);
-    await capture(page, outputDir, '06-sell-feedback.png', `${localeCode} compact sell acknowledgement`);
-    console.log(`${localeCode} compact restored sale persisted: ${cashBeforeSale} -> ${cashAfterSale}`);
+    await page.waitForTimeout(210);
+    const saleFeedback = await capture(page, outputDir, '06-sell-feedback.png', `${localeCode} compact sell acknowledgement`);
+    const receiptAccent = await sellReceiptAccentRatio(page, saleFeedback);
+    assert(receiptAccent > 0.004, `${localeCode} sell acknowledgement green accent is not visibly present (${receiptAccent.toFixed(4)})`);
+    console.log(`${localeCode} compact restored sale persisted: ${cashBeforeSale} -> ${cashAfterSale}; receipt accent ${receiptAccent.toFixed(4)}`);
 
     await page.close();
   } finally {
