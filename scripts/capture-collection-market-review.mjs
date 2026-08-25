@@ -38,6 +38,17 @@ const seedSave = {
   updatedAt: 1,
   cash: 125000,
   collection: REVIEW_COLLECTION,
+  collectionItems: [
+    {
+      id: 'review-film-camera-copy',
+      itemId: 'film-camera',
+      appraisedValue: 1260,
+      condition: 0.88,
+      restored: false,
+      traitIds: ['factory-sealed', 'matching-serials'],
+      acquiredAt: 1,
+    },
+  ],
   claimedSetRewards: [],
   reputationXp: 720,
   lastDailyCompletedDay: null,
@@ -193,12 +204,27 @@ async function captureLocale(browser, localeCode, locale) {
     validatePng(collection, `${localeCode} Collection Book`);
     fs.writeFileSync(path.join(outputDir, '01-collection-book.png'), collection);
 
+    // Open the concrete film-camera copy from the first set to stress long RU/EN trait labels.
+    await clickGame(page, 190, 324);
+    await page.waitForTimeout(420);
+    const copyTraits = await page.screenshot({ type: 'png' });
+    validatePng(copyTraits, `${localeCode} concrete copy trait modal`);
+    fs.writeFileSync(path.join(outputDir, '02-copy-traits.png'), copyTraits);
+    assert(
+      (await imageDifferenceRatio(page, collection, copyTraits)) > 0.12,
+      `${localeCode} concrete copy modal did not visibly open`,
+    );
+
+    // Close modal by clicking its backdrop.
+    await clickGame(page, 80, 120);
+    await page.waitForTimeout(320);
+
     // Collection Book -> Discovery Board through the real navigation button.
     await clickGame(page, 646, 70);
     await page.waitForTimeout(720);
     const discovery = await page.screenshot({ type: 'png' });
     validatePng(discovery, `${localeCode} Discovery Board`);
-    fs.writeFileSync(path.join(outputDir, '02-discovery-board.png'), discovery);
+    fs.writeFileSync(path.join(outputDir, '03-discovery-board.png'), discovery);
     const discoveryDifference = await imageDifferenceRatio(page, collection, discovery);
     assert(discoveryDifference > 0.18, `${localeCode} Discovery Board did not visibly replace Collection Book (${discoveryDifference.toFixed(3)})`);
 
@@ -209,7 +235,7 @@ async function captureLocale(browser, localeCode, locale) {
     await page.waitForTimeout(720);
     const market = await page.screenshot({ type: 'png' });
     validatePng(market, `${localeCode} Buyer Market`);
-    fs.writeFileSync(path.join(outputDir, '03-buyer-market.png'), market);
+    fs.writeFileSync(path.join(outputDir, '04-buyer-market.png'), market);
     const marketDifference = await imageDifferenceRatio(page, collection, market);
     assert(marketDifference > 0.22, `${localeCode} Buyer Market did not visibly replace Collection Book (${marketDifference.toFixed(3)})`);
 
@@ -249,8 +275,8 @@ try {
 }
 
 for (const locale of ['ru', 'en']) {
-  for (const file of ['01-collection-book.png', '02-discovery-board.png', '03-buyer-market.png']) {
+  for (const file of ['01-collection-book.png', '02-copy-traits.png', '03-discovery-board.png', '04-buyer-market.png']) {
     console.log(path.relative(root, path.join(reviewRoot, locale, file)).split(path.sep).join('/'));
   }
 }
-console.log('P7 Collection/Discovery/Buyer Market visual review capture OK');
+console.log('P7 Collection/copy-traits/Discovery/Buyer Market visual review capture OK');

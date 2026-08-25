@@ -27,7 +27,7 @@ describe('replayability floor', () => {
     expect(LOT_MODIFIERS.length).toBeGreaterThanOrEqual(8);
     expect(LOT_MODIFIER_CHANCE).toBeGreaterThan(0);
     expect(LOT_MODIFIER_CHANCE).toBeLessThan(1);
-    expect(Object.keys(ITEM_TRAITS).length).toBeGreaterThanOrEqual(8);
+    expect(Object.keys(ITEM_TRAITS).length).toBeGreaterThanOrEqual(18);
     expect(CATEGORY_BUYERS.length).toBeGreaterThanOrEqual(6);
     expect(SPECIALIST_BUYERS.length).toBeGreaterThanOrEqual(6);
     expect(BUYER_OFFERS.length).toBeGreaterThanOrEqual(12);

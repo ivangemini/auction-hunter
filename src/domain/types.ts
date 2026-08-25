@@ -15,9 +15,13 @@ export type ItemTraitId =
   | 'complete-set'
   | 'rare-variant'
   | 'documented-history'
+  | 'factory-sealed'
+  | 'matching-serials'
   | 'replacement-parts'
   | 'incomplete'
-  | 'replica-risk';
+  | 'replica-risk'
+  | 'water-damage'
+  | 'heavy-wear';
 export type ContractMetric = 'auctionsPlayed' | 'auctionsWon' | 'itemsSold' | 'itemsKept' | 'salesValue';
 export type AchievementMetric = 'auctionsPlayed' | 'auctionsWon' | 'uniqueCollection' | 'lifetimeSales' | 'claimedSets' | 'reputationXp' | 'highestCash';
 export type BusinessUpgradeId = 'warehouse' | 'contractsDesk' | 'showroom';

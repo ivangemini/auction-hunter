@@ -119,7 +119,7 @@ describe('auction domain', () => {
       sequence([0, 0, 0, 0, 0.6, 1]),
     );
 
-    expect(variant[0]!.traitIds).toContain('rare-variant');
+    expect(variant[0]!.traitIds?.length ?? 0).toBeGreaterThan(baseline[0]!.traitIds?.length ?? 0);
     expect(variant[0]!.appraisedValue).toBeGreaterThan(baseline[0]!.appraisedValue);
   });
 

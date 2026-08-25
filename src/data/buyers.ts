@@ -76,9 +76,9 @@ export const SPECIALIST_BUYERS: readonly BuyerOfferDefinition[] = [
   {
     id: 'provenance-hunter',
     name: { ru: 'Охотник за историей', en: 'Provenance Hunter' },
-    description: { ru: 'Платит особенно много за подписи, первые издания и подтверждённое происхождение.', en: 'Pays strongly for signatures, first editions and traceable provenance.' },
+    description: { ru: 'Платит особенно много за подписи, первые издания, документы и совпадающие номера.', en: 'Pays strongly for signatures, first editions, documented history and matching serials.' },
     multiplier: 1.45,
-    traitIds: ['signed', 'first-edition', 'provenance', 'documented-history'],
+    traitIds: ['signed', 'first-edition', 'provenance', 'documented-history', 'matching-serials'],
   },
   {
     id: 'prototype-broker',
@@ -97,16 +97,16 @@ export const SPECIALIST_BUYERS: readonly BuyerOfferDefinition[] = [
   {
     id: 'design-house',
     name: { ru: 'Дом винтажного дизайна', en: 'Vintage Design House' },
-    description: { ru: 'Ищет предметы с выразительным дизайном эпохи или полным оригинальным комплектом.', en: 'Seeking strong period design or complete original presentation.' },
+    description: { ru: 'Ищет дизайн эпохи, полный оригинальный комплект и заводскую запечатку.', en: 'Seeking period design, complete original presentation and factory-sealed copies.' },
     multiplier: 1.32,
-    traitIds: ['period-design', 'original-packaging', 'complete-set'],
+    traitIds: ['period-design', 'original-packaging', 'complete-set', 'factory-sealed'],
   },
   {
     id: 'restoration-workshop',
     name: { ru: 'Мастерская реставратора', en: 'Restoration Workshop' },
-    description: { ru: 'Берёт неполные вещи и экземпляры с неродными деталями под восстановление.', en: 'Buys incomplete pieces and examples with replacement parts as restoration projects.' },
+    description: { ru: 'Берёт неполные, изношенные и повреждённые экземпляры под восстановление.', en: 'Buys incomplete, worn and damaged examples as restoration projects.' },
     multiplier: 1.32,
-    traitIds: ['replacement-parts', 'incomplete'],
+    traitIds: ['replacement-parts', 'incomplete', 'water-damage', 'heavy-wear'],
   },
   {
     id: 'authenticity-gambler',
