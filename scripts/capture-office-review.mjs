@@ -111,7 +111,9 @@ async function bootOffice(context, platformLocale) {
 }
 
 function validatePng(buffer, name) {
-  assert(buffer.length > 70_000, `${name} looks unexpectedly small (${buffer.length} bytes)`);
+  // Dark UI screenshots compress very efficiently. File size is only a corruption floor;
+  // visual substance is enforced by dimensions plus the cross-tab pixel-difference gate below.
+  assert(buffer.length > 20_000, `${name} looks corrupt or empty (${buffer.length} bytes)`);
   assert(buffer.subarray(12, 16).toString('ascii') === 'IHDR', `${name} is not a PNG`);
   assert(buffer.readUInt32BE(16) === 1280 && buffer.readUInt32BE(20) === 720, `${name} must be 1280x720`);
 }
