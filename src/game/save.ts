@@ -1,4 +1,5 @@
 import { ITEM_BY_ID } from '../data/catalog';
+import { DISCOVERY_CHAIN_BY_ID } from '../data/discoveryChains';
 import { isItemTraitId, itemTraitsFor } from '../data/itemTraits';
 import type {
   AuctionHistoryEntry,
@@ -7,6 +8,7 @@ import type {
   PlayerSave,
   RestorationGrade,
 } from '../domain/types';
+import { normalizeDiscoveryProgress } from '../domain/discovery';
 import { AUCTION_HISTORY_LIMIT } from '../domain/history';
 
 export const SAVE_STORAGE_KEY = 'auction-hunter.save.v1';
@@ -24,6 +26,8 @@ const DEFAULT_SAVE: PlayerSave = {
   collection: [],
   collectionItems: [],
   claimedSetRewards: [],
+  discoveryChainProgress: {},
+  claimedDiscoveryChainRewards: [],
   reputationXp: 0,
   lastDailyCompletedDay: null,
   onboardingComplete: false,
@@ -47,6 +51,8 @@ export function createDefaultSave(): PlayerSave {
     collection: [],
     collectionItems: [],
     claimedSetRewards: [],
+    discoveryChainProgress: {},
+    claimedDiscoveryChainRewards: [],
     contractProgress: {},
     claimedContractRewards: [],
     claimedAchievements: [],
@@ -70,6 +76,9 @@ export function normalizeSave(value: unknown): PlayerSave {
     collection,
     collectionItems,
     claimedSetRewards: cleanStringArray(value.claimedSetRewards),
+    discoveryChainProgress: cleanDiscoveryProgress(value.discoveryChainProgress),
+    claimedDiscoveryChainRewards: cleanStringArray(value.claimedDiscoveryChainRewards)
+      .filter((id) => DISCOVERY_CHAIN_BY_ID.has(id)),
     reputationXp: cleanNonNegativeNumber(value.reputationXp),
     lastDailyCompletedDay: cleanNullableString(value.lastDailyCompletedDay),
     onboardingComplete: value.onboardingComplete === true,
@@ -204,6 +213,17 @@ function cleanNumberRecord(value: unknown): Record<string, number> {
       .filter(([, amount]) => typeof amount === 'number' && Number.isFinite(amount))
       .map(([key, amount]) => [key, Math.max(0, amount as number)]),
   );
+}
+
+function cleanDiscoveryProgress(value: unknown): Record<string, number> {
+  if (!isRecord(value)) return {};
+  const result: Record<string, number> = {};
+  for (const [chainId, progress] of Object.entries(value)) {
+    const chain = DISCOVERY_CHAIN_BY_ID.get(chainId);
+    if (!chain || typeof progress !== 'number') continue;
+    result[chainId] = normalizeDiscoveryProgress(progress, chain.steps.length);
+  }
+  return result;
 }
 
 function cleanBusinessUpgrades(value: unknown): BusinessUpgradeState {
