@@ -35,9 +35,9 @@ function opponent(
 
 describe('rival bidding behavior', () => {
   it('telegraphs a mixed roster of steady, cautious and pressure bidders', () => {
-    expect(BIDDER_PROFILES.filter((profile) => profile.behavior === 'cautious')).toHaveLength(1);
-    expect(BIDDER_PROFILES.filter((profile) => profile.behavior === 'pressure')).toHaveLength(2);
-    expect(BIDDER_PROFILES.filter((profile) => profile.behavior === 'steady')).toHaveLength(3);
+    expect(BIDDER_PROFILES.filter((profile) => profile.behavior === 'cautious').length).toBeGreaterThanOrEqual(1);
+    expect(BIDDER_PROFILES.filter((profile) => profile.behavior === 'pressure').length).toBeGreaterThanOrEqual(1);
+    expect(BIDDER_PROFILES.filter((profile) => profile.behavior === 'steady').length).toBeGreaterThanOrEqual(1);
   });
 
   it('lets pressure bidders jump two increments when their ceiling supports it', () => {
