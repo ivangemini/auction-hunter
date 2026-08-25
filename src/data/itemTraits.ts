@@ -1,4 +1,5 @@
 import type { ItemCategory, ItemDefinition, ItemTraitId, Locale, LocalizedText, Rarity } from '../domain/types';
+import { jackpotTraitBonusMultiplier } from './jackpotVariants';
 
 export interface ItemTraitDefinition {
   id: ItemTraitId;
@@ -219,8 +220,9 @@ export function rollItemTraits(item: ItemDefinition, random: () => number = Math
 }
 
 export function itemTraitValueMultiplier(traitIds: readonly ItemTraitId[]): number {
-  const multiplier = traitIds.reduce((value, id) => value * ITEM_TRAITS[id].valueMultiplier, 1);
-  return Math.min(1.7, Math.max(0.5, multiplier));
+  const baseMultiplier = traitIds.reduce((value, id) => value * ITEM_TRAITS[id].valueMultiplier, 1);
+  const multiplier = baseMultiplier * jackpotTraitBonusMultiplier(traitIds);
+  return Math.min(1.85, Math.max(0.5, multiplier));
 }
 
 export function itemTraitNames(itemId: string, locale: Locale): string[] {
