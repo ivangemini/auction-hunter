@@ -100,11 +100,11 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
         clue: { ru: 'Найти кассетный плеер с выцветшим номером мастерской.', en: 'Find the cassette player with a faded workshop number.' },
       },
       {
-        itemId: 'pocket-radio',
-        clue: { ru: 'Сопоставить номер с карманным радиоприёмником.', en: 'Match the number to a pocket radio.' },
+        itemId: 'portable-radio',
+        clue: { ru: 'Сопоставить номер с переносным радиоприёмником.', en: 'Match the number to a portable radio.' },
       },
       {
-        itemId: 'pocket-television',
+        itemId: 'pocket-tv',
         clue: { ru: 'Закрыть цепочку редким карманным телевизором.', en: 'Finish the broadcast trail with the pocket television.' },
       },
     ],
