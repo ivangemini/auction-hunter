@@ -1,8 +1,8 @@
 import type { LotModifierDefinition } from '../domain/lotModifier';
 import type { AuctionTierId } from './tiers';
 
-export const VIP_AUCTION_MIN_REP = 650;
-export const VIP_AUCTION_CADENCE = 5;
+export const VIP_AUCTION_MIN_REP = 420;
+export const VIP_AUCTION_CADENCE = 4;
 
 export const VIP_AUCTION_MODIFIER: LotModifierDefinition = {
   id: 'vip-invitation',
