@@ -100,9 +100,25 @@ function renderAuctionCharacters(scene: CharacterRuntime): void {
 }
 
 function renderAuctioneerHeader(scene: CharacterRuntime): void {
-  const portrait = addCharacterPortrait(scene, 'auctioneer', 713, 69, 62, 78, 0xe9b949);
+  // Keep the auctioneer as a visible show host, not a tiny decorative avatar.
+  const plate = scene.add.rectangle(704, 72, 116, 112, 0x0b1016, 0.94).setStrokeStyle(2, 0xe9b949, 0.42);
+  scene.add.rectangle(704, 118, 104, 22, 0x17130b, 0.94).setStrokeStyle(1, 0xe9b949, 0.35);
+  scene.add.text(704, 118, scene.locale === 'ru' ? 'ВЕДУЩИЙ' : 'AUCTIONEER', {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '9px',
+    fontStyle: 'bold',
+    color: '#f0c969',
+  }).setOrigin(0.5);
+  const portrait = addCharacterPortrait(scene, 'auctioneer', 704, 66, 96, 118, 0xe9b949);
   if (!prefersReducedMotion()) {
-    scene.tweens.add({ targets: portrait, y: 67, duration: 950, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    scene.tweens.add({
+      targets: [portrait, plate],
+      y: '-=2',
+      duration: 980,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.InOut',
+    });
   }
 }
 
