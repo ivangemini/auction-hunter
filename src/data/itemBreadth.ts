@@ -96,7 +96,7 @@ export const BREADTH_COLLECTION_SETS: readonly CollectionSetDefinition[] = [
     perk: { description: { ru: '+2% к продаже электроники и инструментов', en: '+2% quick-sale value for electronics and tools' }, categories: ['electronics', 'tools'], resaleRateBonus: 0.02 },
   },
   {
-    id: 'voyager-relics', name: { ru: 'Реликвии путешественника', en: 'Voyager Relics' },
+    id: 'voyager-relics', name: { ru: 'Реликвии странника', en: 'Voyager Relics' },
     itemIds: ['expedition-medal', 'cameo-locket', 'pilot-watch'], reward: 5400,
     perk: { description: { ru: '+2% к продаже коллекционных вещей и часов', en: '+2% quick-sale value for collectibles and watches' }, categories: ['collectibles', 'watches'], resaleRateBonus: 0.02 },
   },
