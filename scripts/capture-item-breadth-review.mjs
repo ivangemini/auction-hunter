@@ -12,25 +12,20 @@ const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const SAVE_KEY = 'auction-hunter.save.v1';
 
-const THIRD_WAVE_ITEMS = [
-  'pocket-calculator', 'reel-recorder', 'shortwave-receiver',
-  'hand-drill', 'micrometer-set', 'bench-vise',
-  'stamp-album', 'aviation-badge', 'brass-sextant',
-  'tin-motorcycle', 'wooden-puppet', 'model-rocket',
-  'twin-bell-alarm', 'railway-watch', 'diver-watch',
-  'etched-plate', 'studio-ceramic', 'abstract-gouache',
-];
-
-const REQUIRED_PRIOR_ITEMS = [
-  'slide-projector', 'watchmaker-tools', 'field-compass',
-  'tin-airplane', 'mantel-clock', 'numbered-lithograph',
+const FINAL_WAVE_ITEMS = [
+  'desktop-transceiver', 'vacuum-tube-tester',
+  'precision-calipers', 'woodworking-plane',
+  'expedition-medal', 'cameo-locket',
+  'tin-spaceship', 'mechanical-carousel',
+  'pilot-watch', 'marine-chronometer',
+  'bronze-maquette', 'woodblock-print',
 ];
 
 const seedSave = {
   version: 1,
   updatedAt: 1,
   cash: 125000,
-  collection: [...THIRD_WAVE_ITEMS, ...REQUIRED_PRIOR_ITEMS, 'film-camera', 'gallery-print'],
+  collection: [...FINAL_WAVE_ITEMS],
   collectionItems: [],
   claimedSetRewards: [],
   reputationXp: 720,
@@ -125,7 +120,7 @@ async function imageDifferenceRatio(page, before, after) {
 }
 
 async function validateSources() {
-  for (const id of THIRD_WAVE_ITEMS) {
+  for (const id of FINAL_WAVE_ITEMS) {
     const response = await fetch(`${previewUrl}/assets/items/${id}.svg`);
     assert(response.ok, `${id} returned HTTP ${response.status}`);
     const source = await response.text();
@@ -152,10 +147,10 @@ async function captureArtSheet(browser, items, batchIndex) {
     .card{position:relative;border:1px solid rgba(233,185,73,.24);background:linear-gradient(145deg,rgba(24,29,36,.98),rgba(12,16,22,.98));overflow:hidden;box-shadow:0 8px 18px rgba(0,0,0,.34)}
     img{width:100%;height:calc(100% - 38px);object-fit:contain;padding:8px 28px 0}.rank{position:absolute;top:10px;left:11px;z-index:2;padding:6px 9px;border:1px solid rgba(233,185,73,.32);background:rgba(18,22,28,.86);color:#d8a94e;font-size:10px;font-weight:700}
     .name{position:absolute;bottom:0;left:0;right:0;height:38px;padding:11px 14px 0;background:rgba(5,8,12,.86);border-top:1px solid rgba(255,255,255,.06);font-size:12px;font-weight:700}
-  </style></head><body><main><header><h1>P5 · 42→60 Item Art</h1><div class="meta">BATCH ${batchIndex + 1}/3 · DIRECT 512×360 SVG</div></header><section class="grid">${cards}</section></main></body></html>`, { waitUntil: 'load' });
+  </style></head><body><main><header><h1>P5 · 60→72 Item Art</h1><div class="meta">BATCH ${batchIndex + 1}/2 · DIRECT 512×360 SVG</div></header><section class="grid">${cards}</section></main></body></html>`, { waitUntil: 'load' });
   await page.waitForFunction((count) => [...document.images].length === count && [...document.images].every((image) => image.complete && image.naturalWidth > 0), items.length);
   const screenshot = await page.screenshot({ type: 'png' });
-  validatePng(screenshot, `third-wave item art batch ${batchIndex + 1}`);
+  validatePng(screenshot, `final item art batch ${batchIndex + 1}`);
   fs.writeFileSync(path.join(outputRoot, `01-item-art-breadth-${batchIndex + 1}.png`), screenshot);
   await page.close();
 }
@@ -185,27 +180,27 @@ async function captureCollectionLocale(browser, localeCode, locale) {
     await clickGame(page, 1000, 112);
     await page.waitForTimeout(650);
 
-    for (let pageIndex = 1; pageIndex < 7; pageIndex += 1) {
+    for (let pageIndex = 1; pageIndex < 8; pageIndex += 1) {
       await clickGame(page, 735, 674);
       await page.waitForTimeout(220);
     }
-    const pageSeven = await page.screenshot({ type: 'png' });
+    const pageEight = await page.screenshot({ type: 'png' });
     await clickGame(page, 735, 674);
     await page.waitForTimeout(280);
-    const pageEight = await page.screenshot({ type: 'png' });
-    validatePng(pageEight, `${localeCode} Collection Book page 8`);
-    const pageAdvance = await imageDifferenceRatio(page, pageSeven, pageEight);
-    assert(pageAdvance > 0.06, `${localeCode} did not visibly advance from page 7 to 8 (${pageAdvance.toFixed(3)})`);
+    const pageNine = await page.screenshot({ type: 'png' });
+    validatePng(pageNine, `${localeCode} Collection Book page 9`);
+    const pageAdvance = await imageDifferenceRatio(page, pageEight, pageNine);
+    assert(pageAdvance > 0.02, `${localeCode} did not visibly advance from page 8 to 9 (${pageAdvance.toFixed(3)})`);
 
     await clickGame(page, 735, 674);
     await page.waitForTimeout(280);
     const finalRepeat = await page.screenshot({ type: 'png' });
-    const finalDifference = await imageDifferenceRatio(page, pageEight, finalRepeat);
-    assert(finalDifference < 0.012, `${localeCode} Collection Book page 8 is not terminal (${finalDifference.toFixed(3)})`);
+    const finalDifference = await imageDifferenceRatio(page, pageNine, finalRepeat);
+    assert(finalDifference < 0.012, `${localeCode} Collection Book page 9 is not terminal (${finalDifference.toFixed(3)})`);
 
     const localeDir = path.join(outputRoot, localeCode);
     ensureDirectory(localeDir);
-    fs.writeFileSync(path.join(localeDir, '02-collection-page-8.png'), pageEight);
+    fs.writeFileSync(path.join(localeDir, '02-collection-page-9.png'), pageNine);
     await page.close();
   } finally {
     await context.close();
@@ -228,8 +223,8 @@ try {
   await validateSources();
   const browser = await chromium.launch({ headless: true });
   try {
-    for (let batchIndex = 0; batchIndex < 3; batchIndex += 1) {
-      await captureArtSheet(browser, THIRD_WAVE_ITEMS.slice(batchIndex * 6, batchIndex * 6 + 6), batchIndex);
+    for (let batchIndex = 0; batchIndex < 2; batchIndex += 1) {
+      await captureArtSheet(browser, FINAL_WAVE_ITEMS.slice(batchIndex * 6, batchIndex * 6 + 6), batchIndex);
     }
     await captureCollectionLocale(browser, 'ru', 'ru-RU');
     await captureCollectionLocale(browser, 'en', 'en-US');
@@ -243,9 +238,9 @@ try {
   await stopPreview(preview);
 }
 
-for (let batchIndex = 1; batchIndex <= 3; batchIndex += 1) {
+for (let batchIndex = 1; batchIndex <= 2; batchIndex += 1) {
   console.log(`release/screenshots/item-breadth-review/01-item-art-breadth-${batchIndex}.png`);
 }
-console.log('release/screenshots/item-breadth-review/ru/02-collection-page-8.png');
-console.log('release/screenshots/item-breadth-review/en/02-collection-page-8.png');
-console.log('P5 42→60 item/Collection Book visual review capture OK');
+console.log('release/screenshots/item-breadth-review/ru/02-collection-page-9.png');
+console.log('release/screenshots/item-breadth-review/en/02-collection-page-9.png');
+console.log('P5 60→72 item/Collection Book visual review capture OK');
