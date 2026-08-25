@@ -30,6 +30,7 @@ const save: PlayerSave = {
   auctionHistory: [],
   buyerMarketDayKey: null,
   claimedBuyerOfferIds: [],
+  claimedCollectorRequests: [],
   discoveryChainProgress: {},
   discoveryChainLastAuction: {},
   completedDiscoveryChains: [],
