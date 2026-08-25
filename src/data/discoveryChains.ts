@@ -87,6 +87,78 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
     rewardCash: 2800,
     rewardReputationXp: 65,
   },
+  {
+    id: 'dead-air-broadcast',
+    title: { ru: 'Мёртвый эфир', en: 'Dead Air Broadcast' },
+    premise: {
+      ru: 'Одинаковая сервисная наклейка всплывает на технике из трёх разных складов.',
+      en: 'The same service sticker keeps appearing on electronics from three unrelated storage lots.',
+    },
+    steps: [
+      {
+        itemId: 'cassette-player',
+        clue: { ru: 'Найти кассетный плеер с выцветшим номером мастерской.', en: 'Find the cassette player with a faded workshop number.' },
+      },
+      {
+        itemId: 'pocket-radio',
+        clue: { ru: 'Сопоставить номер с карманным радиоприёмником.', en: 'Match the number to a pocket radio.' },
+      },
+      {
+        itemId: 'pocket-television',
+        clue: { ru: 'Закрыть цепочку редким карманным телевизором.', en: 'Finish the broadcast trail with the pocket television.' },
+      },
+    ],
+    rewardCash: 2100,
+    rewardReputationXp: 50,
+  },
+  {
+    id: 'workshop-estate',
+    title: { ru: 'Мастерская без хозяина', en: 'The Abandoned Workshop' },
+    premise: {
+      ru: 'Набор меток владельца ведёт от обычного инструмента к профессиональному рабочему месту.',
+      en: 'A set of owner marks leads from ordinary tools toward a complete professional workbench.',
+    },
+    steps: [
+      {
+        itemId: 'toolbox',
+        clue: { ru: 'Начать со старого ящика с выгравированными инициалами.', en: 'Start with the old toolbox carrying engraved initials.' },
+      },
+      {
+        itemId: 'multimeter',
+        clue: { ru: 'Найти измеритель с теми же отметками ремонта.', en: 'Find the multimeter with matching repair marks.' },
+      },
+      {
+        itemId: 'soldering-station',
+        clue: { ru: 'Найти главный предмет мастерской — паяльную станцию.', en: 'Locate the workshop centerpiece: the soldering station.' },
+      },
+    ],
+    rewardCash: 2000,
+    rewardReputationXp: 48,
+  },
+  {
+    id: 'estate-correspondence',
+    title: { ru: 'Последнее письмо', en: 'The Last Letter' },
+    premise: {
+      ru: 'Письменные принадлежности и книга из разных лотов указывают на архив одного владельца.',
+      en: 'Writing tools and a book from separate auctions point back to one private archive.',
+    },
+    steps: [
+      {
+        itemId: 'fountain-pen',
+        clue: { ru: 'Найти перьевую ручку с личной гравировкой.', en: 'Find the fountain pen with a personal engraving.' },
+      },
+      {
+        itemId: 'first-edition-book',
+        clue: { ru: 'Отыскать первое издание с заметкой тем же почерком.', en: 'Locate the first-edition book annotated in the same hand.' },
+      },
+      {
+        itemId: 'manual-typewriter',
+        clue: { ru: 'Завершить архив печатной машинкой владельца.', en: "Complete the archive with the owner's manual typewriter." },
+      },
+    ],
+    rewardCash: 2500,
+    rewardReputationXp: 60,
+  },
 ];
 
 export const DISCOVERY_CHAIN_BY_ID = new Map(
