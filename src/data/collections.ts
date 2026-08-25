@@ -157,6 +157,50 @@ export const COLLECTION_SETS: CollectionSetDefinition[] = [
       resaleRateBonus: 0.04,
     },
   },
+  {
+    id: 'signal-hunters',
+    name: { ru: 'Охотники за сигналом', en: 'Signal Hunters' },
+    itemIds: ['portable-radio', 'pocket-tv', 'binoculars', 'telescope'],
+    reward: 1900,
+    perk: {
+      description: { ru: '+2% к продаже электроники и редкостей', en: '+2% quick-sale value for electronics and collectibles' },
+      categories: ['electronics', 'collectibles'],
+      resaleRateBonus: 0.02,
+    },
+  },
+  {
+    id: 'analog-studio',
+    name: { ru: 'Аналоговая студия', en: 'Analog Studio' },
+    itemIds: ['film-camera', 'instant-camera', 'manual-typewriter', 'signed-vinyl'],
+    reward: 2100,
+    perk: {
+      description: { ru: '+2% к продаже электроники и искусства', en: '+2% quick-sale value for electronics and art' },
+      categories: ['electronics', 'art'],
+      resaleRateBonus: 0.02,
+    },
+  },
+  {
+    id: 'precision-desk',
+    name: { ru: 'Стол мастера', en: 'Precision Desk' },
+    itemIds: ['fountain-pen', 'brass-clock', 'chronograph-watch', 'soldering-station'],
+    reward: 2400,
+    perk: {
+      description: { ru: '+2% к продаже часов, инструментов и редкостей', en: '+2% quick-sale value for watches, tools and collectibles' },
+      categories: ['watches', 'tools', 'collectibles'],
+      resaleRateBonus: 0.02,
+    },
+  },
+  {
+    id: 'midnight-gallery',
+    name: { ru: 'Полуночная галерея', en: 'Midnight Gallery' },
+    itemIds: ['gallery-print', 'art-deco-lamp', 'porcelain-figurine', 'signed-poster', 'master-study'],
+    reward: 3000,
+    perk: {
+      description: { ru: '+3% к продаже искусства и редкостей', en: '+3% quick-sale value for art and collectibles' },
+      categories: ['art', 'collectibles'],
+      resaleRateBonus: 0.03,
+    },
+  },
 ];
 
 export function uniqueCollectionCount(collectionIds: readonly string[]): number {
