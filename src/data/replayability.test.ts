@@ -12,7 +12,7 @@ describe('replayability floor', () => {
   it('keeps enough configured variety for repeated auction sessions', () => {
     expect(ITEMS.length).toBeGreaterThanOrEqual(36);
     expect(ALL_LOTS.length).toBeGreaterThanOrEqual(42);
-    expect(COLLECTION_SETS.length).toBeGreaterThanOrEqual(20);
+    expect(COLLECTION_SETS.length).toBeGreaterThanOrEqual(24);
     expect(AUCTION_TIERS).toHaveLength(3);
 
     for (const tier of AUCTION_TIERS) {
