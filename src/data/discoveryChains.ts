@@ -34,10 +34,10 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'military-watch',
-        alternativeItemIds: ['wristwatch'],
+        alternativeItemIds: ['chronograph-watch'],
         clue: {
-          ru: 'Сверить метку на военных или других механических наручных часах.',
-          en: 'Cross-check the mark on a military or another mechanical wristwatch.',
+          ru: 'Сверить метку на военных часах или механическом хронографе.',
+          en: 'Cross-check the mark on either the military watch or a mechanical chronograph.',
         },
       },
       {
@@ -62,10 +62,10 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'preproduction-figure',
-        alternativeItemIds: ['prototype-robot'],
+        alternativeItemIds: ['clockwork-automaton'],
         clue: {
-          ru: 'Пойти по одной из двух веток: предсерийная фигурка или ранний робот с тем же клеймом.',
-          en: 'Follow either branch: a pre-production figure or an early robot carrying the same maker mark.',
+          ru: 'Пойти по одной из двух веток: предсерийная фигурка или заводной автомат с тем же клеймом.',
+          en: 'Follow either branch: the pre-production figure or a clockwork automaton carrying the same maker mark.',
         },
       },
       {
@@ -90,10 +90,10 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'signed-poster',
-        alternativeItemIds: ['signed-photo'],
+        alternativeItemIds: ['signed-vinyl'],
         clue: {
-          ru: 'Сверить подпись по редкому постеру или подписанной фотографии.',
-          en: 'Cross-check the signature through either a rare poster or a signed photograph.',
+          ru: 'Сверить подпись по редкому постеру или подписанной пластинке.',
+          en: 'Cross-check the signature through either a rare poster or a signed record.',
         },
       },
       {
@@ -142,11 +142,7 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'multimeter',
-        alternativeItemIds: ['precision-caliper'],
-        clue: {
-          ru: 'Продолжить через измеритель или точный штангенциркуль с теми же отметками.',
-          en: 'Continue through either the multimeter or precision caliper carrying the same marks.',
-        },
+        clue: { ru: 'Найти измеритель с теми же отметками ремонта.', en: 'Find the multimeter with matching repair marks.' },
       },
       {
         itemId: 'soldering-station',
@@ -170,11 +166,7 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'first-edition-book',
-        alternativeItemIds: ['annotated-manuscript'],
-        clue: {
-          ru: 'Выбрать ветку архива: первое издание или рукопись с тем же почерком.',
-          en: 'Follow either archive branch: a first edition or an annotated manuscript in the same hand.',
-        },
+        clue: { ru: 'Отыскать первое издание с заметкой тем же почерком.', en: 'Locate the first-edition book annotated in the same hand.' },
       },
       {
         itemId: 'manual-typewriter',
