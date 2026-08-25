@@ -72,7 +72,7 @@
 - [x] Keep all new lot clues truthful and all new items represented in at least one collection set.
 - [x] Raise automated content/replayability floors to the expanded catalog.
 - [x] Run economy simulation and browser/release CI against the expanded pack plus Buyer Market/per-copy traits.
-- [ ] During/after first moderation, continue breadth toward roughly 72 items / 42 lots / 24 sets rather than stopping development at the first submitted build.
+- [ ] During campaign production, expand toward roughly 72 items / 42 lots / 24 sets; new content should primarily support authored campaign beats, special auctions and discoveries rather than raw breadth.
 
 ## P6 — retention and trading depth
 - [x] Stable collectible traits/provenance tags for selected item identities.
@@ -87,73 +87,86 @@
 - [x] Deeper restoration choices with distinct safe/pro/risky paths.
 - [x] Persistent rival-dealer specialties and learned behavior.
 - [x] Collection-set perks unlock lasting category expertise after reward claim; expertise is derived from existing `claimedSetRewards`, stacks with Warehouse quick-sale rates and remains capped below Buyer Market premiums.
-- [x] Legendary multi-auction discovery chains.
-  - [x] Foundation: authored ordered trails, additive v1 save persistence, one-step-per-auction pacing, Sell/Keep discovery hooks, one-time cash/REP completion rewards and typed analytics.
-  - [x] Player-facing Discovery Board, next-lead progression, in-loop completion/reward feedback and RU/EN production visual QA without leaking hidden lot contents.
+- [x] Legendary multi-auction discovery chains with a player-facing Discovery Board.
 
 ## P7 — visual identity and game-feel overhaul
-This pass is a product-quality priority, not optional decoration. Complete it before treating the game as visually release-complete or expanding content indefinitely.
-
-- [x] Add a repository-level visual/game-design skill and screenshot review checklist; require it from agent instructions for player-facing work.
-- [x] Raise `ART_DIRECTION.md` from palette/asset guidance to explicit composition, hierarchy, interaction and visual-acceptance rules.
-- [x] Establish shared visual tokens/helpers for surfaces, typography roles, buttons, chips, elevation, lighting and motion durations; `src/game/visual.ts` now complements the existing shared button/motion layer.
-- [x] Redesign lot selection first: larger authored environment art, stronger lot identity, physical auction-card language, compact clue/status treatment and richer selected/hover states.
-- [x] Redesign auction presentation: stronger current-bid focal point, visible rival presence/tells, environmental depth and bid/win/loss feedback.
-- [x] Add visible human character identity to the core loop: mentor-led first-session briefing, auctioneer presence and authored Victor/Mira/Anton portraits with RU/EN contextual coaching on the real lot-selection, bidding and reveal/appraisal flow.
-- [x] Redesign reveal + appraisal flow around the item as a hero visual with staged reveal, rarity/value feedback and less dashboard-like metadata.
-- [x] Redesign restoration so condition, tool/strategy choice and result feel tactile rather than form-like.
-- [x] Redesign Collection Book and Buyer Market with stronger collectible/buyer identity, set-progress visualization, concrete-copy hero treatment, premium-sale feedback and dedicated RU/EN visual-review captures.
-- [x] Bring Business Office, contracts, upgrades, achievements, statistics, history and settings onto the shared P7 visual system with distinct content hierarchy and dedicated RU/EN visual-review captures.
-- [x] Upgrade the schematic lot/item art to the authored P7 fidelity floor while preserving semantic asset IDs and coverage tests.
-  - [x] First item-fidelity batch: nine high-visibility reveal/restoration finds upgraded with authored 512×360 vector art plus deterministic 3×3 CI visual review.
-  - [x] Second item-fidelity batch: nine more electronics, collectibles, watch, optics and paper/metal finds upgraded; CI permanently reviews Batch 01 and Batch 02 as separate 3×3 contact sheets.
-  - [x] Third item-fidelity batch: nine mixed prototype/electronics/paper/toy/optics identities upgraded and added to the persistent review gate.
-  - [x] Fourth item-fidelity batch: final nine jewelry/watch/electronics/rail/writing/music identities upgraded; all 36 catalog item identities now meet the accepted P7 fidelity floor.
-  - [x] Environment fidelity: all nine semantic lot environments meet the P7 floor — three Estate WebPs plus upgraded Garage/Collector SVGs — with deterministic 3×2 Garage/Collector CI visual review.
+- [x] Repository-level visual/game-design skill and screenshot review checklist.
+- [x] Explicit commercial art direction, shared visual tokens and redesigned core screens.
+- [x] Visible character identity in the core loop and authored portraits for the first character set.
+- [x] Authored P7 fidelity floor for all 36 current item identities and all nine semantic lot environments.
 - [ ] Add restrained game-feel polish across important actions: press/selection response, number tweens, reveal highlights, particles/reactions and staged transitions with reduced-motion support.
-- [x] Add production screenshot review as an explicit acceptance step for each major screen family and keep desktop + mobile-landscape captures visually credible.
-  - [x] Add a true compact 844×390 RU/EN mobile+touch gate for lot selection, active bidding, Collection Book, Discovery Board, Buyer Market and Business Office; validate FIT canvas/orientation behavior and inspect the generated CI artifact.
-  - [x] Extend compact mobile-landscape evidence to reveal/appraisal/restoration and inspect the generated RU/EN CI artifact before closing the overall acceptance item.
+- [x] Desktop + compact 844×390 RU/EN production screenshot gates for major screen families.
 
 ## P8 — systemic replayability and long-horizon depth — COMPLETE
-P8 builds on existing systems rather than adding duplicate daily/meta layers. Implementation acceptance is enforced by `src/data/p8Acceptance.test.ts`, long-horizon simulation and the existing browser/mobile production gates. Detailed contract: `SYSTEMIC_REPLAYABILITY.md`.
+P8 builds on existing systems rather than adding duplicate daily/meta layers. Acceptance is enforced by `src/data/p8Acceptance.test.ts`, long-horizon simulation and browser/mobile production gates. Detailed contract: `SYSTEMIC_REPLAYABILITY.md`.
 
-### P8.1 — Rival depth
-- [x] Expand the persistent rival roster to 8 authored dealers with category-aware selection.
-- [x] Every added dealer has authored RU/EN identity, specialties and readable weakness rather than being a numeric reskin.
-- [x] Rival relationship state records encounters/wins/losses and unlocks dossier knowledge without revealing exact max bids.
-- [x] Rare rival-specific signature behaviors remain bounded by normal generated bid ceilings.
+- [x] Eight authored persistent rivals with dossier knowledge and bounded signature behaviors.
+- [x] Seventeen risk/reward lot modifiers and persistent category market trends.
+- [x] Multi-auction Collector Requests for exact concrete inventory copies.
+- [x] Sealed Storage and VIP Collector special-auction rulesets.
+- [x] Seven Discovery cases including branching and a five-stage/two-branch case.
+- [x] Ultra-rare provenance jackpots and persistent collection discovery records.
+- [x] 30/60/120-minute long-run economy/replayability gates.
+- [x] Prestige evaluated and deferred until post-release late-game telemetry justifies a reset loop.
 
-### P8.2 — Market events and auction variation
-- [x] Maintain a visible rare-event foundation and expand it to 17 risk/reward lot modifiers.
-- [x] Persistent category market trends last several auctions with an explicit remaining-duration indicator.
-- [x] Buyer Market, rival valuation and lot selection react to trends without exposing hidden item identities.
-- [x] Explicit market-trend analytics attribution separates trend effects from normal modifiers.
+## P9 — campaign and gameplay expansion — ACTIVE
+P9 turns Auction Hunter from a primarily systemic endless auction game into a structured treasure-hunting campaign. Target: roughly 6–10 hours of authored campaign progression followed by the existing P8 systems as endgame. Story beats must create gameplay decisions; do not build a dialogue-only visual novel on top of the auction loop.
 
-### P8.3 — Collector Requests
-- [x] Multi-auction requests can demand category, traits, condition thresholds or combinations.
-- [x] Exact qualifying concrete inventory copies fulfill requests at bounded premiums without duplicating daily Buyer Market claims.
-- [x] Common, demanding and rare request tiers rotate with explicit expiry and legacy-safe persistence.
-- [x] Request relevance is surfaced inside Buyer Market without leaking active-lot hidden contents.
+### P9.1 — Campaign foundation and story bible
+- [ ] Add a data-driven campaign domain: five chapters, authored missions, prerequisites, objective types, rewards and legacy-safe progress persistence.
+- [ ] Establish the central mystery: fragments of the vanished collector Aleksandr Veyr's Black Ledger collection are surfacing through estate clearances and private auctions.
+- [ ] Define the five-act arc: First Flip -> Estate Trail -> Dealer War -> Closed Circle -> The Lost Collection.
+- [ ] Reuse existing REP/tier unlocks but allow campaign missions to create additional authored gates and one-off opportunities.
+- [ ] Add campaign analytics for chapter/mission start, completion, branch choice and failure/abandonment without recording hidden future outcomes.
+- [ ] Add deterministic campaign integrity tests: no dead mission prerequisites, all referenced items/rivals/locations exist, both RU/EN copy paths resolve.
 
-### P8.4 — Special auction rulesets
-- [x] Sealed Storage changes the information/risk envelope before bidding.
-- [x] VIP Collector auctions add stronger late-game economics and bounded rival pressure on an occasional cadence.
-- [x] Both formats reuse normal reveal/appraisal/restoration/collection/trading progression instead of creating a parallel game.
+### P9.2 — Narrative Office hub
+- [ ] Expand Business Office into the campaign headquarters without replacing its current upgrades/contracts/statistics functionality.
+- [ ] Add an Investigation Wall showing the Black Ledger trail, discovered evidence, active mission and chapter progress.
+- [ ] Add Inbox/Phone contacts for authored rival/mentor/collector messages and invitations.
+- [ ] Add campaign mission briefing cards with objective, known risk, optional objective and visible reward.
+- [ ] Keep hub navigation compact-landscape safe and add deterministic RU/EN visual captures.
 
-### P8.5 — Discovery, jackpots and completionism
-- [x] Discovery Board expanded to 7 cases, including branching leads and a five-stage/two-branch long case.
-- [x] Ultra-rare provenance/variant combinations create bounded jackpot stories without a cosmetic Mythic tier.
-- [x] Collection history persists identities discovered, best condition/value and discovered variant breadth independently of current inventory.
+### P9.3 — Campaign mission gameplay
+- [ ] Add mission objectives beyond simply winning one lot: identify the correct lot from evidence, acquire linked items under a total budget, detect/avoid a fake, deliberately track a rival-owned item, preserve an item instead of selling it, and win with a capped bid.
+- [ ] Add multi-lot mission sessions where budget carries across 2–4 consecutive lots and buying everything is intentionally impossible.
+- [ ] Add authored inspection choices before selected story auctions; information has an opportunity/cash cost and never exposes exact hidden value for free.
+- [ ] Add off-auction negotiation encounters using concrete owned items/cash/reputation as stakes.
+- [ ] Add optional mission objectives that alter rewards/relationships rather than blocking the campaign.
+- [ ] Ensure mission rules reuse normal reveal, appraisal, restoration, collection and Buyer Market systems wherever possible.
 
-### P8.6 — Long-run progression gate
-- [x] Reputation cadence now layers Estate, Sealed, Advanced Inspection, Collector and VIP milestones onto the existing REP track.
-- [x] Prestige/New Game+ has been evaluated and explicitly deferred to a separate post-release milestone until telemetry shows players repeatedly reaching late game.
-- [x] Deterministic 30/60/120-minute systemic simulations protect solvency, category diversity, VIP cadence and runaway-cash bounds.
+### P9.4 — Character arcs and consequential choices
+- [ ] Promote 4–5 existing dealers/characters into campaign principals with authored arcs rather than introducing an entirely separate cast.
+- [ ] Extend relationships from learned bidding behavior into bounded campaign states: trust, rivalry and debt/favor.
+- [ ] Add meaningful branch choices at chapter turning points; choices change later mission access, assistance, information or rival pressure rather than only dialogue text.
+- [ ] Keep exact NPC bid ceilings hidden regardless of relationship level.
+- [ ] Add at least two alternative approaches to a late-campaign mission and at least two epilogue states.
 
-### P8 acceptance
-- [x] P8 responsibilities remain inside existing Auction, Buyer Market, Collection, Discovery and Office systems; no duplicate daily/meta loop was introduced.
-- [x] New persistent systems have RU/EN copy, legacy-safe save behavior, typed analytics and deterministic tests; player-facing surfaces remain under existing compact-landscape/browser production gates.
-- [x] Strategy regression gates prevent a single-category collapse and preserve the existing force-win risk constraint; hoarding is countered by concrete-copy trading, Collector Requests and collection quick-sale exits.
+### P9.5 — Story auctions and locations
+- [ ] Build authored one-off auction rulesets for campaign beats: counterfeit table, closed invitation auction, linked-lot estate sale and final multi-lot auction.
+- [ ] Add at least 6 campaign-specific environments/hero compositions with semantic asset IDs and authored lighting/props.
+- [ ] Generate/author new item art and environmental textures continuously with campaign content; no campaign mission ships with placeholder rectangles or generic reused imagery when the story calls for a unique object/location.
+- [ ] Add visual evidence props: Black Ledger pages, wax seals, auction invitations, provenance folders, photographs/maps and dealer notes.
+- [ ] Preserve truthful visual clues: story art may imply categories/history but must not leak exact hidden values or unrevealed item identities.
 
-See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks, `BUYER_MARKET.md` for the trading loop, `RIVALS.md` for stable dealer specialties, `DISCOVERY_CHAINS.md` for the multi-auction treasure-trail contract, `SYSTEMIC_REPLAYABILITY.md` for P8 acceptance, `skills/auction-hunter-visual-design/SKILL.md` for presentation work and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.
+### P9.6 — Campaign content breadth
+- [ ] Expand item catalog in campaign-driven batches from 36 toward ~72 identities, with direct art and at least one meaningful gameplay/story use per new identity.
+- [ ] Expand lot templates from 24 toward ~42 and collection sets from 12 toward ~24 as campaign chapters require them.
+- [ ] Add 10+ authored story-critical provenance variants whose significance can be discovered through appraisal/evidence rather than rarity color alone.
+- [ ] Add chapter-specific Discovery cases that cross-reference campaign evidence without making normal Discovery Board progress mandatory for the main story.
+
+### P9.7 — Finale and post-game
+- [ ] Build a multi-stage final auction around the recovered Black Ledger trail; the player cannot acquire every target and must prioritize based on evidence, relationships and bankroll.
+- [ ] Resolve the central mystery through player actions and owned evidence, not a standalone exposition screen.
+- [ ] Unlock Endless Dealer Career after campaign completion while retaining collection, office, P8 trends/requests/VIP/discovery systems.
+- [ ] Add campaign-completion statistics and epilogue summary without deleting or resetting the player's economy.
+
+### P9 acceptance
+- [ ] A fresh player can complete a coherent campaign with a beginning, escalation, climax and ending while still understanding the core auction fantasy.
+- [ ] Target authored campaign duration is 6–10 hours for a normal first playthrough; no more than roughly one third of that time should be mandatory dialogue/menus.
+- [ ] Every chapter introduces at least one materially different gameplay situation, not merely new text or higher prices.
+- [ ] Campaign choices have at least one later mechanical consequence.
+- [ ] All new story-critical items/environments have authored/generated production art and pass desktop + 844×390 RU/EN visual review.
+- [ ] Existing endless progression, old saves, cloud save, monetization boundaries and P8 economy gates remain compatible.
+
+See `V1_ROADMAP.md` for the release baseline, `SYSTEMIC_REPLAYABILITY.md` for P8, and the forthcoming `CAMPAIGN.md` for the P9 story/gameplay contract.
