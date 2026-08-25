@@ -31,6 +31,9 @@ describe('save normalization', () => {
     expect(save.highestCash).toBe(4321);
     expect(save.buyerMarketDayKey).toBeNull();
     expect(save.claimedBuyerOfferIds).toEqual([]);
+    expect(save.discoveryChainProgress).toEqual({});
+    expect(save.discoveryChainLastAuction).toEqual({});
+    expect(save.completedDiscoveryChains).toEqual([]);
   });
 
   it('sanitizes persisted auction history without destroying negative results', () => {
@@ -70,6 +73,34 @@ describe('save normalization', () => {
 
     expect(save.buyerMarketDayKey).toBe('2026-08-24');
     expect(save.claimedBuyerOfferIds).toEqual(['watch-specialist', '', 'prototype-broker']);
+  });
+
+  it('sanitizes discovery-chain progress without changing the v1 save contract', () => {
+    const save = normalizeSave({
+      version: 1,
+      cash: 2500,
+      discoveryChainProgress: {
+        'watchmaker-ledger': 1.9,
+        'prototype-trail': -3,
+        broken: '2',
+      },
+      discoveryChainLastAuction: {
+        'watchmaker-ledger': 12.8,
+        'prototype-trail': -1,
+      },
+      completedDiscoveryChains: ['lost-master-study', 42, ''],
+    });
+
+    expect(save.version).toBe(1);
+    expect(save.discoveryChainProgress).toEqual({
+      'watchmaker-ledger': 1,
+      'prototype-trail': 0,
+    });
+    expect(save.discoveryChainLastAuction).toEqual({
+      'watchmaker-ledger': 12,
+      'prototype-trail': 0,
+    });
+    expect(save.completedDiscoveryChains).toEqual(['lost-master-study', '']);
   });
 
   it('sanitizes concrete collection copies and drops orphan instances', () => {
