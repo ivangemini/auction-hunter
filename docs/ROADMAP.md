@@ -86,7 +86,7 @@
 - [x] Decompose `AuctionScene.ts` before adding another major reveal/trading mechanic directly to it — lot-market preparation/cache and restoration interaction now live in dedicated game modules.
 - [x] Deeper restoration choices with distinct safe/pro/risky paths.
 - [x] Persistent rival-dealer specialties and learned behavior.
-- [ ] Collection-set perks that unlock lasting expertise rather than only cash rewards.
+- [x] Collection-set perks unlock lasting category expertise after reward claim; expertise is derived from existing `claimedSetRewards`, stacks with Warehouse quick-sale rates and remains capped below Buyer Market premiums.
 - [ ] Legendary multi-auction discovery chains.
 
 ## P7 — visual identity and game-feel overhaul
