@@ -125,6 +125,9 @@ export interface PlayerSave {
   buyerMarketDayKey: string | null;
   claimedBuyerOfferIds: string[];
   claimedCollectorRequests: string[];
+  rivalEncounters: Record<string, number>;
+  rivalPlayerWins: Record<string, number>;
+  rivalWins: Record<string, number>;
   discoveryChainProgress: Record<string, number>;
   discoveryChainLastAuction: Record<string, number>;
   completedDiscoveryChains: string[];
