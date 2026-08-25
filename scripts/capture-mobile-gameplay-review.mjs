@@ -37,7 +37,7 @@ const seedSave = {
   claimedBuyerOfferIds: [],
   discoveryChainProgress: {},
   discoveryChainLastAuction: {},
-  completedDiscoveryChains: [],
+  completedDiscoveryChains: ['watchmaker-ledger', 'prototype-trail', 'lost-master-study'],
 };
 
 function assert(condition, message) {
@@ -151,6 +151,26 @@ async function activateUntilEvent(page, x, y, eventName, attempts = 12, waitMs =
   throw new Error(`${eventName} was not observed during compact gameplay review capture`);
 }
 
+async function readSaveCash(page) {
+  return page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('Compact gameplay save disappeared');
+    const save = JSON.parse(raw);
+    if (typeof save.cash !== 'number') throw new Error('Compact gameplay save has no numeric cash');
+    return save.cash;
+  }, SAVE_KEY);
+}
+
+async function waitForSaveCashAbove(page, baseline, timeoutMs = 2_500) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const cash = await readSaveCash(page);
+    if (cash > baseline) return cash;
+    await page.waitForTimeout(40);
+  }
+  throw new Error(`Timed out waiting for cash to increase above ${baseline}`);
+}
+
 async function chooseGarageLotAndStartAuction(page) {
   const tiersBefore = await eventCount(page, 'tier_selected');
   await clickGame(page, 250, 151);
@@ -224,6 +244,38 @@ async function imageDifferenceRatio(page, before, after) {
   });
 }
 
+async function sellReceiptAccentRatio(page, screenshot) {
+  return page.evaluate(async (base64) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${base64}`;
+    await image.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    if (!context) throw new Error('Unable to create sell receipt analysis canvas');
+    context.drawImage(image, 0, 0);
+    const pixels = context.getImageData(0, 0, image.width, image.height).data;
+    const x0 = Math.floor(image.width * 0.30);
+    const x1 = Math.ceil(image.width * 0.70);
+    const y0 = Math.floor(image.height * 0.77);
+    const y1 = Math.ceil(image.height * 0.91);
+    let green = 0;
+    let sampled = 0;
+    for (let y = y0; y < y1; y += 1) {
+      for (let x = x0; x < x1; x += 1) {
+        const index = (y * image.width + x) * 4;
+        const r = pixels[index];
+        const g = pixels[index + 1];
+        const b = pixels[index + 2];
+        sampled += 1;
+        if (g >= 90 && g > r * 1.12 && g > b * 1.08) green += 1;
+      }
+    }
+    return sampled > 0 ? green / sampled : 0;
+  }, screenshot.toString('base64'));
+}
+
 async function captureLocale(browser, localeCode, locale) {
   const outputDir = path.join(reviewRoot, localeCode);
   ensureDirectory(outputDir);
@@ -266,6 +318,23 @@ async function captureLocale(browser, localeCode, locale) {
       `${localeCode} compact restoration timing screen did not visibly replace mode picker`,
     );
 
+    await activateUntilEvent(page, 890, 557, 'restoration_completed', 4, 70);
+    await page.waitForTimeout(110);
+    const restorationResult = await capture(page, outputDir, '05-restoration-result.png', `${localeCode} compact restoration result feedback`);
+    assert(
+      (await imageDifferenceRatio(page, timing, restorationResult)) > 0.08,
+      `${localeCode} compact restoration result did not visibly replace timing screen`,
+    );
+
+    const cashBeforeSale = await readSaveCash(page);
+    await clickGame(page, 928, 572);
+    const cashAfterSale = await waitForSaveCashAbove(page, cashBeforeSale);
+    await page.waitForTimeout(210);
+    const saleFeedback = await capture(page, outputDir, '06-sell-feedback.png', `${localeCode} compact sell acknowledgement`);
+    const receiptAccent = await sellReceiptAccentRatio(page, saleFeedback);
+    assert(receiptAccent > 0.004, `${localeCode} sell acknowledgement green accent is not visibly present (${receiptAccent.toFixed(4)})`);
+    console.log(`${localeCode} compact restored sale persisted: ${cashBeforeSale} -> ${cashAfterSale}; receipt accent ${receiptAccent.toFixed(4)}`);
+
     await page.close();
   } finally {
     await context.close();
@@ -306,6 +375,8 @@ const expectedFiles = [
   '02-appraisal.png',
   '03-restoration-mode.png',
   '04-restoration-timing.png',
+  '05-restoration-result.png',
+  '06-sell-feedback.png',
 ];
 for (const locale of ['ru', 'en']) {
   for (const file of expectedFiles) {
@@ -314,4 +385,4 @@ for (const locale of ['ru', 'en']) {
     console.log(path.relative(root, absolute).split(path.sep).join('/'));
   }
 }
-console.log(`P7 compact reveal/appraisal/restoration visual review capture OK (${VIEWPORT_WIDTH}x${VIEWPORT_HEIGHT})`);
+console.log(`P7 compact reveal/appraisal/restoration/decision visual review capture OK (${VIEWPORT_WIDTH}x${VIEWPORT_HEIGHT})`);
