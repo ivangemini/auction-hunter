@@ -44,6 +44,7 @@ type AuctionRuntime = Phaser.Scene & {
   renderRoundSummary: () => void;
   sellCurrentItem: () => void;
   keepCurrentItem: () => void;
+  advanceReveal: () => void;
   startRestoration: () => void;
   conditionLabel: (condition: number) => string;
   conditionColor: (condition: number) => number;
@@ -77,10 +78,12 @@ export class PolishedAuctionSceneV2 extends PolishedAuctionScene {
     const runtime = this as unknown as AuctionRuntime;
     const sellCurrentItem = runtime.sellCurrentItem.bind(runtime);
     const keepCurrentItem = runtime.keepCurrentItem.bind(runtime);
+    const advanceReveal = runtime.advanceReveal.bind(runtime);
     runtime.renderBidding = () => renderBidding(runtime);
     runtime.renderWin = () => renderWin(runtime);
-    runtime.renderReveal = () => {
-      renderReveal(runtime);
+    runtime.renderReveal = () => renderReveal(runtime);
+    runtime.advanceReveal = () => {
+      advanceReveal();
       if (runtime.decisionFeedback) {
         showDecisionFeedback(runtime, runtime.decisionFeedback.kind, runtime.decisionFeedback.item);
       }
