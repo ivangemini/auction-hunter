@@ -2,8 +2,10 @@ import { trackEvent } from '../analytics';
 import { dailyBuyerOffersForDay, buyerOfferMatches, buyerOfferValue } from '../data/buyers';
 import { ITEM_BY_ID } from '../data/catalog';
 import { localDayKey } from '../data/daily';
+import { DISCOVERY_CHAINS } from '../data/discoveryChains';
 import { itemTraitsFor } from '../data/itemTraits';
 import { ACHIEVEMENTS, BUSINESS_UPGRADES, dailyContractsForDay } from '../data/meta';
+import { advanceDiscoveryChains } from '../domain/discoveryChains';
 import { appendAuctionHistory } from '../domain/history';
 import {
   achievementMetricValue,
@@ -76,6 +78,7 @@ export class GameStore {
     this.state.lifetimeSales += saleValue;
     this.addContractProgress('itemsSold', 1);
     this.addContractProgress('salesValue', saleValue);
+    this.recordDiscovery(itemId);
     this.updateHighestCash();
     this.persist();
     trackEvent('item_dispositioned', { disposition: 'sell', itemId, value: saleValue, source: 'round' });
@@ -88,6 +91,7 @@ export class GameStore {
     this.state.collection.push(collectionItem.itemId);
     this.collectionItems().push(collectionItem);
     this.addContractProgress('itemsKept', 1);
+    this.recordDiscovery(collectionItem.itemId);
     this.persist();
     trackEvent('item_dispositioned', { disposition: 'keep', itemId: collectionItem.itemId, source: 'round' });
   }
@@ -308,6 +312,44 @@ export class GameStore {
       ? globalThis.crypto.randomUUID()
       : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
     return `item-${itemId}-${randomId}`;
+  }
+
+  private recordDiscovery(itemId?: string): void {
+    if (!itemId) return;
+
+    const result = advanceDiscoveryChains(
+      DISCOVERY_CHAINS,
+      {
+        progress: this.state.discoveryChainProgress,
+        lastAuction: this.state.discoveryChainLastAuction,
+        completed: this.state.completedDiscoveryChains,
+      },
+      itemId,
+      this.state.auctionsPlayed,
+    );
+
+    if (result.advances.length === 0) return;
+
+    this.state.discoveryChainProgress = result.progress;
+    this.state.discoveryChainLastAuction = result.lastAuction;
+    this.state.completedDiscoveryChains = result.completed;
+
+    for (const advance of result.advances) {
+      if (advance.completed) {
+        this.state.cash += advance.rewardCash;
+        this.state.reputationXp += advance.rewardReputationXp;
+      }
+      trackEvent('discovery_chain_progressed', {
+        chainId: advance.chainId,
+        itemId: advance.itemId,
+        stage: advance.stage,
+        totalStages: advance.totalStages,
+        auctionNumber: advance.auctionNumber,
+        completed: advance.completed,
+        rewardCash: advance.rewardCash,
+        rewardReputationXp: advance.rewardReputationXp,
+      });
+    }
   }
 
   private sync(): void {

@@ -39,6 +39,9 @@ const DEFAULT_SAVE: PlayerSave = {
   auctionHistory: [],
   buyerMarketDayKey: null,
   claimedBuyerOfferIds: [],
+  discoveryChainProgress: {},
+  discoveryChainLastAuction: {},
+  completedDiscoveryChains: [],
 };
 
 export function createDefaultSave(): PlayerSave {
@@ -53,6 +56,9 @@ export function createDefaultSave(): PlayerSave {
     businessUpgrades: { ...DEFAULT_UPGRADES },
     auctionHistory: [],
     claimedBuyerOfferIds: [],
+    discoveryChainProgress: {},
+    discoveryChainLastAuction: {},
+    completedDiscoveryChains: [],
   };
 }
 
@@ -85,6 +91,9 @@ export function normalizeSave(value: unknown): PlayerSave {
     auctionHistory: cleanAuctionHistory(value.auctionHistory),
     buyerMarketDayKey: cleanNullableString(value.buyerMarketDayKey),
     claimedBuyerOfferIds: cleanStringArray(value.claimedBuyerOfferIds),
+    discoveryChainProgress: cleanIntegerRecord(value.discoveryChainProgress),
+    discoveryChainLastAuction: cleanIntegerRecord(value.discoveryChainLastAuction),
+    completedDiscoveryChains: cleanStringArray(value.completedDiscoveryChains),
   };
 }
 
@@ -203,6 +212,15 @@ function cleanNumberRecord(value: unknown): Record<string, number> {
     Object.entries(value)
       .filter(([, amount]) => typeof amount === 'number' && Number.isFinite(amount))
       .map(([key, amount]) => [key, Math.max(0, amount as number)]),
+  );
+}
+
+function cleanIntegerRecord(value: unknown): Record<string, number> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([, amount]) => typeof amount === 'number' && Number.isFinite(amount))
+      .map(([key, amount]) => [key, Math.max(0, Math.floor(amount as number))]),
   );
 }
 

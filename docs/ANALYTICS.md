@@ -74,6 +74,7 @@ All other typed events are still sent through `params`; they do not need to be c
 - `item_appraised`
 - `restoration_completed`
 - `item_dispositioned`
+- `discovery_chain_progressed`
 - `buyer_sale_completed`
 - `collection_set_reward_claimed`
 - `daily_special_completed`
@@ -103,6 +104,16 @@ Hidden item identity, condition, market factor and NPC bidding limits are delibe
 
 `mode` is an additive optional schema-v1 field so older consumers remain compatible. Comparing mode selection, zero-uplift Risky misses and realized gain by rarity/value provides the evidence needed to tune the three strategies without changing save data.
 
+## Legendary discovery-chain telemetry
+`discovery_chain_progressed` is emitted only when a fresh round find advances the next ordered stage of an authored multi-auction trail. Its payload records:
+- chain ID and triggering item ID;
+- one-based reached stage and total stage count;
+- persisted auction number used by the one-step-per-auction guard;
+- whether that advance completed the chain;
+- cash and reputation rewards granted by that advance (zero before completion).
+
+Collection quick sales and Buyer Market resales do not emit this event because they are not new discoveries. The event remains detailed `params` telemetry rather than a Metrica goal until post-release data shows that a dedicated chain-completion funnel is useful.
+
 ## Buyer Market telemetry
 `buyer_sale_completed` is emitted only after a valid daily buyer transaction has removed one owned copy and persisted the resulting economy state. Its payload records:
 - buyer ID;
@@ -126,13 +137,13 @@ The playable flow emits the first-session and economy funnel needed for post-rel
 - win outcome;
 - item reveal and appraisal;
 - restoration mode and outcome;
-- sell/keep decision;
+- sell/keep decision plus ordered legendary discovery-chain progression when a fresh find matches the active next step;
 - Buyer Market premium inventory sale;
 - exactly one `round_completed` event per cleared lot even when the summary screen is redrawn for ad state;
 - collection-set, Daily Contract, achievement and business-upgrade progression;
 - rewarded/interstitial request and completion state.
 
-This supports option-level selection rate, modifier preference, reserve-price sensitivity, selection-to-auction conversion, auction pass behavior, inspection usage, reveal/appraisal completion, restoration-mode adoption/outcomes, disposition mix, Buyer Market adoption, lot-level estimated result and meta-progression behavior once remote Metrica transport is configured.
+This supports option-level selection rate, modifier preference, reserve-price sensitivity, selection-to-auction conversion, auction pass behavior, inspection usage, reveal/appraisal completion, restoration-mode adoption/outcomes, disposition mix, discovery-chain progression/completion, Buyer Market adoption, lot-level estimated result and meta-progression behavior once remote Metrica transport is configured.
 
 ## Monetization telemetry
 Rewarded events include the summary placement and exact cash reward. The close event records whether an impression opened, whether `onRewarded` occurred and the final adapter outcome.

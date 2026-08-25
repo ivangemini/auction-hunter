@@ -30,6 +30,9 @@ const save: PlayerSave = {
   auctionHistory: [],
   buyerMarketDayKey: null,
   claimedBuyerOfferIds: [],
+  discoveryChainProgress: {},
+  discoveryChainLastAuction: {},
+  completedDiscoveryChains: [],
 };
 
 describe('meta progression domain', () => {
