@@ -26,7 +26,18 @@ describe('legendary discovery chains', () => {
         alternatives.forEach((itemId) => expect(ITEM_BY_ID.has(itemId)).toBe(true));
       }
     }
-    expect(branchingSteps).toBeGreaterThanOrEqual(3);
+    expect(branchingSteps).toBeGreaterThanOrEqual(5);
+  });
+
+  it('keeps at least one long authored case with multiple converging branches', () => {
+    const longCases = DISCOVERY_CHAINS.filter((chain) => chain.steps.length >= 5);
+    expect(longCases.length).toBeGreaterThanOrEqual(1);
+    const caseWithMultipleBranches = longCases.find(
+      (chain) => chain.steps.filter((step) => (step.alternativeItemIds?.length ?? 0) > 0).length >= 2,
+    );
+    expect(caseWithMultipleBranches).toBeDefined();
+    expect(caseWithMultipleBranches?.rewardCash ?? 0).toBeGreaterThanOrEqual(3500);
+    expect(caseWithMultipleBranches?.rewardReputationXp ?? 0).toBeGreaterThanOrEqual(75);
   });
 
   it('requires ordered discoveries and advances at most once per auction', () => {
