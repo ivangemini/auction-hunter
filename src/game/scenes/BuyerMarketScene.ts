@@ -91,7 +91,9 @@ export class BuyerMarketScene extends Phaser.Scene {
     const claimed = save.claimedBuyerOfferIds.includes(offer.id);
     const match = claimed
       ? null
-      : bestBuyerMatch(save.collection, ITEM_BY_ID, offer, save.collectionItems ?? []);
+      : bestBuyerMatch(save.collection, ITEM_BY_ID, offer, save.collectionItems ?? [], save.claimedSetRewards);
+    const shownMultiplier = match?.effectiveMultiplier ?? offer.multiplier;
+    const shownPremium = Math.round((shownMultiplier - 1) * 100);
     const accent = this.offerAccent(offer, index);
     const cardAccent = claimed ? VISUAL.success : accent;
     const card = this.add.container(x, y);
@@ -109,7 +111,7 @@ export class BuyerMarketScene extends Phaser.Scene {
     card.add([medallionGlow, medallion, monogram]);
 
     card.add(this.label(98, 25, offer.name[this.locale], 20, VISUAL.text, 'bold').setWordWrapWidth(185));
-    card.add(addChip(this, 307, 47, `+${Math.round((offer.multiplier - 1) * 100)}%`, VISUAL.warm, {
+    card.add(addChip(this, 307, 47, `+${shownPremium}%`, VISUAL.warm, {
       width: 90,
       height: 32,
       filled: true,
@@ -125,7 +127,16 @@ export class BuyerMarketScene extends Phaser.Scene {
       filled: false,
       fontSize: 9,
     }));
-    card.add(this.label(221, 124, `${copy.premium}: +${Math.round((offer.multiplier - 1) * 100)}%`, 11, '#e9b949', 'bold'));
+    if (match && match.expertiseBonus > 0) {
+      card.add(addChip(this, 294, 133, `${this.locale === 'ru' ? 'ЭКСПЕРТ' : 'EXPERTISE'} +${Math.round(match.expertiseBonus * 100)}%`, VISUAL.success, {
+        width: 148,
+        height: 29,
+        filled: true,
+        fontSize: 9,
+      }));
+    } else {
+      card.add(this.label(221, 124, `${copy.premium}: +${shownPremium}%`, 11, '#e9b949', 'bold'));
+    }
     card.add(this.add.rectangle(20, 157, width - 40, 1, accent, 0.18).setOrigin(0));
 
     if (claimed) {
@@ -280,7 +291,7 @@ export class BuyerMarketScene extends Phaser.Scene {
         offer: 'Предложение',
         copies: 'Экземпляров',
         sell: 'Продать покупателю',
-        footer: 'Каждый оффер можно использовать один раз в день. Покупатель оценивает именно конкретную копию: её состояние, реставрацию и признаки уже заложены в сохранённую оценку.',
+        footer: 'Каждый оффер можно использовать один раз в день. Завершённые наборы дают постоянную экспертную надбавку к подходящей категории; состояние, реставрация и признаки конкретной копии уже входят в её оценку.',
       };
     }
 
@@ -299,7 +310,7 @@ export class BuyerMarketScene extends Phaser.Scene {
       offer: 'Offer',
       copies: 'Copies',
       sell: 'Sell to buyer',
-      footer: 'Each offer can be used once per day. The buyer prices the concrete copy: its condition, restoration and variant traits are already reflected in the saved appraisal.',
+      footer: 'Each offer can be used once per day. Claimed collection sets add a permanent expertise premium for their category; condition, restoration and traits are already reflected in the concrete copy appraisal.',
     };
   }
 

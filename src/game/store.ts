@@ -1,6 +1,7 @@
 import { trackEvent } from '../analytics';
 import { dailyBuyerOffersForDay, buyerOfferMatches, buyerOfferValue } from '../data/buyers';
 import { ITEM_BY_ID } from '../data/catalog';
+import { buyerMarketExpertiseBonus } from '../data/collections';
 import { localDayKey } from '../data/daily';
 import { itemTraitsFor } from '../data/itemTraits';
 import { ACHIEVEMENTS, BUSINESS_UPGRADES, dailyContractsForDay } from '../data/meta';
@@ -135,10 +136,12 @@ export class GameStore {
       .map((instance) => {
         const item = ITEM_BY_ID.get(instance.itemId);
         if (!item || !buyerOfferMatches(item, offer, instance.traitIds)) return null;
+        const expertiseBonus = buyerMarketExpertiseBonus(this.state.claimedSetRewards, item.category);
         return {
           instance,
           item,
-          value: buyerOfferValue(item, offer, instance.appraisedValue, instance.traitIds),
+          expertiseBonus,
+          value: buyerOfferValue(item, offer, instance.appraisedValue, instance.traitIds, expertiseBonus),
         };
       })
       .filter((candidate): candidate is NonNullable<typeof candidate> => candidate !== null)
@@ -167,7 +170,7 @@ export class GameStore {
       itemId: best.item.id,
       dayKey,
       value: best.value,
-      premiumMultiplier: offer.multiplier,
+      premiumMultiplier: offer.multiplier + best.expertiseBonus,
       traitIds: [...best.instance.traitIds],
     });
     trackEvent('item_dispositioned', { disposition: 'sell', itemId: best.item.id, value: best.value, source: 'collection' });

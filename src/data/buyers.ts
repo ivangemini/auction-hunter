@@ -5,6 +5,7 @@ import type {
   ItemTraitId,
   LocalizedText,
 } from '../domain/types';
+import { buyerMarketExpertiseBonus } from './collections';
 import { itemTraitsFor } from './itemTraits';
 
 export interface BuyerOfferDefinition {
@@ -20,6 +21,8 @@ export interface BuyerMatch {
   itemId: string;
   value: number;
   copies: number;
+  expertiseBonus: number;
+  effectiveMultiplier: number;
   instanceId?: string;
   appraisedValue?: number;
   condition?: number;
@@ -136,9 +139,12 @@ export function buyerOfferValue(
   offer: BuyerOfferDefinition,
   appraisedValue = item.baseValue,
   traitIds: readonly ItemTraitId[] = itemTraitsFor(item.id),
+  expertiseBonus = 0,
 ): number {
   if (!buyerOfferMatches(item, offer, traitIds)) return 0;
-  return Math.max(1, Math.round(Math.max(1, appraisedValue) * offer.multiplier));
+  const cleanBonus = Number.isFinite(expertiseBonus) ? Math.max(0, expertiseBonus) : 0;
+  const effectiveMultiplier = offer.multiplier + cleanBonus;
+  return Math.max(1, Math.round(Math.max(1, appraisedValue) * effectiveMultiplier));
 }
 
 export function bestBuyerMatch(
@@ -146,6 +152,7 @@ export function bestBuyerMatch(
   itemById: ReadonlyMap<string, ItemDefinition>,
   offer: BuyerOfferDefinition,
   collectionItems: readonly CollectionItem[] = [],
+  claimedSetIds: readonly string[] = [],
 ): BuyerMatch | null {
   const copiesById = new Map<string, number>();
   for (const itemId of collectionIds) copiesById.set(itemId, (copiesById.get(itemId) ?? 0) + 1);
@@ -155,12 +162,16 @@ export function bestBuyerMatch(
     for (const instance of collectionItems) {
       const item = itemById.get(instance.itemId);
       if (!item || !buyerOfferMatches(item, offer, instance.traitIds)) continue;
-      const value = buyerOfferValue(item, offer, instance.appraisedValue, instance.traitIds);
+      const expertiseBonus = buyerMarketExpertiseBonus(claimedSetIds, item.category);
+      const effectiveMultiplier = offer.multiplier + expertiseBonus;
+      const value = buyerOfferValue(item, offer, instance.appraisedValue, instance.traitIds, expertiseBonus);
       if (!best || value > best.value) {
         best = {
           itemId: item.id,
           value,
           copies: copiesById.get(item.id) ?? 1,
+          expertiseBonus,
+          effectiveMultiplier,
           instanceId: instance.id,
           appraisedValue: instance.appraisedValue,
           condition: instance.condition,
@@ -176,8 +187,10 @@ export function bestBuyerMatch(
   for (const [itemId, copies] of copiesById) {
     const item = itemById.get(itemId);
     if (!item || !buyerOfferMatches(item, offer)) continue;
-    const value = buyerOfferValue(item, offer);
-    if (!best || value > best.value) best = { itemId, value, copies };
+    const expertiseBonus = buyerMarketExpertiseBonus(claimedSetIds, item.category);
+    const effectiveMultiplier = offer.multiplier + expertiseBonus;
+    const value = buyerOfferValue(item, offer, item.baseValue, itemTraitsFor(item.id), expertiseBonus);
+    if (!best || value > best.value) best = { itemId, value, copies, expertiseBonus, effectiveMultiplier };
   }
 
   return best;
