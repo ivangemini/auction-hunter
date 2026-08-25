@@ -176,6 +176,55 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
     rewardCash: 2500,
     rewardReputationXp: 60,
   },
+  {
+    id: 'black-glass-estate',
+    title: { ru: 'Наследство из чёрного стекла', en: 'The Black Glass Estate' },
+    premise: {
+      ru: 'Несвязанные на первый взгляд предметы из богатого дома несут один и тот же инвентарный шифр и ведут к скрытой распродаже частной коллекции.',
+      en: 'Unrelated objects from a wealthy estate carry the same inventory cipher and point toward a concealed private-collection dispersal.',
+    },
+    steps: [
+      {
+        itemId: 'binoculars',
+        clue: {
+          ru: 'Найти старый бинокль с чёрной стеклянной вставкой и первым номером описи.',
+          en: 'Find the old binoculars with a black-glass insert and the first inventory number.',
+        },
+      },
+      {
+        itemId: 'porcelain-figurine',
+        alternativeItemIds: ['enamel-brooch'],
+        clue: {
+          ru: 'Проверить одну из двух веток описи: фарфоровую статуэтку или эмалевую брошь с тем же шифром.',
+          en: 'Follow either inventory branch: a porcelain figurine or an enamel brooch carrying the same cipher.',
+        },
+      },
+      {
+        itemId: 'art-deco-lamp',
+        clue: {
+          ru: 'Найти лампу ар-деко: её основание скрывает адрес частного оценщика.',
+          en: 'Find the Art Deco lamp whose base hides the address of a private appraiser.',
+        },
+      },
+      {
+        itemId: 'silver-ring',
+        alternativeItemIds: ['enamel-brooch'],
+        clue: {
+          ru: 'Сверить ювелирную ветку через серебряное кольцо или брошь из той же закрытой описи.',
+          en: 'Cross-check the jewelry branch through the silver ring or the brooch from the same sealed inventory.',
+        },
+      },
+      {
+        itemId: 'telescope',
+        clue: {
+          ru: 'Замкнуть дело телескопом владельца, внутри футляра которого лежит последняя карточка коллекции.',
+          en: "Close the case with the owner's telescope, whose case contains the collection's final card.",
+        },
+      },
+    ],
+    rewardCash: 4200,
+    rewardReputationXp: 90,
+  },
 ];
 
 export const DISCOVERY_CHAIN_BY_ID = new Map(
