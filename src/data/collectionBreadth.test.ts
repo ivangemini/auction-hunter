@@ -3,9 +3,9 @@ import { ITEM_BY_ID } from './catalog';
 import { COLLECTION_SETS } from './collections';
 
 describe('collection breadth', () => {
-  it('keeps twenty-six stable unique collection goal ids', () => {
-    expect(COLLECTION_SETS).toHaveLength(26);
-    expect(new Set(COLLECTION_SETS.map((set) => set.id)).size).toBe(26);
+  it('keeps thirty-two stable unique collection goal ids', () => {
+    expect(COLLECTION_SETS).toHaveLength(32);
+    expect(new Set(COLLECTION_SETS.map((set) => set.id)).size).toBe(32);
   });
 
   it('keeps every collection goal bilingual, rewarding and backed by real items', () => {
@@ -16,7 +16,6 @@ describe('collection breadth', () => {
       expect(set.itemIds.length, `${set.id} item count`).toBeGreaterThanOrEqual(2);
       expect(new Set(set.itemIds).size, `${set.id} duplicate item`).toBe(set.itemIds.length);
       for (const itemId of set.itemIds) expect(ITEM_BY_ID.has(itemId), `${set.id}:${itemId}`).toBe(true);
-
       expect(set.perk.description.ru.trim(), `${set.id} RU perk`).not.toBe('');
       expect(set.perk.description.en.trim(), `${set.id} EN perk`).not.toBe('');
       expect(set.perk.categories.length, `${set.id} perk categories`).toBeGreaterThan(0);
@@ -29,7 +28,8 @@ describe('collection breadth', () => {
     for (const id of [
       'portable-era', 'mechanical-heritage', 'paper-trail', 'cabinet-curios',
       'broadcast-age', 'prototype-cabinet', 'collector-desk', 'after-hours-exhibit',
-      'field-workshop', 'projection-room',
+      'field-workshop', 'projection-room', 'analog-signals', 'tool-bench',
+      'explorer-cabinet', 'mechanical-playroom', 'timekeepers-line', 'atelier-archive',
     ]) {
       expect(COLLECTION_SETS.some((set) => set.id === id), id).toBe(true);
     }
