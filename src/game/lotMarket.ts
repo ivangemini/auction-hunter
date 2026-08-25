@@ -1,3 +1,4 @@
+import { setMarketTrendAnalyticsContext } from '../analytics';
 import { ITEM_BY_ID } from '../data/catalog';
 import { ALL_LOTS } from '../data/catalogBreadth';
 import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from '../data/lotModifiers';
@@ -61,6 +62,7 @@ export function prepareLotMarket(options: PrepareLotMarketOptions): LotMarketRes
       marketTrendRemainingAuctions: activeTrend.remainingAuctions,
     }
     : {};
+  setMarketTrendAnalyticsContext(activeTrend ? trendMetadata : null);
 
   const cached = cachedChoicesByTier.get(tier.id);
   if (cached) return { tierId: tier.id, choices: cached, ...trendMetadata };
@@ -92,6 +94,7 @@ export function prepareLotMarket(options: PrepareLotMarketOptions): LotMarketRes
 export function resetLotMarketCache(): void {
   cachedAuctionCycle = -1;
   cachedChoicesByTier.clear();
+  setMarketTrendAnalyticsContext(null);
 }
 
 function marketTrendModifierForLot(
