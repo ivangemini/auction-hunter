@@ -4,11 +4,13 @@ import { COLLECTION_SETS } from './collections';
 import { AUCTION_TIERS } from './tiers';
 
 describe('content scale', () => {
-  it('ships the expanded 36-item and 24-lot catalog', () => {
+  it('ships the expanded 36-item, 24-lot and 16-set catalog', () => {
     expect(ITEMS).toHaveLength(36);
     expect(LOTS).toHaveLength(24);
+    expect(COLLECTION_SETS).toHaveLength(16);
     expect(new Set(ITEMS.map((item) => item.id)).size).toBe(36);
     expect(new Set(LOTS.map((lot) => lot.id)).size).toBe(24);
+    expect(new Set(COLLECTION_SETS.map((set) => set.id)).size).toBe(16);
   });
 
   it('gives every tier eight distinct lot variants', () => {
@@ -31,6 +33,14 @@ describe('content scale', () => {
         });
         expect(matches, `clue in ${lot.id} has no matching pool item`).toBe(true);
       }
+    }
+  });
+
+  it('keeps every collection goal backed by real catalog items', () => {
+    for (const set of COLLECTION_SETS) {
+      expect(set.itemIds.length, set.id).toBeGreaterThanOrEqual(2);
+      expect(new Set(set.itemIds).size, set.id).toBe(set.itemIds.length);
+      for (const itemId of set.itemIds) expect(ITEM_BY_ID.has(itemId), `${set.id}:${itemId}`).toBe(true);
     }
   });
 
