@@ -6,10 +6,9 @@ import {
   collectionExpertiseBonus,
   collectionExpertiseResaleRate,
   collectionSetProgress,
-  uniqueCollectionCount,
   type CollectionSetDefinition,
 } from '../../data/collections';
-import { itemTraitNames, itemTraitNamesForIds } from '../../data/itemTraits';
+import { ITEM_TRAITS, itemTraitNames, itemTraitNamesForIds } from '../../data/itemTraits';
 import { collectionResaleValue, ownedCopies } from '../../domain/collection';
 import { collectionResaleRate, setRewardValue } from '../../domain/meta';
 import type { Locale, Rarity } from '../../domain/types';
@@ -25,6 +24,7 @@ import { addAtmosphere, addChip, addProgressBar, addSurface, enableHoverLift, VI
 const WIDTH = 1280;
 const HEIGHT = 720;
 const SETS_PER_PAGE = 4;
+const VARIANT_TRAIT_COUNT = Object.values(ITEM_TRAITS).filter((trait) => trait.variant).length;
 
 const RARITY_COLORS: Record<Rarity, number> = {
   common: 0xaeb5c0,
@@ -64,9 +64,8 @@ export class CollectionScene extends Phaser.Scene {
     });
 
     const save = this.store.snapshot;
-    const uniqueCount = uniqueCollectionCount(save.collection);
-    this.addStatPlate(62, 126, this.locale === 'ru' ? 'УНИКАЛЬНЫЕ' : 'UNIQUE FINDS', `${uniqueCount}/${ITEMS.length}`, VISUAL.warm);
-    this.addStatPlate(265, 126, this.locale === 'ru' ? 'НАБОРЫ' : 'SET REWARDS', `${save.claimedSetRewards.length}/${COLLECTION_SETS.length}`, VISUAL.rare);
+    this.addStatPlate(62, 126, this.locale === 'ru' ? 'НАЙДЕНО ВСЕГО' : 'DISCOVERED', `${save.discoveredItemIds.length}/${ITEMS.length}`, VISUAL.warm);
+    this.addStatPlate(265, 126, this.locale === 'ru' ? 'ВАРИАНТЫ' : 'VARIANTS', `${save.discoveredVariantTraitIds.length}/${VARIANT_TRAIT_COUNT}`, VISUAL.purple);
     this.addStatPlate(468, 126, this.locale === 'ru' ? 'БАЛАНС' : 'CASH', this.money(save.cash), VISUAL.success);
 
     button(this, 646, 70, this.locale === 'ru' ? 'Расследования' : 'Discovery Board', () => this.scene.start('discovery-board'), {
@@ -74,7 +73,7 @@ export class CollectionScene extends Phaser.Scene {
       height: 48,
       background: VISUAL.steel,
       accent: VISUAL.copper,
-      fontSize: this.locale === 'ru' ? 12 : 12,
+      fontSize: 12,
     });
     button(this, 817, 70, this.locale === 'ru' ? 'Рынок покупателей' : 'Buyer Market', () => this.scene.start('buyer-market'), {
       width: 178,
@@ -273,6 +272,8 @@ export class CollectionScene extends Phaser.Scene {
       ? itemTraitNamesForIds(instance.traitIds, this.locale)
       : itemTraitNames(itemId, this.locale);
     const rarityColor = RARITY_COLORS[item.rarity];
+    const bestCondition = save.bestConditionByItem[itemId];
+    const bestValue = save.bestValueByItem[itemId];
 
     const overlay = this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x05070a, 0.82)
       .setInteractive({ useHandCursor: true });
@@ -311,22 +312,28 @@ export class CollectionScene extends Phaser.Scene {
       modal.add(this.label(-18, -63, `${this.locale === 'ru' ? 'Оценка копии' : 'Copy appraisal'}: ${this.money(instance.appraisedValue)}`, 15, '#dce2e8', 'bold'));
     }
 
-    modal.add(this.label(-18, -23, `${t(this.locale, 'resaleValue', { amount: this.money(resale) })}`, 22, '#63d28d', 'bold'));
+    if (bestCondition !== undefined || bestValue !== undefined) {
+      const conditionRecord = bestCondition === undefined ? '—' : `${Math.round(bestCondition * 100)}%`;
+      const valueRecord = bestValue === undefined ? '—' : this.money(bestValue);
+      modal.add(this.label(-18, -40, `${this.locale === 'ru' ? 'Лучший найденный' : 'Best ever found'}: ${conditionRecord} · ${valueRecord}`, 10, '#e9b949', 'bold'));
+    }
+
+    modal.add(this.label(-18, -15, `${t(this.locale, 'resaleValue', { amount: this.money(resale) })}`, 21, '#63d28d', 'bold'));
     if (expertiseBonus > 0) {
       modal.add(addChip(
         this,
         280,
-        -10,
+        -4,
         `${this.locale === 'ru' ? 'ЭКСПЕРТИЗА' : 'EXPERTISE'} +${Math.round(expertiseBonus * 100)}%`,
         VISUAL.success,
         { width: 142, filled: true, fontSize: 9 },
       ));
     }
-    modal.add(this.label(-18, 12, this.locale === 'ru' ? 'Рыночные признаки' : 'Market traits', 10, VISUAL.faint, 'bold'));
-    modal.add(this.label(-18, 32, traits.length > 0 ? traits.join(' · ') : (this.locale === 'ru' ? 'Нет особых признаков' : 'No special traits'), 12, traits.length > 0 ? '#61a8ff' : VISUAL.muted, 'bold')
+    modal.add(this.label(-18, 18, this.locale === 'ru' ? 'Рыночные признаки' : 'Market traits', 10, VISUAL.faint, 'bold'));
+    modal.add(this.label(-18, 38, traits.length > 0 ? traits.join(' · ') : (this.locale === 'ru' ? 'Нет особых признаков' : 'No special traits'), 12, traits.length > 0 ? '#61a8ff' : VISUAL.muted, 'bold')
       .setWordWrapWidth(340)
       .setLineSpacing(3));
-    modal.add(this.label(-18, 92, t(this.locale, 'sellCollectionWarning'), 11, VISUAL.muted)
+    modal.add(this.label(-18, 96, t(this.locale, 'sellCollectionWarning'), 11, VISUAL.muted)
       .setWordWrapWidth(340)
       .setLineSpacing(3));
 
