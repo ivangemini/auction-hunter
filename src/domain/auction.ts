@@ -29,6 +29,7 @@ export interface AuctionOpponent {
 }
 
 const DEFAULT_RANDOM: RandomSource = Math.random;
+const MAX_AUCTION_OPPONENTS = 3;
 
 export function randomBetween(range: NumericRange, random: RandomSource = DEFAULT_RANDOM): number {
   if (range.max < range.min) throw new Error('Invalid numeric range');
@@ -144,13 +145,56 @@ export function rivalValuation(items: readonly RevealedItem[], profile: BidderPr
   return hiddenValue + specialtyValue * (multiplier - 1);
 }
 
+export function selectAuctionBidderProfiles(
+  items: readonly RevealedItem[],
+  profiles: readonly BidderProfile[],
+  random: RandomSource = DEFAULT_RANDOM,
+  count = MAX_AUCTION_OPPONENTS,
+): BidderProfile[] {
+  const uniqueProfiles = profiles.filter(
+    (profile, index, values) => values.findIndex((candidate) => candidate.id === profile.id) === index,
+  );
+  const desiredCount = Math.min(uniqueProfiles.length, Math.max(0, Math.floor(count)));
+  if (desiredCount === 0) return [];
+
+  const itemCategories = new Set(items.map((item) => item.definition.category));
+  const preferredIds = new Set(
+    uniqueProfiles
+      .filter((profile) => (profile.specialtyCategories ?? []).some((category) => itemCategories.has(category)))
+      .map((profile) => profile.id),
+  );
+  const pool = [...uniqueProfiles];
+  const selected: BidderProfile[] = [];
+
+  const pickFrom = (candidates: readonly BidderProfile[]): void => {
+    const candidate = chooseRandom(candidates, random);
+    if (!candidate) return;
+    const poolIndex = pool.findIndex((profile) => profile.id === candidate.id);
+    if (poolIndex < 0) return;
+    selected.push(candidate);
+    pool.splice(poolIndex, 1);
+  };
+
+  // Let specialists shape the auction, but reserve room for a wildcard rival so
+  // repeated lots do not collapse into the same deterministic trio.
+  const specialistSlots = Math.min(2, desiredCount, preferredIds.size);
+  while (selected.length < specialistSlots) {
+    pickFrom(pool.filter((profile) => preferredIds.has(profile.id)));
+  }
+  while (selected.length < desiredCount) {
+    pickFrom(pool);
+  }
+
+  return selected;
+}
+
 export function createAuctionOpponents(
   lot: LotTemplate,
   items: readonly RevealedItem[],
   profiles: readonly BidderProfile[],
   random: RandomSource = DEFAULT_RANDOM,
 ): AuctionOpponent[] {
-  return profiles.map((profile) => ({
+  return selectAuctionBidderProfiles(items, profiles, random).map((profile) => ({
     id: profile.id,
     name: profile.name,
     trait: profile.trait,

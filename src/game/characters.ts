@@ -1,13 +1,25 @@
 import Phaser from 'phaser';
 
-export type CharacterId = 'auctioneer' | 'mentor' | 'victor' | 'mira' | 'anton';
+export type CharacterId = 'auctioneer' | 'mentor' | 'victor' | 'mira' | 'anton' | 'leah' | 'roman' | 'sofia';
 
-export const CHARACTER_IDS: readonly CharacterId[] = ['auctioneer', 'mentor', 'victor', 'mira', 'anton'];
+export const CHARACTER_IDS: readonly CharacterId[] = [
+  'auctioneer',
+  'mentor',
+  'victor',
+  'mira',
+  'anton',
+  'leah',
+  'roman',
+  'sofia',
+];
 
 const OPPONENT_CHARACTER: Record<string, CharacterId> = {
   'npc-0': 'victor',
   'npc-1': 'mira',
   'npc-2': 'anton',
+  'npc-3': 'leah',
+  'npc-4': 'roman',
+  'npc-5': 'sofia',
 };
 
 const CHARACTER_SIZE = { width: 480, height: 600 } as const;
