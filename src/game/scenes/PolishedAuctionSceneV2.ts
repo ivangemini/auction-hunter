@@ -14,6 +14,7 @@ import { button } from '../ui';
 import { PolishedAuctionScene } from './PolishedAuctionScene';
 
 type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
+type DecisionFeedbackKind = 'sell' | 'keep';
 
 type AuctionRuntime = Phaser.Scene & {
   locale: Locale;
@@ -72,9 +73,21 @@ export class PolishedAuctionSceneV2 extends PolishedAuctionScene {
   constructor() {
     super();
     const runtime = this as unknown as AuctionRuntime;
+    const sellCurrentItem = runtime.sellCurrentItem.bind(runtime);
+    const keepCurrentItem = runtime.keepCurrentItem.bind(runtime);
     runtime.renderBidding = () => renderBidding(runtime);
     runtime.renderWin = () => renderWin(runtime);
     runtime.renderReveal = () => renderReveal(runtime);
+    runtime.sellCurrentItem = () => {
+      const item = runtime.items[runtime.revealIndex];
+      sellCurrentItem();
+      if (item) showDecisionFeedback(runtime, 'sell', item);
+    };
+    runtime.keepCurrentItem = () => {
+      const item = runtime.items[runtime.revealIndex];
+      keepCurrentItem();
+      if (item) showDecisionFeedback(runtime, 'keep', item);
+    };
   }
 }
 
@@ -326,8 +339,18 @@ function appraisal(scene: AuctionRuntime, item: RevealedItem): void {
 
   if (item.restored) {
     const grade = item.restorationGrade ? scene.restorationGradeLabel(item.restorationGrade) : '';
-    scene.add.rectangle(842, 446, 348, 38, 0x173522, 0.85).setOrigin(0).setStrokeStyle(1, 0x63d28d, 0.34);
-    text(scene, 854, 457, `${grade} · ${t(scene.locale, 'restorationGain', { amount: scene.money(item.restorationGain ?? 0) })}`, 10, '#7ee0a0', 'bold').setWordWrapWidth(322);
+    const accent = restorationAccent(item.restorationGrade);
+    const plate = scene.add.rectangle(842, 446, 348, 38, accent, 0.12).setOrigin(0).setStrokeStyle(1, accent, 0.56);
+    const result = text(
+      scene,
+      854,
+      457,
+      `${grade} · ${t(scene.locale, 'restorationGain', { amount: scene.money(item.restorationGain ?? 0) })}`,
+      10,
+      scene.hexColor(accent),
+      'bold',
+    ).setWordWrapWidth(322);
+    renderRestorationResultFeedback(scene, item.restorationGrade, plate, result);
     button(scene, 928, 572, owned ? t(scene.locale, 'sellDuplicate') : t(scene.locale, 'sell'), () => scene.sellCurrentItem(), {
       width: 160,
       height: 52,
@@ -368,6 +391,85 @@ function appraisal(scene: AuctionRuntime, item: RevealedItem): void {
     accent: 0x61a8ff,
     feedback: false,
     fontSize: 14,
+  });
+}
+
+function restorationAccent(grade: RestorationGrade | undefined): number {
+  if (grade === 'perfect') return 0x63d28d;
+  if (grade === 'good') return 0x61a8ff;
+  return 0xc4773a;
+}
+
+function renderRestorationResultFeedback(
+  scene: AuctionRuntime,
+  grade: RestorationGrade | undefined,
+  plate: Phaser.GameObjects.Rectangle,
+  result: Phaser.GameObjects.Text,
+): void {
+  if (prefersReducedMotion()) return;
+  const accent = restorationAccent(grade);
+  plate.setAlpha(0.28);
+  result.setAlpha(0.35).setX(866);
+  scene.tweens.add({ targets: plate, alpha: 1, duration: MOTION.settleMs, ease: 'Cubic.Out' });
+  scene.tweens.add({ targets: result, x: 854, alpha: 1, duration: MOTION.settleMs, ease: 'Cubic.Out' });
+
+  const particleCount = grade === 'perfect' ? 7 : grade === 'good' ? 4 : 0;
+  for (let index = 0; index < particleCount; index += 1) {
+    const angle = (Math.PI * 2 * index) / particleCount;
+    const distance = grade === 'perfect' ? 34 : 25;
+    const particle = scene.add.circle(1016, 465, grade === 'perfect' ? 3 : 2, accent, 0.88).setDepth(12);
+    scene.tweens.add({
+      targets: particle,
+      x: 1016 + Math.cos(angle) * distance,
+      y: 465 + Math.sin(angle) * distance * 0.55,
+      alpha: 0,
+      scaleX: 0.55,
+      scaleY: 0.55,
+      duration: MOTION.celebrateMs,
+      ease: 'Cubic.Out',
+      onComplete: () => particle.destroy(),
+    });
+  }
+}
+
+function showDecisionFeedback(scene: AuctionRuntime, kind: DecisionFeedbackKind, item: RevealedItem): void {
+  const selling = kind === 'sell';
+  const accent = selling ? 0x63d28d : 0x61a8ff;
+  const label = selling
+    ? `${scene.locale === 'ru' ? 'ПРОДАНО' : 'SOLD'} · +${scene.money(item.appraisedValue)}`
+    : `${scene.locale === 'ru' ? 'В КОЛЛЕКЦИЮ' : 'KEPT'} · ${item.definition.name[scene.locale]}`;
+  const receipt = scene.add.container(640, 674).setDepth(820);
+  const shadow = scene.add.rectangle(0, 4, 430, 42, 0x000000, 0.34);
+  const body = scene.add.rectangle(0, 0, 430, 42, 0x10151b, 0.98).setStrokeStyle(1, accent, 0.62);
+  const stripe = scene.add.rectangle(-211, 0, 6, 42, accent, 0.9);
+  const copy = center(scene, 0, 0, label, 12, selling ? '#8ee7ad' : '#9bc8ff', 'bold');
+  receipt.add([shadow, body, stripe, copy]);
+
+  if (prefersReducedMotion()) {
+    scene.time.delayedCall(560, () => receipt.destroy());
+    return;
+  }
+
+  receipt.setAlpha(0).setY(688).setScale(0.985);
+  scene.tweens.add({
+    targets: receipt,
+    y: 674,
+    alpha: 1,
+    scaleX: 1,
+    scaleY: 1,
+    duration: MOTION.settleMs,
+    ease: 'Cubic.Out',
+  });
+  scene.time.delayedCall(520, () => {
+    if (!receipt.active) return;
+    scene.tweens.add({
+      targets: receipt,
+      y: 664,
+      alpha: 0,
+      duration: MOTION.hoverMs,
+      ease: 'Cubic.In',
+      onComplete: () => receipt.destroy(),
+    });
   });
 }
 
