@@ -84,6 +84,18 @@ export interface AnalyticsEventMap {
     traitIds: ItemTraitId[];
   };
   collection_set_reward_claimed: { setId: string; reward: number };
+  discovery_chain_advanced: {
+    chainId: string;
+    itemId: string;
+    progress: number;
+    totalSteps: number;
+    complete: boolean;
+  };
+  discovery_chain_reward_claimed: {
+    chainId: string;
+    rewardCash: number;
+    rewardReputationXp: number;
+  };
   daily_special_completed: { dayKey: string; reputationGain: number };
   daily_contract_reward_claimed: { contractId: string; dayKey: string; reward: number };
   achievement_reward_claimed: { achievementId: string; reward: number };
