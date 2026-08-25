@@ -14,6 +14,7 @@ const WIDTH = 1280;
 const HEIGHT = 720;
 const CARD_WIDTH = 364;
 const CARD_HEIGHT = 468;
+const CASES_PER_PAGE = 3;
 
 interface BoardCopy {
   title: string;
@@ -30,6 +31,9 @@ interface BoardCopy {
   reward: string;
   earned: string;
   progress: string;
+  previous: string;
+  next: string;
+  page: string;
 }
 
 const BOARD_COPY: Record<Locale, BoardCopy> = {
@@ -48,6 +52,9 @@ const BOARD_COPY: Record<Locale, BoardCopy> = {
     reward: 'НАГРАДА ЗА ДЕЛО',
     earned: 'ПОЛУЧЕНО',
     progress: 'Прогресс расследования',
+    previous: 'Предыдущие',
+    next: 'Следующие',
+    page: 'Страница',
   },
   en: {
     title: 'Discovery Board',
@@ -64,12 +71,16 @@ const BOARD_COPY: Record<Locale, BoardCopy> = {
     reward: 'CASE REWARD',
     earned: 'EARNED',
     progress: 'Investigation progress',
+    previous: 'Previous',
+    next: 'Next',
+    page: 'Page',
   },
 };
 
 export class DiscoveryBoardScene extends Phaser.Scene {
   private readonly store = new GameStore();
   private locale: Locale = 'en';
+  private page = 0;
 
   constructor() {
     super('discovery-board');
@@ -77,6 +88,7 @@ export class DiscoveryBoardScene extends Phaser.Scene {
 
   create(): void {
     this.locale = getPlatformLocale();
+    this.page = 0;
     this.renderBoard();
   }
 
@@ -84,6 +96,10 @@ export class DiscoveryBoardScene extends Phaser.Scene {
     this.children.removeAll(true);
     const copy = BOARD_COPY[this.locale];
     const save = this.store.snapshot;
+    const totalPages = Math.max(1, Math.ceil(DISCOVERY_CHAINS.length / CASES_PER_PAGE));
+    this.page = Phaser.Math.Clamp(this.page, 0, totalPages - 1);
+    const pageStart = this.page * CASES_PER_PAGE;
+    const visibleChains = DISCOVERY_CHAINS.slice(pageStart, pageStart + CASES_PER_PAGE);
 
     addAtmosphere(this, WIDTH, HEIGHT, VISUAL.copper, 690);
     this.add.rectangle(WIDTH / 2, 116, WIDTH - 112, 1, VISUAL.warm, 0.18);
@@ -107,6 +123,30 @@ export class DiscoveryBoardScene extends Phaser.Scene {
     this.addStatPlate(270, 128, copy.active, `${active}`, VISUAL.rare);
     this.addStatPlate(476, 128, copy.reputation, `${Math.round(save.reputationXp)} REP`, VISUAL.warm);
 
+    if (totalPages > 1) {
+      this.centerLabel(842, 151, `${copy.page} ${this.page + 1}/${totalPages}`, 11, VISUAL.muted, 'bold');
+      button(this, 958, 153, copy.previous, () => {
+        if (this.page <= 0) return;
+        this.page -= 1;
+        this.renderBoard();
+      }, {
+        width: 132,
+        height: 34,
+        background: this.page > 0 ? VISUAL.steel : VISUAL.panelDeep,
+        fontSize: 11,
+      });
+      button(this, 1110, 153, copy.next, () => {
+        if (this.page >= totalPages - 1) return;
+        this.page += 1;
+        this.renderBoard();
+      }, {
+        width: 132,
+        height: 34,
+        background: this.page < totalPages - 1 ? VISUAL.copper : VISUAL.panelDeep,
+        fontSize: 11,
+      });
+    }
+
     button(this, 995, 72, t(this.locale, 'backToCollection'), () => this.scene.start('collection'), {
       width: 168,
       height: 48,
@@ -120,8 +160,8 @@ export class DiscoveryBoardScene extends Phaser.Scene {
       fontSize: this.locale === 'ru' ? 12 : 14,
     });
 
-    DISCOVERY_CHAINS.forEach((chain, index) => {
-      this.renderCaseCard(chain, save, 52 + index * 398, 194, index);
+    visibleChains.forEach((chain, index) => {
+      this.renderCaseCard(chain, save, 52 + index * 398, 194, index, pageStart + index + 1);
     });
   }
 
@@ -131,6 +171,7 @@ export class DiscoveryBoardScene extends Phaser.Scene {
     x: number,
     y: number,
     entranceIndex: number,
+    caseNumber: number,
   ): void {
     const copy = BOARD_COPY[this.locale];
     const completed = save.completedDiscoveryChains.includes(chain.id);
@@ -146,7 +187,7 @@ export class DiscoveryBoardScene extends Phaser.Scene {
       glowAlpha: completed ? 0.032 : stage > 0 ? 0.022 : 0.012,
     }));
 
-    card.add(addChip(this, 58, 28, `${copy.caseLabel} ${entranceIndex + 1}`, accent, {
+    card.add(addChip(this, 58, 28, `${copy.caseLabel} ${caseNumber}`, accent, {
       width: 92,
       height: 28,
       filled: stage > 0 || completed,
@@ -263,6 +304,17 @@ export class DiscoveryBoardScene extends Phaser.Scene {
       fontStyle: style,
       color,
     });
+  }
+
+  private centerLabel(
+    x: number,
+    y: number,
+    text: string,
+    size: number,
+    color: string,
+    style: 'normal' | 'bold' = 'normal',
+  ): Phaser.GameObjects.Text {
+    return this.label(x, y, text, size, color, style).setOrigin(0.5);
   }
 
   private hex(value: number): string {
