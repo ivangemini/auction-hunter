@@ -75,6 +75,16 @@ export interface AnalyticsEventMap {
     value?: number;
     source?: 'round' | 'collection';
   };
+  discovery_chain_progressed: {
+    chainId: string;
+    itemId: string;
+    stage: number;
+    totalStages: number;
+    auctionNumber: number;
+    completed: boolean;
+    rewardCash: number;
+    rewardReputationXp: number;
+  };
   buyer_sale_completed: {
     buyerId: string;
     itemId: string;
