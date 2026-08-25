@@ -31,6 +31,8 @@ describe('save normalization', () => {
     expect(save.highestCash).toBe(4321);
     expect(save.buyerMarketDayKey).toBeNull();
     expect(save.claimedBuyerOfferIds).toEqual([]);
+    expect(save.discoveryChainProgress).toEqual({});
+    expect(save.claimedDiscoveryChainRewards).toEqual([]);
   });
 
   it('sanitizes persisted auction history without destroying negative results', () => {
@@ -111,5 +113,24 @@ describe('save normalization', () => {
       acquiredAt: 999,
       restorationGrade: 'perfect',
     });
+  });
+
+  it('keeps valid legendary dossier progress and clamps or drops corrupt entries', () => {
+    const save = normalizeSave({
+      version: 1,
+      cash: 2500,
+      discoveryChainProgress: {
+        'signal-in-dust': 2,
+        'missing-maker': 999,
+        'unknown-chain': 3,
+      },
+      claimedDiscoveryChainRewards: ['patrons-secret', 'not-real'],
+    });
+
+    expect(save.discoveryChainProgress).toEqual({
+      'signal-in-dust': 2,
+      'missing-maker': 4,
+    });
+    expect(save.claimedDiscoveryChainRewards).toEqual(['patrons-secret']);
   });
 });
