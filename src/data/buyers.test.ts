@@ -38,6 +38,72 @@ describe('buyer market', () => {
     expect(buyerOfferMatches(toolbox!, provenanceBuyer!)).toBe(false);
   });
 
+  it('creates niche demand for flawed concrete copies without pretending defects add appraisal value', () => {
+    const workshop = BUYER_OFFERS.find((offer) => offer.id === 'restoration-workshop');
+    const gambler = BUYER_OFFERS.find((offer) => offer.id === 'authenticity-gambler');
+    const camera = ITEM_BY_ID.get('film-camera');
+    const figurine = ITEM_BY_ID.get('porcelain-figurine');
+
+    expect(workshop).toBeDefined();
+    expect(gambler).toBeDefined();
+    expect(camera).toBeDefined();
+    expect(figurine).toBeDefined();
+
+    expect(buyerOfferMatches(camera!, workshop!, ['replacement-parts'])).toBe(true);
+    expect(buyerOfferMatches(camera!, workshop!, ['complete-set'])).toBe(false);
+    expect(buyerOfferMatches(figurine!, gambler!, ['replica-risk'])).toBe(true);
+    expect(buyerOfferMatches(figurine!, gambler!, ['period-design'])).toBe(false);
+
+    const flawedAppraisal = 520;
+    expect(buyerOfferValue(camera!, workshop!, flawedAppraisal, ['replacement-parts']))
+      .toBe(Math.round(flawedAppraisal * workshop!.multiplier));
+  });
+
+  it('lets a salvage specialist select the best matching flawed copy only', () => {
+    const workshop = BUYER_OFFERS.find((offer) => offer.id === 'restoration-workshop');
+    expect(workshop).toBeDefined();
+
+    const collectionItems: CollectionItem[] = [
+      {
+        id: 'clean-copy',
+        itemId: 'film-camera',
+        appraisedValue: 1100,
+        condition: 0.9,
+        restored: false,
+        traitIds: [],
+        acquiredAt: 1,
+      },
+      {
+        id: 'repair-copy-low',
+        itemId: 'film-camera',
+        appraisedValue: 480,
+        condition: 0.55,
+        restored: false,
+        traitIds: ['replacement-parts'],
+        acquiredAt: 2,
+      },
+      {
+        id: 'repair-copy-high',
+        itemId: 'pocket-tv',
+        appraisedValue: 690,
+        condition: 0.66,
+        restored: false,
+        traitIds: ['incomplete'],
+        acquiredAt: 3,
+      },
+    ];
+
+    const match = bestBuyerMatch(
+      ['film-camera', 'film-camera', 'pocket-tv'],
+      ITEM_BY_ID,
+      workshop!,
+      collectionItems,
+    );
+
+    expect(match?.instanceId).toBe('repair-copy-high');
+    expect(match?.value).toBe(Math.round(690 * workshop!.multiplier));
+  });
+
   it('pays a meaningful premium and selects the most valuable matching held item', () => {
     const curator = BUYER_OFFERS.find((offer) => offer.id === 'art-curator');
     const masterStudy = ITEM_BY_ID.get('master-study');
