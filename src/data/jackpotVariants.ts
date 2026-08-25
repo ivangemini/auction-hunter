@@ -11,8 +11,8 @@ export const JACKPOT_VARIANTS: readonly JackpotVariantDefinition[] = [
   {
     id: 'archive-grade',
     name: { ru: 'Архивный экземпляр', en: 'Archive-grade copy' },
-    requiredTraits: ['provenance', 'documented-history', 'rare-variant'],
-    bonusMultiplier: 1.12,
+    requiredTraits: ['provenance', 'rare-variant'],
+    bonusMultiplier: 1.1,
   },
   {
     id: 'sealed-first-run',
@@ -21,9 +21,9 @@ export const JACKPOT_VARIANTS: readonly JackpotVariantDefinition[] = [
     bonusMultiplier: 1.1,
   },
   {
-    id: 'matching-collector-set',
-    name: { ru: 'Коллекционный комплект с номерами', en: 'Matching collector set' },
-    requiredTraits: ['complete-set', 'matching-serials'],
+    id: 'matching-mechanical',
+    name: { ru: 'Номерная механика', en: 'Matching mechanical copy' },
+    requiredTraits: ['mechanical', 'matching-serials'],
     bonusMultiplier: 1.08,
   },
   {
