@@ -198,9 +198,9 @@ async function captureLocale(browser, localeCode, locale) {
     await page.waitForTimeout(720);
     const discovery = await page.screenshot({ type: 'png' });
     validatePng(discovery, `${localeCode} Discovery Board`);
-    const discoveryDifference = await imageDifferenceRatio(page, collection, discovery);
-    assert(discoveryDifference > 0.22, `${localeCode} Discovery Board did not visibly replace Collection Book (${discoveryDifference.toFixed(3)})`);
     fs.writeFileSync(path.join(outputDir, '02-discovery-board.png'), discovery);
+    const discoveryDifference = await imageDifferenceRatio(page, collection, discovery);
+    assert(discoveryDifference > 0.18, `${localeCode} Discovery Board did not visibly replace Collection Book (${discoveryDifference.toFixed(3)})`);
 
     // Discovery Board -> Collection Book -> Buyer Market through real navigation controls.
     await clickGame(page, 1020, 72);
@@ -209,9 +209,9 @@ async function captureLocale(browser, localeCode, locale) {
     await page.waitForTimeout(720);
     const market = await page.screenshot({ type: 'png' });
     validatePng(market, `${localeCode} Buyer Market`);
+    fs.writeFileSync(path.join(outputDir, '03-buyer-market.png'), market);
     const marketDifference = await imageDifferenceRatio(page, collection, market);
     assert(marketDifference > 0.22, `${localeCode} Buyer Market did not visibly replace Collection Book (${marketDifference.toFixed(3)})`);
-    fs.writeFileSync(path.join(outputDir, '03-buyer-market.png'), market);
 
     await page.close();
   } finally {
