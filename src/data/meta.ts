@@ -40,10 +40,22 @@ export const DAILY_CONTRACT_POOL: readonly DailyContractDefinition[] = [
     metric: 'auctionsPlayed', target: 4, reward: 300,
   },
   {
+    id: 'play-6',
+    title: { ru: 'Полная смена', en: 'Full shift' },
+    description: { ru: 'Сыграй 6 аукционов сегодня.', en: 'Play 6 auctions today.' },
+    metric: 'auctionsPlayed', target: 6, reward: 450,
+  },
+  {
     id: 'win-2',
     title: { ru: 'Охотник за лотами', en: 'Lot hunter' },
     description: { ru: 'Выиграй 2 аукциона сегодня.', en: 'Win 2 auctions today.' },
     metric: 'auctionsWon', target: 2, reward: 500,
+  },
+  {
+    id: 'win-3',
+    title: { ru: 'Серия побед', en: 'Winning run' },
+    description: { ru: 'Выиграй 3 аукциона сегодня.', en: 'Win 3 auctions today.' },
+    metric: 'auctionsWon', target: 3, reward: 700,
   },
   {
     id: 'sell-5',
@@ -52,10 +64,22 @@ export const DAILY_CONTRACT_POOL: readonly DailyContractDefinition[] = [
     metric: 'itemsSold', target: 5, reward: 400,
   },
   {
+    id: 'sell-8',
+    title: { ru: 'Оптовый день', en: 'Volume dealer' },
+    description: { ru: 'Продай 8 предметов.', en: 'Sell 8 items.' },
+    metric: 'itemsSold', target: 8, reward: 600,
+  },
+  {
     id: 'keep-2',
     title: { ru: 'Пополнение витрины', en: 'Fill the display' },
     description: { ru: 'Оставь 2 находки в коллекции.', en: 'Keep 2 finds in your collection.' },
     metric: 'itemsKept', target: 2, reward: 450,
+  },
+  {
+    id: 'keep-4',
+    title: { ru: 'Запас для коллекции', en: 'Collector stock' },
+    description: { ru: 'Оставь 4 находки в коллекции.', en: 'Keep 4 finds in your collection.' },
+    metric: 'itemsKept', target: 4, reward: 650,
   },
   {
     id: 'sales-2500',
@@ -63,10 +87,25 @@ export const DAILY_CONTRACT_POOL: readonly DailyContractDefinition[] = [
     description: { ru: 'Получи 2 500 ₽ выручки от продаж.', en: 'Generate 2,500 ₽ in sales.' },
     metric: 'salesValue', target: 2500, reward: 600,
   },
+  {
+    id: 'sales-5000',
+    title: { ru: 'Сильная касса', en: 'Strong receipts' },
+    description: { ru: 'Получи 5 000 ₽ выручки от продаж.', en: 'Generate 5,000 ₽ in sales.' },
+    metric: 'salesValue', target: 5000, reward: 850,
+  },
 ];
 
 export function dailyContractsForDay(dayKey: string): DailyContractDefinition[] {
-  return selectDailyContracts(DAILY_CONTRACT_POOL, dayKey, 3);
+  const ranked = selectDailyContracts(DAILY_CONTRACT_POOL, dayKey, DAILY_CONTRACT_POOL.length);
+  const selected: DailyContractDefinition[] = [];
+  const metrics = new Set<ContractMetric>();
+  for (const contract of ranked) {
+    if (metrics.has(contract.metric)) continue;
+    selected.push(contract);
+    metrics.add(contract.metric);
+    if (selected.length === 3) break;
+  }
+  return selected;
 }
 
 export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
@@ -117,6 +156,48 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
     title: { ru: 'Пятизначный банк', en: 'Five-digit bankroll' },
     description: { ru: 'Подними банк до 10 000 ₽.', en: 'Reach a 10,000 ₽ bankroll.' },
     metric: 'highestCash', target: 10000, reward: 1500,
+  },
+  {
+    id: 'twenty-five-auctions',
+    title: { ru: 'Знакомое место', en: 'Familiar ground' },
+    description: { ru: 'Сыграй 25 аукционов.', en: 'Play 25 auctions.' },
+    metric: 'auctionsPlayed', target: 25, reward: 1000,
+  },
+  {
+    id: 'fifteen-wins',
+    title: { ru: 'Твёрдый молоток', en: 'Hammer regular' },
+    description: { ru: 'Выиграй 15 лотов.', en: 'Win 15 lots.' },
+    metric: 'auctionsWon', target: 15, reward: 1400,
+  },
+  {
+    id: 'collector-sixteen',
+    title: { ru: 'Полная витрина', en: 'Full display' },
+    description: { ru: 'Собери 16 уникальных находок.', en: 'Own 16 unique finds.' },
+    metric: 'uniqueCollection', target: 16, reward: 1700,
+  },
+  {
+    id: 'sales-fifty-k',
+    title: { ru: 'Оборот 50K', en: '50K turnover' },
+    description: { ru: 'Достигни 50 000 ₽ суммарных продаж.', en: 'Reach 50,000 ₽ in lifetime sales.' },
+    metric: 'lifetimeSales', target: 50000, reward: 2500,
+  },
+  {
+    id: 'six-sets',
+    title: { ru: 'Системный коллекционер', en: 'Set architect' },
+    description: { ru: 'Забери награды за 6 коллекционных наборов.', en: 'Claim rewards for 6 collection sets.' },
+    metric: 'claimedSets', target: 6, reward: 2200,
+  },
+  {
+    id: 'rep-seven-hundred',
+    title: { ru: 'Имя на рынке', en: 'Known on the circuit' },
+    description: { ru: 'Достигни 700 REP.', en: 'Reach 700 REP.' },
+    metric: 'reputationXp', target: 700, reward: 2600,
+  },
+  {
+    id: 'cash-fifty-k',
+    title: { ru: 'Серьёзный капитал', en: 'Serious bankroll' },
+    description: { ru: 'Подними банк до 50 000 ₽.', en: 'Reach a 50,000 ₽ bankroll.' },
+    metric: 'highestCash', target: 50000, reward: 3000,
   },
 ];
 
