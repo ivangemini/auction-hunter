@@ -170,8 +170,8 @@ async function captureLocale(browser, localeCode, locale) {
     await clickGame(page, 80, 120);
     await page.waitForTimeout(320);
 
-    // 32 sets at four cards per page must expose a real eighth page.
-    for (let pageIndex = 1; pageIndex < 8; pageIndex += 1) {
+    // 36 sets at four cards per page must expose a real ninth page.
+    for (let pageIndex = 1; pageIndex < 9; pageIndex += 1) {
       await clickGame(page, 735, 674);
       await page.waitForTimeout(240);
     }
@@ -235,4 +235,4 @@ for (const locale of ['ru', 'en']) {
     console.log(path.relative(root, path.join(reviewRoot, locale, file)).split(path.sep).join('/'));
   }
 }
-console.log('P7 Collection/copy-traits/final-page/Discovery/Buyer Market visual review capture OK');
+console.log('P7 Collection/copy-traits/page-9/Discovery/Buyer Market visual review capture OK');
