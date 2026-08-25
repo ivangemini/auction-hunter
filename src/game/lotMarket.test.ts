@@ -85,7 +85,7 @@ describe('lot market preparation', () => {
     const vip = prepareLotMarket({
       requestedTierId: 'collector',
       reputationXp: 700,
-      auctionsPlayed: 4,
+      auctionsPlayed: 3,
       random: () => 0.99,
     });
     expect(vip.choices.filter((choice) => choice.modifier?.id.includes('vip-invitation'))).toHaveLength(1);
@@ -94,8 +94,8 @@ describe('lot market preparation', () => {
     resetLotMarketCache();
     const lowRep = prepareLotMarket({
       requestedTierId: 'collector',
-      reputationXp: 400,
-      auctionsPlayed: 4,
+      reputationXp: 350,
+      auctionsPlayed: 3,
       random: () => 0.99,
     });
     expect(lowRep.choices.some((choice) => choice.modifier?.id.includes('vip-invitation'))).toBe(false);
@@ -104,7 +104,7 @@ describe('lot market preparation', () => {
     const wrongTier = prepareLotMarket({
       requestedTierId: 'estate',
       reputationXp: 700,
-      auctionsPlayed: 4,
+      auctionsPlayed: 3,
       random: () => 0.99,
     });
     expect(wrongTier.choices.some((choice) => choice.modifier?.id.includes('vip-invitation'))).toBe(false);
