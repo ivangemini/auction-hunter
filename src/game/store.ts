@@ -1,10 +1,12 @@
 import { trackEvent } from '../analytics';
 import { dailyBuyerOffersForDay, buyerOfferMatches, buyerOfferValue } from '../data/buyers';
 import { ITEM_BY_ID } from '../data/catalog';
+import { COLLECTOR_REQUESTS, COLLECTOR_REQUEST_WINDOW_AUCTIONS } from '../data/collectorRequests';
 import { localDayKey } from '../data/daily';
 import { DISCOVERY_CHAINS } from '../data/discoveryChains';
 import { itemTraitsFor } from '../data/itemTraits';
 import { ACHIEVEMENTS, BUSINESS_UPGRADES, dailyContractsForDay } from '../data/meta';
+import { bestCollectorRequestMatch, collectorRequestForAuction } from '../domain/collectorRequests';
 import { advanceDiscoveryChains } from '../domain/discoveryChains';
 import { appendAuctionHistory } from '../domain/history';
 import {
@@ -23,6 +25,8 @@ import type {
 } from '../domain/types';
 import { scheduleCloudSave } from '../platform/cloudSave';
 import { loadLocalSave, writeLocalSave } from './save';
+
+const COLLECTOR_REQUEST_CLAIM_HISTORY_LIMIT = 32;
 
 export class GameStore {
   private state: PlayerSave = loadLocalSave();
@@ -172,6 +176,55 @@ export class GameStore {
       dayKey,
       value: best.value,
       premiumMultiplier: offer.multiplier,
+      traitIds: [...best.instance.traitIds],
+    });
+    trackEvent('item_dispositioned', { disposition: 'sell', itemId: best.item.id, value: best.value, source: 'collection' });
+    return best.value;
+  }
+
+  fulfillCollectorRequest(requestKey: string, itemKey: string): number {
+    this.sync();
+    this.resetDailyContractsIfNeeded(localDayKey());
+
+    const active = collectorRequestForAuction(
+      this.state.auctionsPlayed,
+      COLLECTOR_REQUESTS,
+      COLLECTOR_REQUEST_WINDOW_AUCTIONS,
+    );
+    if (!active || active.requestKey !== requestKey) return 0;
+    if (this.state.claimedCollectorRequests.includes(active.requestKey)) return 0;
+
+    const candidates = this.collectionItems().filter(
+      (instance) => instance.id === itemKey || instance.itemId === itemKey,
+    );
+    const best = bestCollectorRequestMatch(candidates, ITEM_BY_ID, active);
+    if (!best || best.value <= 0) return 0;
+
+    const collectionIndex = this.state.collection.indexOf(best.item.id);
+    const instanceIndex = this.collectionItems().findIndex((candidate) => candidate.id === best.instance.id);
+    if (collectionIndex < 0 || instanceIndex < 0) return 0;
+
+    this.state.collection.splice(collectionIndex, 1);
+    this.collectionItems().splice(instanceIndex, 1);
+    this.state.claimedCollectorRequests = [
+      ...this.state.claimedCollectorRequests,
+      active.requestKey,
+    ].slice(-COLLECTOR_REQUEST_CLAIM_HISTORY_LIMIT);
+    this.state.cash += best.value;
+    this.state.lifetimeSales += best.value;
+    this.addContractProgress('itemsSold', 1);
+    this.addContractProgress('salesValue', best.value);
+    this.updateHighestCash();
+    this.persist();
+
+    trackEvent('collector_request_completed', {
+      requestId: active.definition.id,
+      requestKey: active.requestKey,
+      tier: active.definition.tier,
+      itemId: best.item.id,
+      value: best.value,
+      premiumMultiplier: active.definition.multiplier,
+      remainingAuctions: active.remainingAuctions,
       traitIds: [...best.instance.traitIds],
     });
     trackEvent('item_dispositioned', { disposition: 'sell', itemId: best.item.id, value: best.value, source: 'collection' });
