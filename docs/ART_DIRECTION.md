@@ -1,4 +1,4 @@
-# Auction Hunter — Art Direction v0.9
+# Auction Hunter — Art Direction v1.0
 
 ## Visual thesis
 Auction Hunter should feel like a late-evening storage auction: warm tungsten light, cold industrial shadows, dusty surfaces, taped cardboard, worn paint and small flashes of valuable metal or electronics.
@@ -174,7 +174,7 @@ The Office uses the shared atmosphere/surface/chip/progress system while preserv
 This does not close the overall P7 game-feel pass: particles, richer reactions, additional staged transitions and broader desktop/mobile-landscape acceptance remain separate work.
 
 ## Current asset coverage
-The expanded catalog has direct SVG coverage for all 36 collectible item identities. Catalog items do not depend on visual aliases; `fallback.svg` remains only as a defensive runtime fallback for unknown/missing IDs.
+The expanded catalog has direct authored SVG coverage for all 36 collectible item identities. Catalog items do not depend on visual aliases; `fallback.svg` remains only as a defensive runtime fallback for unknown/missing IDs.
 
 Lot presentation keeps nine semantic environment identities: three Garage, three Estate and three Collector archetypes. The 24 lot templates reuse these identities intentionally through `artId`, so related locations share visual language while names, clues, item pools and economy create distinct lot identities.
 
@@ -190,14 +190,24 @@ Nine high-visibility reveal/restoration finds preserve their existing semantic I
 `toolbox`, `toy-robot`, `film-camera`, `pocket-watch`, `porcelain-figurine`, `arcade-handheld`, `clockwork-automaton`, `art-deco-lamp`, `master-study`.
 
 ### P7 item fidelity — Batch 02
-A second nine identities now use the same authored-quality floor while deliberately varying construction/material language across electronics, wood/vinyl, brass, optics, paper, jewelry, console hardware, leather/steel and aged book cloth:
+A second nine identities use the same authored-quality floor while deliberately varying construction/material language across electronics, wood/vinyl, brass, optics, paper, jewelry, console hardware, leather/steel and aged book cloth:
 `cassette-player`, `vinyl-box`, `brass-clock`, `telescope`, `signed-poster`, `silver-ring`, `mini-console`, `chronograph-watch`, `first-edition-book`.
 
-That brings the authored P7 item-fidelity pass to **18 of 36 catalog identities**. The remaining 18 direct SVGs are valid for coverage but remain candidates for the same replacement pass.
+### P7 item fidelity — Batch 03
+The third nine replace the most schematic prototype, workshop, consumer-electronics, paper, toy and optics placeholders with object-specific construction and materials:
+`prototype-toy`, `multimeter`, `portable-radio`, `comic-stack`, `tin-car`, `travel-clock`, `instant-camera`, `binoculars`, `gallery-print`.
 
-`scripts/capture-item-art-review.mjs` keeps both accepted batches under deterministic visual review. CI renders a separate 3×3 1280×720 contact sheet for Batch 01 and Batch 02, validates each SVG source against the 512×360 viewBox contract and verifies browser decode before uploading the sheets for human review. New batches should be added without dropping previously accepted batches.
+The batch deliberately mixes unpainted resin, analog meter glass/bakelite, aged plastic, layered paper, painted tin, leather/brass, camera bellows, leather/metal optics and framed paper so the catalog does not collapse into a single rendering recipe.
 
-This coverage is a correctness floor, not a quality ceiling. Existing simple SVGs should be replaced or augmented when they read as schematic placeholders in production screenshots.
+### P7 item fidelity — Batch 04
+The final nine complete the catalog fidelity pass across jewelry, field watches, production samples, bench electronics, portable CRT-era hardware, rail models, mechanical writing tools and music memorabilia:
+`enamel-brooch`, `military-watch`, `preproduction-figure`, `soldering-station`, `pocket-tv`, `model-train`, `manual-typewriter`, `fountain-pen`, `signed-vinyl`.
+
+All **36 of 36 catalog item identities** now meet the accepted authored P7 fidelity floor while retaining their semantic IDs and `512×360` vector source contract.
+
+`scripts/capture-item-art-review.mjs` permanently reviews all four accepted batches as separate deterministic 3×3 1280×720 contact sheets. It validates each SVG source against the `512×360` viewBox contract, rejects embedded `<text>`/pseudo-text, verifies browser decode and uploads the four sheets for human visual review.
+
+This coverage is a correctness and release-quality floor, not a permanent ceiling. Individual assets may still be upgraded later when art direction evolves, but the catalog no longer relies on schematic placeholder art.
 
 `src/data/artManifest.ts` remains the semantic asset manifest and `src/data/artCoverage.test.ts` prevents catalog items from silently falling back to aliases or the lot catalog from shrinking below the environment floor.
 
