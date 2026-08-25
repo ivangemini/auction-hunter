@@ -6,7 +6,10 @@ const lot: LotTemplate = {
   id: 'test',
   name: { ru: 'Тест', en: 'Test' },
   location: { ru: 'Тест', en: 'Test' },
-  clues: [],
+  clues: [
+    { text: { ru: 'Первая', en: 'First' }, signal: { categories: ['watches'] } },
+    { text: { ru: 'Вторая', en: 'Second' }, signal: { categories: ['electronics'] } },
+  ],
   reservePrice: 500,
   bidIncrement: 100,
   itemCount: 4,
@@ -35,8 +38,29 @@ describe('lot modifiers', () => {
     expect(adjusted).not.toBe(lot);
     expect(adjusted.reservePrice).toBe(400);
     expect(adjusted.itemCount).toBe(5);
+    expect(adjusted.clues).toHaveLength(2);
     expect(lot.reservePrice).toBe(500);
     expect(modifierConditionRange({ min: 0.42, max: 0.92 }, modifier)).toEqual({ min: 0.52, max: 0.9700000000000001 });
     expect(modifierMarketMultiplier(modifier)).toBe(1.12);
+  });
+
+  it('supports sealed-storage rules that reduce information and make bidding coarser', () => {
+    const sealed: LotModifierDefinition = {
+      id: 'sealed',
+      name: { ru: 'Закрыто', en: 'Sealed' },
+      description: { ru: 'Мало данных', en: 'Less info' },
+      clueLimit: 1,
+      bidIncrementMultiplier: 2,
+      reserveMultiplier: 0.84,
+      itemCountDelta: 1,
+    };
+
+    const adjusted = applyLotModifier(lot, sealed);
+    expect(adjusted.clues).toHaveLength(1);
+    expect(adjusted.bidIncrement).toBe(200);
+    expect(adjusted.reservePrice).toBe(400);
+    expect(adjusted.itemCount).toBe(5);
+    expect(lot.clues).toHaveLength(2);
+    expect(lot.bidIncrement).toBe(100);
   });
 });
