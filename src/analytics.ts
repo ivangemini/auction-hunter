@@ -2,6 +2,7 @@ import type { BusinessUpgradeId, ItemTraitId, Locale, RestorationGrade } from '.
 import type { InspectionConditionBand } from './domain/inspection';
 import type { RestorationMode } from './domain/restoration';
 import type { AuctionTierId } from './data/tiers';
+import type { RivalSignatureBehavior } from './domain/auction';
 
 export const ANALYTICS_SCHEMA_VERSION = 1 as const;
 export const ANALYTICS_DOM_EVENT = 'auction-hunter:analytics';
@@ -58,6 +59,12 @@ export interface AnalyticsEventMap {
     outcome: 'player-win' | 'player-pass';
     winningRivalId?: string;
   };
+  rival_signature_move_used: {
+    rivalId: string;
+    behavior: RivalSignatureBehavior;
+    lotId: string;
+    bid: number;
+  };
   item_revealed: { itemId: string; rarity: string };
   item_appraised: {
     itemId: string;
@@ -65,6 +72,12 @@ export interface AnalyticsEventMap {
     condition: number;
     traitIds?: ItemTraitId[];
     traitMultiplier?: number;
+  };
+  jackpot_variant_revealed: {
+    variantId: string;
+    itemId: string;
+    traitIds: ItemTraitId[];
+    appraisedValue: number;
   };
   restoration_completed: {
     itemId: string;
