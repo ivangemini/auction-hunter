@@ -3,7 +3,7 @@ import type { AuctionTierId } from './tiers';
 
 export const SEALED_AUCTION_MIN_REP = 180;
 export const SEALED_AUCTION_CADENCE = 5;
-export const VIP_AUCTION_MIN_REP = 360;
+export const VIP_AUCTION_MIN_REP = 320;
 export const VIP_AUCTION_CADENCE = 4;
 
 export const SEALED_AUCTION_MODIFIER: LotModifierDefinition = {
