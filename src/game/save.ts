@@ -4,6 +4,7 @@ import type {
   AuctionHistoryEntry,
   BusinessUpgradeState,
   CollectionItem,
+  ItemTraitId,
   PlayerSave,
   RestorationGrade,
 } from '../domain/types';
@@ -43,6 +44,10 @@ const DEFAULT_SAVE: PlayerSave = {
   rivalEncounters: {},
   rivalPlayerWins: {},
   rivalWins: {},
+  discoveredItemIds: [],
+  bestConditionByItem: {},
+  bestValueByItem: {},
+  discoveredVariantTraitIds: [],
   discoveryChainProgress: {},
   discoveryChainLastAuction: {},
   completedDiscoveryChains: [],
@@ -64,6 +69,10 @@ export function createDefaultSave(): PlayerSave {
     rivalEncounters: {},
     rivalPlayerWins: {},
     rivalWins: {},
+    discoveredItemIds: [],
+    bestConditionByItem: {},
+    bestValueByItem: {},
+    discoveredVariantTraitIds: [],
     discoveryChainProgress: {},
     discoveryChainLastAuction: {},
     completedDiscoveryChains: [],
@@ -103,6 +112,10 @@ export function normalizeSave(value: unknown): PlayerSave {
     rivalEncounters: cleanIntegerRecord(value.rivalEncounters),
     rivalPlayerWins: cleanIntegerRecord(value.rivalPlayerWins),
     rivalWins: cleanIntegerRecord(value.rivalWins),
+    discoveredItemIds: cleanStringArray(value.discoveredItemIds),
+    bestConditionByItem: cleanUnitRecord(value.bestConditionByItem),
+    bestValueByItem: cleanNumberRecord(value.bestValueByItem),
+    discoveredVariantTraitIds: cleanTraitIds(value.discoveredVariantTraitIds),
     discoveryChainProgress: cleanIntegerRecord(value.discoveryChainProgress),
     discoveryChainLastAuction: cleanIntegerRecord(value.discoveryChainLastAuction),
     completedDiscoveryChains: cleanStringArray(value.completedDiscoveryChains),
@@ -201,7 +214,7 @@ function cleanCollectionItems(value: unknown): CollectionItem[] {
   return result;
 }
 
-function cleanTraitIds(value: unknown): CollectionItem['traitIds'] {
+function cleanTraitIds(value: unknown): ItemTraitId[] {
   if (!Array.isArray(value)) return [];
   return [...new Set(value.filter(isItemTraitId))];
 }
@@ -215,7 +228,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function cleanStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
+  return Array.isArray(value) ? [...new Set(value.filter((id): id is string => typeof id === 'string'))] : [];
 }
 
 function cleanNumberRecord(value: unknown): Record<string, number> {
@@ -224,6 +237,15 @@ function cleanNumberRecord(value: unknown): Record<string, number> {
     Object.entries(value)
       .filter(([, amount]) => typeof amount === 'number' && Number.isFinite(amount))
       .map(([key, amount]) => [key, Math.max(0, amount as number)]),
+  );
+}
+
+function cleanUnitRecord(value: unknown): Record<string, number> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([, amount]) => typeof amount === 'number' && Number.isFinite(amount))
+      .map(([key, amount]) => [key, Math.min(1, Math.max(0, amount as number))]),
   );
 }
 
