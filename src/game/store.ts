@@ -4,7 +4,7 @@ import { ITEM_BY_ID } from '../data/catalog';
 import { COLLECTOR_REQUESTS, COLLECTOR_REQUEST_WINDOW_AUCTIONS } from '../data/collectorRequests';
 import { localDayKey } from '../data/daily';
 import { DISCOVERY_CHAINS } from '../data/discoveryChains';
-import { itemTraitsFor } from '../data/itemTraits';
+import { ITEM_TRAITS, itemTraitsFor } from '../data/itemTraits';
 import { MARKET_TRENDS, MARKET_TREND_SCHEDULE } from '../data/marketTrends';
 import { ACHIEVEMENTS, BUSINESS_UPGRADES, dailyContractsForDay } from '../data/meta';
 import { bestCollectorRequestMatch, collectorRequestForAuction } from '../domain/collectorRequests';
@@ -76,7 +76,7 @@ export class GameStore {
     this.persist();
   }
 
-  sellItem(value: number, itemId?: string): void {
+  sellItem(value: number, itemId?: string, revealedItem?: RevealedItem): void {
     this.sync();
     this.resetDailyContractsIfNeeded(localDayKey());
     const saleValue = this.cleanCashAmount(value);
@@ -85,6 +85,7 @@ export class GameStore {
     this.addContractProgress('itemsSold', 1);
     this.addContractProgress('salesValue', saleValue);
     this.recordDiscovery(itemId);
+    if (revealedItem) this.recordCollectionDiscovery(revealedItem);
     this.updateHighestCash();
     this.persist();
     trackEvent('item_dispositioned', { disposition: 'sell', itemId, value: saleValue, source: 'round' });
@@ -98,6 +99,7 @@ export class GameStore {
     this.collectionItems().push(collectionItem);
     this.addContractProgress('itemsKept', 1);
     this.recordDiscovery(collectionItem.itemId);
+    if (typeof item !== 'string') this.recordCollectionDiscovery(item);
     this.persist();
     trackEvent('item_dispositioned', { disposition: 'keep', itemId: collectionItem.itemId, source: 'round' });
   }
@@ -393,6 +395,25 @@ export class GameStore {
       acquiredAt: Date.now(),
       ...(item.restorationGrade ? { restorationGrade: item.restorationGrade } : {}),
     };
+  }
+
+  private recordCollectionDiscovery(item: RevealedItem): void {
+    const itemId = item.definition.id;
+    if (!this.state.discoveredItemIds.includes(itemId)) this.state.discoveredItemIds.push(itemId);
+    this.state.bestConditionByItem[itemId] = Math.max(
+      this.state.bestConditionByItem[itemId] ?? 0,
+      Math.min(1, Math.max(0, item.condition)),
+    );
+    this.state.bestValueByItem[itemId] = Math.max(
+      this.state.bestValueByItem[itemId] ?? 0,
+      this.cleanCashAmount(item.appraisedValue),
+    );
+
+    const variants = new Set(this.state.discoveredVariantTraitIds);
+    for (const traitId of item.traitIds ?? []) {
+      if (ITEM_TRAITS[traitId].variant) variants.add(traitId);
+    }
+    this.state.discoveredVariantTraitIds = [...variants];
   }
 
   private createInventoryId(itemId: string): string {
