@@ -19,8 +19,8 @@ const sampleLot: LotTemplate = {
 };
 
 describe('lot modifier breadth', () => {
-  it('ships at least thirteen unique bilingual modifier identities', () => {
-    expect(LOT_MODIFIERS.length).toBeGreaterThanOrEqual(13);
+  it('ships at least seventeen unique bilingual modifier identities', () => {
+    expect(LOT_MODIFIERS.length).toBeGreaterThanOrEqual(17);
     expect(new Set(LOT_MODIFIERS.map((modifier) => modifier.id)).size).toBe(LOT_MODIFIERS.length);
     for (const modifier of LOT_MODIFIERS) {
       expect(modifier.name.ru.length).toBeGreaterThan(0);
