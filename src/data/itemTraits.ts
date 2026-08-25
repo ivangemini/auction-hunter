@@ -86,6 +86,20 @@ export const ITEM_TRAITS: Record<ItemTraitId, ItemTraitDefinition> = {
     valueMultiplier: 1.16,
     variant: true,
   },
+  'factory-sealed': {
+    id: 'factory-sealed',
+    name: { ru: 'Заводская запечатка', en: 'Factory sealed' },
+    description: { ru: 'Невскрытая заводская упаковка сильно повышает спрос на конкретный экземпляр.', en: 'Unopened factory packaging materially increases demand for this specific copy.' },
+    valueMultiplier: 1.24,
+    variant: true,
+  },
+  'matching-serials': {
+    id: 'matching-serials',
+    name: { ru: 'Совпадающие номера', en: 'Matching serials' },
+    description: { ru: 'Серийные номера корпуса, механизма и документов совпадают.', en: 'Serial numbers across the body, mechanism and paperwork match.' },
+    valueMultiplier: 1.15,
+    variant: true,
+  },
   'replacement-parts': {
     id: 'replacement-parts',
     name: { ru: 'Неродные детали', en: 'Replacement parts' },
@@ -105,6 +119,20 @@ export const ITEM_TRAITS: Record<ItemTraitId, ItemTraitDefinition> = {
     name: { ru: 'Сомнительная подлинность', en: 'Authenticity risk' },
     description: { ru: 'Есть признаки поздней копии или неподтверждённой подлинности.', en: 'Signs point to a later copy or unverified authenticity.' },
     valueMultiplier: 0.6,
+    variant: true,
+  },
+  'water-damage': {
+    id: 'water-damage',
+    name: { ru: 'Следы воды', en: 'Water damage' },
+    description: { ru: 'Влага оставила следы на корпусе, бумаге или внутренних деталях.', en: 'Moisture left visible damage on the case, paper or internal components.' },
+    valueMultiplier: 0.76,
+    variant: true,
+  },
+  'heavy-wear': {
+    id: 'heavy-wear',
+    name: { ru: 'Сильный износ', en: 'Heavy wear' },
+    description: { ru: 'Экземпляр активно использовали: потёртости и следы эксплуатации снижают цену.', en: 'Heavy use left wear and handling marks that reduce value.' },
+    valueMultiplier: 0.86,
     variant: true,
   },
 };
@@ -139,12 +167,16 @@ const POSITIVE_VARIANT_RULES: readonly VariantTraitRule[] = [
   { id: 'complete-set', categories: ['electronics', 'watches', 'toys', 'tools', 'collectibles'] },
   { id: 'rare-variant', categories: ['electronics', 'watches', 'toys', 'art', 'tools', 'collectibles'] },
   { id: 'documented-history', categories: ['watches', 'toys', 'art', 'collectibles'] },
+  { id: 'factory-sealed', categories: ['electronics', 'toys', 'collectibles'] },
+  { id: 'matching-serials', categories: ['electronics', 'watches', 'tools'] },
 ];
 
 const NEGATIVE_VARIANT_RULES: readonly VariantTraitRule[] = [
   { id: 'replacement-parts', categories: ['electronics', 'watches', 'toys', 'tools'] },
   { id: 'incomplete', categories: ['electronics', 'watches', 'toys', 'art', 'tools', 'collectibles'] },
   { id: 'replica-risk', categories: ['watches', 'toys', 'art', 'collectibles'] },
+  { id: 'water-damage', categories: ['electronics', 'art', 'tools', 'collectibles'] },
+  { id: 'heavy-wear', categories: ['electronics', 'watches', 'toys', 'art', 'tools', 'collectibles'] },
 ];
 
 const POSITIVE_CHANCE: Record<Rarity, number> = {
@@ -176,7 +208,8 @@ export function rollItemTraits(item: ItemDefinition, random: () => number = Math
   }
 
   const negative = eligibleVariantTraits(NEGATIVE_VARIANT_RULES, item.category)
-    .filter((id) => !(id === 'incomplete' && traits.has('complete-set')));
+    .filter((id) => !(id === 'incomplete' && (traits.has('complete-set') || traits.has('factory-sealed'))))
+    .filter((id) => !(id === 'replacement-parts' && traits.has('factory-sealed')));
 
   if (negative.length > 0 && clampedRandom(random) < NEGATIVE_CHANCE[item.rarity]) {
     traits.add(pickTrait(negative, random));
