@@ -13,24 +13,9 @@ const GAME_HEIGHT = 720;
 const SAVE_KEY = 'auction-hunter.save.v1';
 
 const REVIEW_COLLECTION = [
-  'toolbox',
-  'toy-robot',
-  'film-camera',
-  'pocket-watch',
-  'porcelain-figurine',
-  'arcade-handheld',
-  'clockwork-automaton',
-  'art-deco-lamp',
-  'master-study',
-  'cassette-player',
-  'vinyl-box',
-  'brass-clock',
-  'telescope',
-  'signed-poster',
-  'silver-ring',
-  'mini-console',
-  'chronograph-watch',
-  'first-edition-book',
+  'toolbox', 'toy-robot', 'film-camera', 'pocket-watch', 'porcelain-figurine', 'arcade-handheld',
+  'clockwork-automaton', 'art-deco-lamp', 'master-study', 'cassette-player', 'vinyl-box', 'brass-clock',
+  'telescope', 'signed-poster', 'silver-ring', 'mini-console', 'chronograph-watch', 'first-edition-book',
 ];
 
 const seedSave = {
@@ -38,17 +23,10 @@ const seedSave = {
   updatedAt: 1,
   cash: 125000,
   collection: REVIEW_COLLECTION,
-  collectionItems: [
-    {
-      id: 'review-film-camera-copy',
-      itemId: 'film-camera',
-      appraisedValue: 1260,
-      condition: 0.88,
-      restored: false,
-      traitIds: ['factory-sealed', 'matching-serials'],
-      acquiredAt: 1,
-    },
-  ],
+  collectionItems: [{
+    id: 'review-film-camera-copy', itemId: 'film-camera', appraisedValue: 1260,
+    condition: 0.88, restored: false, traitIds: ['factory-sealed', 'matching-serials'], acquiredAt: 1,
+  }],
   claimedSetRewards: [],
   reputationXp: 720,
   lastDailyCompletedDay: null,
@@ -65,16 +43,8 @@ const seedSave = {
   auctionHistory: [],
   buyerMarketDayKey: null,
   claimedBuyerOfferIds: [],
-  discoveryChainProgress: {
-    'watchmaker-ledger': 1,
-    'prototype-trail': 2,
-    'lost-master-study': 3,
-  },
-  discoveryChainLastAuction: {
-    'watchmaker-ledger': 31,
-    'prototype-trail': 32,
-    'lost-master-study': 33,
-  },
+  discoveryChainProgress: { 'watchmaker-ledger': 1, 'prototype-trail': 2, 'lost-master-study': 3 },
+  discoveryChainLastAuction: { 'watchmaker-ledger': 31, 'prototype-trail': 32, 'lost-master-study': 33 },
   completedDiscoveryChains: ['lost-master-study'],
 };
 
@@ -118,9 +88,7 @@ async function clickGame(page, gameX, gameY) {
   const canvas = page.locator('canvas');
   const box = await canvas.boundingBox();
   assert(box, 'Game canvas has no bounding box');
-  const pageX = box.x + (gameX / GAME_WIDTH) * box.width;
-  const pageY = box.y + (gameY / GAME_HEIGHT) * box.height;
-  await page.mouse.click(pageX, pageY);
+  await page.mouse.click(box.x + (gameX / GAME_WIDTH) * box.width, box.y + (gameY / GAME_HEIGHT) * box.height);
 }
 
 async function installSeed(page, platformLocale) {
@@ -128,10 +96,7 @@ async function installSeed(page, platformLocale) {
     window.YaGames = {
       init: async () => ({
         environment: { i18n: { lang } },
-        features: {
-          LoadingAPI: { ready() {} },
-          GameplayAPI: { start() {}, stop() {} },
-        },
+        features: { LoadingAPI: { ready() {} }, GameplayAPI: { start() {}, stop() {} } },
       }),
     };
     localStorage.setItem(key, JSON.stringify(save));
@@ -179,61 +144,42 @@ async function imageDifferenceRatio(page, before, after) {
       if (delta > 42) changed += 1;
     }
     return sampled > 0 ? changed / sampled : 0;
-  }, {
-    beforeBase64: before.toString('base64'),
-    afterBase64: after.toString('base64'),
-  });
+  }, { beforeBase64: before.toString('base64'), afterBase64: after.toString('base64') });
 }
 
 async function captureLocale(browser, localeCode, locale) {
   const outputDir = path.join(reviewRoot, localeCode);
   ensureDirectory(outputDir);
-  const context = await browser.newContext({
-    viewport: { width: 1280, height: 720 },
-    locale,
-    deviceScaleFactor: 1,
-  });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 }, locale, deviceScaleFactor: 1 });
 
   try {
     const page = await bootPage(context, localeCode);
-
-    // P7 lot-selection header -> Collection Book through the real button.
     await clickGame(page, 1000, 112);
     await page.waitForTimeout(720);
     const collection = await page.screenshot({ type: 'png' });
     validatePng(collection, `${localeCode} Collection Book`);
     fs.writeFileSync(path.join(outputDir, '01-collection-book.png'), collection);
 
-    // Open the concrete film-camera copy from the first set to stress long RU/EN trait labels.
     await clickGame(page, 190, 324);
     await page.waitForTimeout(420);
     const copyTraits = await page.screenshot({ type: 'png' });
     validatePng(copyTraits, `${localeCode} concrete copy trait modal`);
     fs.writeFileSync(path.join(outputDir, '02-copy-traits.png'), copyTraits);
-    assert(
-      (await imageDifferenceRatio(page, collection, copyTraits)) > 0.12,
-      `${localeCode} concrete copy modal did not visibly open`,
-    );
+    assert((await imageDifferenceRatio(page, collection, copyTraits)) > 0.12, `${localeCode} concrete copy modal did not visibly open`);
 
-    // Close modal by clicking its backdrop.
     await clickGame(page, 80, 120);
     await page.waitForTimeout(320);
 
-    // Twenty collection sets produce five pages at four cards per page. Walk the
-    // real pager to the final page so content growth cannot silently overflow it.
-    for (let pageIndex = 1; pageIndex < 5; pageIndex += 1) {
+    // 24 sets at four cards per page must expose a real sixth page.
+    for (let pageIndex = 1; pageIndex < 6; pageIndex += 1) {
       await clickGame(page, 735, 674);
       await page.waitForTimeout(240);
     }
     const collectionLastPage = await page.screenshot({ type: 'png' });
     validatePng(collectionLastPage, `${localeCode} Collection Book final page`);
     fs.writeFileSync(path.join(outputDir, '03-collection-last-page.png'), collectionLastPage);
-    assert(
-      (await imageDifferenceRatio(page, collection, collectionLastPage)) > 0.08,
-      `${localeCode} Collection Book pager did not visibly reach the final page`,
-    );
+    assert((await imageDifferenceRatio(page, collection, collectionLastPage)) > 0.08, `${localeCode} Collection Book pager did not visibly reach the final page`);
 
-    // Collection Book -> Discovery Board through the real navigation button.
     await clickGame(page, 646, 70);
     await page.waitForTimeout(720);
     const discovery = await page.screenshot({ type: 'png' });
@@ -242,7 +188,6 @@ async function captureLocale(browser, localeCode, locale) {
     const discoveryDifference = await imageDifferenceRatio(page, collection, discovery);
     assert(discoveryDifference > 0.18, `${localeCode} Discovery Board did not visibly replace Collection Book (${discoveryDifference.toFixed(3)})`);
 
-    // Discovery Board -> Collection Book -> Buyer Market through real navigation controls.
     await clickGame(page, 1020, 72);
     await page.waitForTimeout(520);
     await clickGame(page, 817, 70);
@@ -263,11 +208,8 @@ fs.rmSync(reviewRoot, { recursive: true, force: true });
 ensureDirectory(reviewRoot);
 
 const preview = spawn(process.execPath, [viteCli, 'preview', '--host', '127.0.0.1', '--port', '4178'], {
-  cwd: root,
-  stdio: ['ignore', 'pipe', 'pipe'],
-  env: { ...process.env },
+  cwd: root, stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env },
 });
-
 let previewLog = '';
 preview.stdout.on('data', (chunk) => { previewLog += chunk.toString(); });
 preview.stderr.on('data', (chunk) => { previewLog += chunk.toString(); });
@@ -289,13 +231,7 @@ try {
 }
 
 for (const locale of ['ru', 'en']) {
-  for (const file of [
-    '01-collection-book.png',
-    '02-copy-traits.png',
-    '03-collection-last-page.png',
-    '04-discovery-board.png',
-    '05-buyer-market.png',
-  ]) {
+  for (const file of ['01-collection-book.png', '02-copy-traits.png', '03-collection-last-page.png', '04-discovery-board.png', '05-buyer-market.png']) {
     console.log(path.relative(root, path.join(reviewRoot, locale, file)).split(path.sep).join('/'));
   }
 }

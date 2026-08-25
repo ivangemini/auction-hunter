@@ -1,4 +1,5 @@
 import type { ItemCategory, LocalizedText } from '../domain/types';
+import { FINAL_COLLECTION_SETS } from './collectionFinalSets';
 
 export interface CollectionSetPerk {
   description: LocalizedText;
@@ -245,6 +246,7 @@ export const COLLECTION_SETS: CollectionSetDefinition[] = [
       resaleRateBonus: 0.03,
     },
   },
+  ...FINAL_COLLECTION_SETS,
 ];
 
 export function uniqueCollectionCount(collectionIds: readonly string[]): number {
