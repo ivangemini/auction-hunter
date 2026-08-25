@@ -111,8 +111,6 @@ async function bootOffice(context, platformLocale) {
 }
 
 function validatePng(buffer, name) {
-  // Dark UI screenshots compress very efficiently. File size is only a corruption floor;
-  // visual substance is enforced by dimensions plus the cross-tab pixel-difference gate below.
   assert(buffer.length > 20_000, `${name} looks corrupt or empty (${buffer.length} bytes)`);
   assert(buffer.subarray(12, 16).toString('ascii') === 'IHDR', `${name} is not a PNG`);
   assert(buffer.readUInt32BE(16) === 1280 && buffer.readUInt32BE(20) === 720, `${name} must be 1280x720`);
@@ -150,6 +148,14 @@ async function imageDifferenceRatio(page, before, after) {
   });
 }
 
+async function captureState(page, outputDir, localeCode, file, label) {
+  await page.waitForTimeout(350);
+  const screenshot = await page.screenshot({ type: 'png' });
+  validatePng(screenshot, `${localeCode} Office ${label}`);
+  fs.writeFileSync(path.join(outputDir, file), screenshot);
+  return screenshot;
+}
+
 async function captureLocale(browser, localeCode, locale) {
   const outputDir = path.join(reviewRoot, localeCode);
   ensureDirectory(outputDir);
@@ -157,26 +163,30 @@ async function captureLocale(browser, localeCode, locale) {
 
   try {
     const page = await bootOffice(context, localeCode);
-    const states = [
-      { file: '01-contracts.png', x: 145, name: 'Contracts' },
-      { file: '02-upgrades.png', x: 343, name: 'Upgrades' },
-      { file: '03-achievements.png', x: 541, name: 'Achievements' },
-      { file: '04-stats.png', x: 739, name: 'Stats' },
-    ];
 
-    let previous = null;
-    for (const state of states) {
-      await clickGame(page, state.x, 157);
-      await page.waitForTimeout(350);
-      const screenshot = await page.screenshot({ type: 'png' });
-      validatePng(screenshot, `${localeCode} Office ${state.name}`);
-      if (previous) {
-        const difference = await imageDifferenceRatio(page, previous, screenshot);
-        assert(difference > 0.08, `${localeCode} Office ${state.name} did not visibly replace the previous tab (${difference.toFixed(3)})`);
-      }
-      fs.writeFileSync(path.join(outputDir, state.file), screenshot);
-      previous = screenshot;
-    }
+    await clickGame(page, 145, 157);
+    const contracts = await captureState(page, outputDir, localeCode, '01-contracts.png', 'Contracts');
+
+    await clickGame(page, 343, 157);
+    const upgrades = await captureState(page, outputDir, localeCode, '02-upgrades.png', 'Upgrades');
+    assert((await imageDifferenceRatio(page, contracts, upgrades)) > 0.08, `${localeCode} Office Upgrades did not visibly replace Contracts`);
+
+    await clickGame(page, 541, 157);
+    const achievementsPage1 = await captureState(page, outputDir, localeCode, '03-achievements-page-1.png', 'Achievements page 1');
+    assert((await imageDifferenceRatio(page, upgrades, achievementsPage1)) > 0.08, `${localeCode} Office Achievements did not visibly replace Upgrades`);
+
+    // Same card geometry is intentionally retained between pages, so the expected full-frame
+    // delta is smaller than a tab transition. Require a real content delta and inspect both artifacts.
+    await clickGame(page, 770, 636);
+    const achievementsPage2 = await captureState(page, outputDir, localeCode, '04-achievements-page-2.png', 'Achievements page 2');
+    const achievementPageDifference = await imageDifferenceRatio(page, achievementsPage1, achievementsPage2);
+    console.log(`${localeCode} achievement page 1 -> 2 visual difference: ${achievementPageDifference.toFixed(4)}`);
+    assert(achievementPageDifference > 0.012, `${localeCode} Office achievement page 2 did not visibly replace page 1 (${achievementPageDifference.toFixed(4)})`);
+
+    await clickGame(page, 739, 157);
+    const stats = await captureState(page, outputDir, localeCode, '05-stats.png', 'Stats');
+    assert((await imageDifferenceRatio(page, achievementsPage2, stats)) > 0.08, `${localeCode} Office Stats did not visibly replace Achievements`);
+
     await page.close();
   } finally {
     await context.close();
@@ -213,7 +223,7 @@ try {
 }
 
 for (const locale of ['ru', 'en']) {
-  for (const file of ['01-contracts.png', '02-upgrades.png', '03-achievements.png', '04-stats.png']) {
+  for (const file of ['01-contracts.png', '02-upgrades.png', '03-achievements-page-1.png', '04-achievements-page-2.png', '05-stats.png']) {
     console.log(path.relative(root, path.join(reviewRoot, locale, file)).split(path.sep).join('/'));
   }
 }

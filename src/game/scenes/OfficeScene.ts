@@ -32,12 +32,14 @@ type OfficeTab = 'contracts' | 'upgrades' | 'achievements' | 'stats' | 'history'
 const WIDTH = 1280;
 const HEIGHT = 720;
 const HISTORY_PAGE_SIZE = 5;
+const ACHIEVEMENT_PAGE_SIZE = 8;
 
 export class OfficeScene extends Phaser.Scene {
   private readonly store = new GameStore();
   private locale: Locale = 'en';
   private tab: OfficeTab = 'contracts';
   private historyPage = 0;
+  private achievementPage = 0;
 
   constructor() {
     super('office');
@@ -269,48 +271,54 @@ export class OfficeScene extends Phaser.Scene {
 
   private renderAchievements(): void {
     const save = this.store.snapshot;
+    const pageCount = Math.max(1, Math.ceil(ACHIEVEMENTS.length / ACHIEVEMENT_PAGE_SIZE));
+    this.achievementPage = Phaser.Math.Clamp(this.achievementPage, 0, pageCount - 1);
+    const start = this.achievementPage * ACHIEVEMENT_PAGE_SIZE;
+    const achievements = ACHIEVEMENTS.slice(start, start + ACHIEVEMENT_PAGE_SIZE);
+
     this.sectionHeader(
       t(this.locale, 'achievements'),
       this.locale === 'ru' ? 'Долгосрочные цели дилера и награды за прогресс.' : 'Long-term dealer milestones and progression rewards.',
       VISUAL.purple,
     );
 
-    ACHIEVEMENTS.forEach((achievement, index) => {
+    achievements.forEach((achievement, index) => {
       const column = index % 2;
       const row = Math.floor(index / 2);
       const x = 82 + column * 568;
-      const y = 280 + row * 96;
+      const y = 282 + row * 82;
       const value = achievementMetricValue(save, achievement.metric);
       const progress = Math.min(value, achievement.target);
       const ratio = achievement.target > 0 ? Phaser.Math.Clamp(progress / achievement.target, 0, 1) : 0;
       const complete = value >= achievement.target;
       const claimed = save.claimedAchievements.includes(achievement.id);
       const accent = claimed ? VISUAL.success : complete ? VISUAL.warm : VISUAL.purple;
+      const displayIndex = start + index + 1;
 
-      addSurface(this, x, y, 538, 86, {
+      addSurface(this, x, y, 538, 74, {
         fill: VISUAL.panel,
         accent,
         strokeAlpha: claimed || complete ? 0.34 : 0.13,
         glowAlpha: complete ? 0.018 : 0.006,
         shadowAlpha: 0.2,
       });
-      this.add.circle(x + 29, y + 43, 17, accent, 0.13).setStrokeStyle(1, accent, 0.46);
-      this.centerLabel(x + 29, y + 43, claimed ? '✓' : String(index + 1), 12, this.hexColor(accent), 'bold');
-      this.label(x + 58, y + 13, achievement.title[this.locale], 16, VISUAL.text, 'bold').setWordWrapWidth(238);
-      this.label(x + 58, y + 39, achievement.description[this.locale], 11, VISUAL.muted).setWordWrapWidth(238);
-      addProgressBar(this, x + 315, y + 22, 98, ratio, accent);
-      this.label(x + 315, y + 34, `${Math.floor(progress)}/${achievement.target}`, 11, complete ? '#78dfa0' : '#b7bdc6', 'bold');
-      this.label(x + 315, y + 55, `+${this.money(achievement.reward)}`, 12, '#f0c969', 'bold');
+      this.add.circle(x + 29, y + 37, 16, accent, 0.13).setStrokeStyle(1, accent, 0.46);
+      this.centerLabel(x + 29, y + 37, claimed ? '✓' : String(displayIndex), 11, this.hexColor(accent), 'bold');
+      this.label(x + 58, y + 9, achievement.title[this.locale], 15, VISUAL.text, 'bold').setWordWrapWidth(238);
+      this.label(x + 58, y + 33, achievement.description[this.locale], 10, VISUAL.muted).setWordWrapWidth(238);
+      addProgressBar(this, x + 315, y + 18, 98, ratio, accent);
+      this.label(x + 315, y + 30, `${Math.floor(progress)}/${achievement.target}`, 10, complete ? '#78dfa0' : '#b7bdc6', 'bold');
+      this.label(x + 315, y + 51, `+${this.money(achievement.reward)}`, 11, '#f0c969', 'bold');
 
       if (claimed) {
-        addChip(this, x + 474, y + 43, t(this.locale, 'claimed'), VISUAL.success, { width: 98, height: 28, filled: true, fontSize: 9 });
+        addChip(this, x + 474, y + 37, t(this.locale, 'claimed'), VISUAL.success, { width: 98, height: 28, filled: true, fontSize: 9 });
       } else {
-        button(this, x + 472, y + 43, t(this.locale, 'claimReward'), () => {
+        button(this, x + 472, y + 37, t(this.locale, 'claimReward'), () => {
           this.store.claimAchievement(achievement.id);
           this.render();
         }, {
           width: 102,
-          height: 34,
+          height: 32,
           disabled: !complete,
           hitSlop: 7,
           background: complete ? VISUAL.warm : VISUAL.steel,
@@ -319,6 +327,18 @@ export class OfficeScene extends Phaser.Scene {
         });
       }
     });
+
+    if (pageCount > 1) {
+      button(this, 510, 636, t(this.locale, 'previousPage'), () => {
+        this.achievementPage = Math.max(0, this.achievementPage - 1);
+        this.render();
+      }, { width: 160, height: 34, background: VISUAL.steel, disabled: this.achievementPage === 0, fontSize: 10 });
+      this.centerLabel(640, 636, `${this.achievementPage + 1}/${pageCount}`, 11, '#aeb5c0', 'bold');
+      button(this, 770, 636, t(this.locale, 'nextPage'), () => {
+        this.achievementPage = Math.min(pageCount - 1, this.achievementPage + 1);
+        this.render();
+      }, { width: 160, height: 34, background: VISUAL.steel, disabled: this.achievementPage >= pageCount - 1, fontSize: 10 });
+    }
   }
 
   private renderStats(): void {
