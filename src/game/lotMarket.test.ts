@@ -81,6 +81,28 @@ describe('lot market preparation', () => {
     expect(result.choices.every((choice) => choice.modifier?.description.en.includes('chasing watches'))).toBe(true);
   });
 
+  it('offers one sealed Estate option with reduced clue visibility at its cadence', () => {
+    const sealed = prepareLotMarket({
+      requestedTierId: 'estate',
+      reputationXp: 220,
+      auctionsPlayed: 4,
+      random: () => 0.99,
+    });
+    const sealedChoices = sealed.choices.filter((choice) => choice.modifier?.id.includes('sealed-storage'));
+    expect(sealedChoices).toHaveLength(1);
+    expect(sealedChoices[0]?.lot.clues).toHaveLength(1);
+    expect(sealedChoices[0]?.lot.itemCount).toBeGreaterThanOrEqual(2);
+
+    resetLotMarketCache();
+    const lowRep = prepareLotMarket({
+      requestedTierId: 'estate',
+      reputationXp: 150,
+      auctionsPlayed: 4,
+      random: () => 0.99,
+    });
+    expect(lowRep.choices.some((choice) => choice.modifier?.id.includes('sealed-storage'))).toBe(false);
+  });
+
   it('offers exactly one VIP option only at high reputation collector cadence', () => {
     const vip = prepareLotMarket({
       requestedTierId: 'collector',
