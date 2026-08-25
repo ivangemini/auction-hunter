@@ -5,6 +5,7 @@ import type { ItemCategory, ItemDefinition, LocalizedText, LotClue, LotTemplate,
 export type RandomSource = () => number;
 export type BidderTell = 'calm' | 'watching' | 'hesitating' | 'out';
 export type BidderBehavior = 'steady' | 'cautious' | 'pressure';
+export type RivalSignatureBehavior = 'opening-jump' | 'last-stand' | 'counterpunch';
 
 export interface NumericRange {
   min: number;
@@ -16,7 +17,9 @@ export interface BidderProfile {
   name: LocalizedText;
   hiddenValueFactor: NumericRange;
   trait?: LocalizedText;
+  weakness?: LocalizedText;
   behavior?: BidderBehavior;
+  signatureBehavior?: RivalSignatureBehavior;
   specialtyCategories?: readonly ItemCategory[];
   specialtyValueMultiplier?: number;
 }
@@ -26,13 +29,17 @@ export interface AuctionOpponent {
   name: LocalizedText;
   maxBid: number;
   trait?: LocalizedText;
+  weakness?: LocalizedText;
   behavior?: BidderBehavior;
+  signatureBehavior?: RivalSignatureBehavior;
+  signatureActive?: boolean;
   specialtyCategories?: readonly ItemCategory[];
   specialtyValueMultiplier?: number;
 }
 
 const DEFAULT_RANDOM: RandomSource = Math.random;
 const MAX_AUCTION_OPPONENTS = 3;
+const SIGNATURE_ACTIVATION_BUCKETS = 5;
 
 export function randomBetween(range: NumericRange, random: RandomSource = DEFAULT_RANDOM): number {
   if (range.max < range.min) throw new Error('Invalid numeric range');
@@ -103,9 +110,6 @@ export function createLotItems(
     selectId(id);
   }
 
-  // Sample condition/market values for the whole lot before trait rolls. Keeping this
-  // order stable preserves deterministic economy tests while still allowing each
-  // concrete find to gain independent provenance/variant modifiers afterwards.
   const baseSamples = selected.map((definition) => ({
     definition,
     condition: randomBetween(conditionRange, random),
@@ -178,8 +182,6 @@ export function selectAuctionBidderProfiles(
     pool.splice(poolIndex, 1);
   };
 
-  // Let specialists shape the auction, but reserve room for a wildcard rival so
-  // repeated lots do not collapse into the same deterministic trio.
   const specialistSlots = Math.min(2, desiredCount, preferredIds.size);
   while (selected.length < specialistSlots) {
     pickFrom(pool.filter((profile) => preferredIds.has(profile.id)));
@@ -197,15 +199,31 @@ export function createAuctionOpponents(
   profiles: readonly BidderProfile[],
   random: RandomSource = DEFAULT_RANDOM,
 ): AuctionOpponent[] {
-  return selectAuctionBidderProfiles(items, profiles, random).map((profile) => ({
-    id: profile.id,
-    name: profile.name,
-    trait: profile.trait,
-    behavior: profile.behavior,
-    specialtyCategories: profile.specialtyCategories,
-    specialtyValueMultiplier: profile.specialtyValueMultiplier,
-    maxBid: roundToBid(rivalValuation(items, profile) * randomBetween(profile.hiddenValueFactor, random), lot),
-  }));
+  return selectAuctionBidderProfiles(items, profiles, random).map((profile) => {
+    const maxBid = roundToBid(rivalValuation(items, profile) * randomBetween(profile.hiddenValueFactor, random), lot);
+    return {
+      id: profile.id,
+      name: profile.name,
+      trait: profile.trait,
+      weakness: profile.weakness,
+      behavior: profile.behavior,
+      signatureBehavior: profile.signatureBehavior,
+      signatureActive: profile.signatureBehavior ? rivalSignatureActive(profile.id, lot.id, maxBid) : false,
+      specialtyCategories: profile.specialtyCategories,
+      specialtyValueMultiplier: profile.specialtyValueMultiplier,
+      maxBid,
+    };
+  });
+}
+
+export function rivalSignatureActive(rivalId: string, lotId: string, maxBid: number): boolean {
+  const input = `${rivalId}:${lotId}:${Math.max(0, Math.round(maxBid))}`;
+  let hash = 2166136261;
+  for (let index = 0; index < input.length; index += 1) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0) % SIGNATURE_ACTIVATION_BUCKETS === 0;
 }
 
 export function opponentBidCeiling(opponent: AuctionOpponent, lot: LotTemplate): number {
@@ -228,6 +246,39 @@ export function opponentResponseBid(
   }
 
   return requiredBid;
+}
+
+export function opponentSignatureResponseBid(
+  opponent: AuctionOpponent,
+  currentBid: number,
+  lot: LotTemplate,
+  alreadyUsed: boolean,
+): number | null {
+  if (alreadyUsed || !opponent.signatureActive || !opponent.signatureBehavior) return null;
+  const ceiling = opponentBidCeiling(opponent, lot);
+  const oneStep = currentBid + lot.bidIncrement;
+  if (oneStep > ceiling) return null;
+
+  if (opponent.signatureBehavior === 'opening-jump') {
+    if (currentBid > lot.reservePrice + lot.bidIncrement * 2) return null;
+    const jump = currentBid + lot.bidIncrement * 2;
+    return jump <= ceiling ? jump : null;
+  }
+
+  if (opponent.signatureBehavior === 'last-stand') {
+    const ratio = ceiling > 0 ? currentBid / ceiling : 1;
+    if (ratio < 0.68) return null;
+    const jump = currentBid + lot.bidIncrement * 2;
+    return jump <= ceiling ? jump : null;
+  }
+
+  if (opponent.signatureBehavior === 'counterpunch') {
+    if (currentBid < lot.reservePrice + lot.bidIncrement * 2) return null;
+    const jump = currentBid + lot.bidIncrement * 3;
+    return jump <= ceiling ? jump : null;
+  }
+
+  return null;
 }
 
 export function eligibleOpponents(
