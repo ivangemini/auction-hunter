@@ -63,3 +63,11 @@ export function marketTrendMultiplier(trend: ActiveMarketTrend | null): number {
   const multiplier = trend?.definition.valueMultiplier ?? 1;
   return Number.isFinite(multiplier) ? Math.max(0.5, Math.min(1.5, multiplier)) : 1;
 }
+
+export function marketTrendMultiplierForCategory(
+  trend: ActiveMarketTrend | null,
+  category: ItemCategory | undefined,
+): number {
+  if (!trend || !category || trend.definition.category !== category) return 1;
+  return marketTrendMultiplier(trend);
+}
