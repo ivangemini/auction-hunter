@@ -89,9 +89,9 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
     }).setDepth(51);
 
     modal.add(this.add.rectangle(0, 0, 8, 520, accent, 0.92).setOrigin(0));
-    modal.add(this.text(34, 26, locale === 'ru' ? 'ЧАСТНЫЙ ЗАКАЗ' : 'PRIVATE COMMISSION', 10, '#8e96a2', 'bold'));
-    modal.add(this.text(34, 50, active.definition.name[locale], 27, '#f7f3e8', 'bold').setWordWrapWidth(500));
-    modal.add(this.text(34, 91, active.definition.description[locale], 13, '#b2b8c1')
+    modal.add(this.requestText(34, 26, locale === 'ru' ? 'ЧАСТНЫЙ ЗАКАЗ' : 'PRIVATE COMMISSION', 10, '#8e96a2', 'bold'));
+    modal.add(this.requestText(34, 50, active.definition.name[locale], 27, '#f7f3e8', 'bold').setWordWrapWidth(500));
+    modal.add(this.requestText(34, 91, active.definition.description[locale], 13, '#b2b8c1')
       .setWordWrapWidth(500)
       .setLineSpacing(4));
 
@@ -115,11 +115,11 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
       strokeAlpha: 0.18,
       glowAlpha: 0.006,
     });
-    criteria.add(this.text(16, 11, locale === 'ru' ? 'ТРЕБОВАНИЯ' : 'REQUIREMENTS', 9, '#737c88', 'bold'));
-    criteria.add(this.text(16, 31, this.criteriaText(active, locale), 12, '#d6dbe2', 'bold')
+    criteria.add(this.requestText(16, 11, locale === 'ru' ? 'ТРЕБОВАНИЯ' : 'REQUIREMENTS', 9, '#737c88', 'bold'));
+    criteria.add(this.requestText(16, 31, this.criteriaText(active, locale), 12, '#d6dbe2', 'bold')
       .setWordWrapWidth(515));
-    criteria.add(this.text(556, 18, `+${Math.round((active.definition.multiplier - 1) * 100)}%`, 27, '#63d28d', 'bold'));
-    criteria.add(this.text(558, 49, locale === 'ru' ? 'К ОЦЕНКЕ' : 'VS APPRAISAL', 8, '#76808b', 'bold'));
+    criteria.add(this.requestText(556, 18, `+${Math.round((active.definition.multiplier - 1) * 100)}%`, 27, '#63d28d', 'bold'));
+    criteria.add(this.requestText(558, 49, locale === 'ru' ? 'К ОЦЕНКЕ' : 'VS APPRAISAL', 8, '#76808b', 'bold'));
     modal.add(criteria);
 
     if (claimed) {
@@ -130,9 +130,9 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
         glowAlpha: 0.02,
       });
       done.add(this.add.circle(86, 90, 50, VISUAL.success, 0.09).setStrokeStyle(2, VISUAL.success, 0.48));
-      done.add(this.text(86, 90, '✓', 38, '#63d28d', 'bold').setOrigin(0.5));
-      done.add(this.text(164, 54, locale === 'ru' ? 'Заказ выполнен' : 'Commission fulfilled', 22, '#c5efd5', 'bold'));
-      done.add(this.text(164, 92, locale === 'ru'
+      done.add(this.requestText(86, 90, '✓', 38, '#63d28d', 'bold').setOrigin(0.5));
+      done.add(this.requestText(164, 54, locale === 'ru' ? 'Заказ выполнен' : 'Commission fulfilled', 22, '#c5efd5', 'bold'));
+      done.add(this.requestText(164, 92, locale === 'ru'
         ? 'Следующий заказ появится после смены текущего шестиаукционного окна.'
         : 'A new commission appears when the current six-auction window rotates.', 12, '#98a6a0')
         .setWordWrapWidth(480));
@@ -146,19 +146,19 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
       });
       itemPanel.add(this.add.ellipse(130, 100, 210, 144, accent, 0.055));
       itemPanel.add(this.add.image(130, 96, resolveItemTexture(this, match.item.id)).setDisplaySize(210, 150));
-      itemPanel.add(this.text(262, 25, match.item.name[locale], 20, '#f7f3e8', 'bold').setWordWrapWidth(410));
-      itemPanel.add(this.text(262, 60, `${locale === 'ru' ? 'Состояние' : 'Condition'} · ${Math.round(match.instance.condition * 100)}%`, 11, '#9ca6b1', 'bold'));
+      itemPanel.add(this.requestText(262, 25, match.item.name[locale], 20, '#f7f3e8', 'bold').setWordWrapWidth(410));
+      itemPanel.add(this.requestText(262, 60, `${locale === 'ru' ? 'Состояние' : 'Condition'} · ${Math.round(match.instance.condition * 100)}%`, 11, '#9ca6b1', 'bold'));
       const traits = itemTraitNamesForIds(match.instance.traitIds, locale);
-      itemPanel.add(this.text(262, 84, traits.length > 0 ? traits.join(' · ') : (locale === 'ru' ? 'Подходит по категории/состоянию' : 'Matches category/condition'), 10, '#8fc3ff', 'bold')
+      itemPanel.add(this.requestText(262, 84, traits.length > 0 ? traits.join(' · ') : (locale === 'ru' ? 'Подходит по категории/состоянию' : 'Matches category/condition'), 10, '#8fc3ff', 'bold')
         .setWordWrapWidth(410));
-      itemPanel.add(this.text(262, 122, locale === 'ru' ? 'ПРЕДЛОЖЕНИЕ' : 'OFFER', 9, '#737c88', 'bold'));
-      itemPanel.add(this.text(262, 142, this.money(match.value, locale), 28, '#63d28d', 'bold'));
-      itemPanel.add(this.text(262, 179, `${locale === 'ru' ? 'Оценка копии' : 'Copy appraisal'} · ${this.money(match.instance.appraisedValue, locale)}`, 10, '#8d96a1'));
+      itemPanel.add(this.requestText(262, 122, locale === 'ru' ? 'ПРЕДЛОЖЕНИЕ' : 'OFFER', 9, '#737c88', 'bold'));
+      itemPanel.add(this.requestText(262, 142, this.requestMoney(match.value, locale), 28, '#63d28d', 'bold'));
+      itemPanel.add(this.requestText(262, 179, `${locale === 'ru' ? 'Оценка копии' : 'Copy appraisal'} · ${this.requestMoney(match.instance.appraisedValue, locale)}`, 10, '#8d96a1'));
       modal.add(itemPanel);
 
-      const sell = button(this, 835, 574, locale === 'ru'
-        ? `Выполнить заказ · ${this.money(match.value, locale)}`
-        : `Fulfill request · ${this.money(match.value, locale)}`, () => {
+      button(this, 835, 574, locale === 'ru'
+        ? `Выполнить заказ · ${this.requestMoney(match.value, locale)}`
+        : `Fulfill request · ${this.requestMoney(match.value, locale)}`, () => {
         const value = this.requestStore.fulfillCollectorRequest(active.requestKey, match.instance.id);
         if (value <= 0) {
           this.rerenderMarket();
@@ -186,7 +186,6 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
         fontSize: locale === 'ru' ? 11 : 12,
         feedback: false,
       }).setDepth(52);
-      sell.setPosition(835, 574);
     } else {
       const empty = addSurface(this, 34, 244, 712, 190, {
         accent,
@@ -195,9 +194,9 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
         glowAlpha: 0.01,
       });
       empty.add(this.add.circle(94, 91, 50, VISUAL.steel, 0.17).setStrokeStyle(2, accent, 0.28));
-      empty.add(this.text(94, 91, '?', 36, this.hex(accent), 'bold').setOrigin(0.5));
-      empty.add(this.text(174, 50, locale === 'ru' ? 'Подходящего экземпляра пока нет' : 'No matching copy yet', 20, '#d7dce2', 'bold'));
-      empty.add(this.text(174, 86, locale === 'ru'
+      empty.add(this.requestText(94, 91, '?', 36, this.requestHex(accent), 'bold').setOrigin(0.5));
+      empty.add(this.requestText(174, 50, locale === 'ru' ? 'Подходящего экземпляра пока нет' : 'No matching copy yet', 20, '#d7dce2', 'bold'));
+      empty.add(this.requestText(174, 86, locale === 'ru'
         ? 'Ищи нужную категорию и признаки на аукционах. Заказ не требует отдельного режима и не блокирует обычные продажи.'
         : 'Hunt the required category and traits in normal auctions. The commission does not require a separate mode or block normal sales.', 12, '#959eaa')
         .setWordWrapWidth(490)
@@ -255,7 +254,7 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
     return labels[category];
   }
 
-  private text(
+  private requestText(
     x: number,
     y: number,
     value: string,
@@ -271,11 +270,11 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
     });
   }
 
-  private money(value: number, locale: Locale): string {
+  private requestMoney(value: number, locale: Locale): string {
     return `${new Intl.NumberFormat(locale === 'ru' ? 'ru-RU' : 'en-US', { maximumFractionDigits: 0 }).format(value)} ₽`;
   }
 
-  private hex(value: number): string {
+  private requestHex(value: number): string {
     return `#${value.toString(16).padStart(6, '0')}`;
   }
 }
