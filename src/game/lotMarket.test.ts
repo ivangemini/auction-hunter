@@ -103,7 +103,7 @@ describe('lot market preparation', () => {
     expect(lowRep.choices.some((choice) => choice.modifier?.id.includes('sealed-storage'))).toBe(false);
   });
 
-  it('offers exactly one VIP option only at high reputation collector cadence', () => {
+  it('offers exactly one VIP option only at Collector Club cadence', () => {
     const vip = prepareLotMarket({
       requestedTierId: 'collector',
       reputationXp: 700,
@@ -114,13 +114,14 @@ describe('lot market preparation', () => {
     expect(vip.choices[0]?.lot.itemCount).toBeGreaterThanOrEqual(2);
 
     resetLotMarketCache();
-    const lowRep = prepareLotMarket({
+    const lockedCollector = prepareLotMarket({
       requestedTierId: 'collector',
-      reputationXp: 350,
+      reputationXp: 319,
       auctionsPlayed: 3,
       random: () => 0.99,
     });
-    expect(lowRep.choices.some((choice) => choice.modifier?.id.includes('vip-invitation'))).toBe(false);
+    expect(lockedCollector.tierId).toBe('estate');
+    expect(lockedCollector.choices.some((choice) => choice.modifier?.id.includes('vip-invitation'))).toBe(false);
 
     resetLotMarketCache();
     const wrongTier = prepareLotMarket({
