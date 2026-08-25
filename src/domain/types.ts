@@ -105,6 +105,8 @@ export interface PlayerSave {
   collection: string[];
   collectionItems?: CollectionItem[];
   claimedSetRewards: string[];
+  discoveryChainProgress: Record<string, number>;
+  claimedDiscoveryChainRewards: string[];
   reputationXp: number;
   lastDailyCompletedDay: string | null;
   onboardingComplete: boolean;
