@@ -1,4 +1,5 @@
 import type { LotTemplate } from '../domain/types';
+import { LOTS } from './catalog';
 
 /**
  * Second P5 lot-breadth pack.
@@ -78,3 +79,5 @@ export const BREADTH_LOTS: readonly LotTemplate[] = [
     itemPool: ['prototype-toy', 'preproduction-figure', 'mini-console', 'arcade-handheld', 'clockwork-automaton', 'chronograph-watch', 'pocket-watch'],
   },
 ];
+
+export const ALL_LOTS: readonly LotTemplate[] = [...LOTS, ...BREADTH_LOTS];
