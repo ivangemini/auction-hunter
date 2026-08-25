@@ -31,6 +31,13 @@ const REVIEW_BATCHES = [
       'travel-clock', 'instant-camera', 'binoculars', 'gallery-print',
     ],
   },
+  {
+    id: '04',
+    items: [
+      'enamel-brooch', 'military-watch', 'preproduction-figure', 'soldering-station', 'pocket-tv',
+      'model-train', 'manual-typewriter', 'fountain-pen', 'signed-vinyl',
+    ],
+  },
 ];
 
 function assert(condition, message) {
