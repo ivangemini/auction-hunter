@@ -58,4 +58,32 @@ export const LOT_MODIFIERS: readonly LotModifierDefinition[] = [
     reserveMultiplier: 1.15,
     marketMultiplier: 0.96,
   },
+  {
+    id: 'estate-deadline',
+    name: { ru: 'Срочное закрытие наследства', en: 'Estate deadline' },
+    description: { ru: 'Наследникам нужны быстрые деньги: резерв заметно ниже, но вещи хранились без особой заботы.', en: 'The heirs want a fast sale: reserve is notably lower, but the contents were stored with little care.' },
+    reserveMultiplier: 0.72,
+    conditionDelta: { min: -0.05, max: -0.03 },
+  },
+  {
+    id: 'archivist-notes',
+    name: { ru: 'Заметки архивиста', en: 'Archivist notes' },
+    description: { ru: 'Опись выглядит многообещающе: средняя ценность выше, но продавец тоже поднял ожидания.', en: 'The inventory notes look promising: average value is higher, but the seller raised expectations too.' },
+    reserveMultiplier: 1.12,
+    marketMultiplier: 1.18,
+  },
+  {
+    id: 'dusty-back-room',
+    name: { ru: 'Дальний склад', en: 'Dusty back room' },
+    description: { ru: 'Лот давно забыли в подсобке: цена входа ниже, состояние в среднем хуже.', en: 'The lot sat forgotten in a back room: entry price is lower, while condition trends rougher.' },
+    reserveMultiplier: 0.78,
+    conditionDelta: { min: -0.1, max: -0.04 },
+  },
+  {
+    id: 'dealer-feud',
+    name: { ru: 'Спор дилеров', en: 'Dealer feud' },
+    description: { ru: 'Вокруг лота поднялся шум: рынок оценивает находки выше, но резерв уже отражает часть ажиотажа.', en: 'Dealer chatter surrounds the lot: finds appraise higher, but the reserve already reflects part of the hype.' },
+    reserveMultiplier: 1.1,
+    marketMultiplier: 1.16,
+  },
 ];
