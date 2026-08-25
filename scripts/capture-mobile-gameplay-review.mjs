@@ -37,7 +37,7 @@ const seedSave = {
   claimedBuyerOfferIds: [],
   discoveryChainProgress: {},
   discoveryChainLastAuction: {},
-  completedDiscoveryChains: [],
+  completedDiscoveryChains: ['watchmaker-ledger', 'prototype-trail', 'lost-master-study'],
 };
 
 function assert(condition, message) {
@@ -149,6 +149,26 @@ async function activateUntilEvent(page, x, y, eventName, attempts = 12, waitMs =
     await page.waitForTimeout(waitMs);
   }
   throw new Error(`${eventName} was not observed during compact gameplay review capture`);
+}
+
+async function readSaveCash(page) {
+  return page.evaluate((key) => {
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error('Compact gameplay save disappeared');
+    const save = JSON.parse(raw);
+    if (typeof save.cash !== 'number') throw new Error('Compact gameplay save has no numeric cash');
+    return save.cash;
+  }, SAVE_KEY);
+}
+
+async function waitForSaveCashAbove(page, baseline, timeoutMs = 2_500) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const cash = await readSaveCash(page);
+    if (cash > baseline) return cash;
+    await page.waitForTimeout(40);
+  }
+  throw new Error(`Timed out waiting for cash to increase above ${baseline}`);
 }
 
 async function chooseGarageLotAndStartAuction(page) {
@@ -266,6 +286,21 @@ async function captureLocale(browser, localeCode, locale) {
       `${localeCode} compact restoration timing screen did not visibly replace mode picker`,
     );
 
+    await activateUntilEvent(page, 890, 557, 'restoration_completed', 4, 70);
+    await page.waitForTimeout(110);
+    const restorationResult = await capture(page, outputDir, '05-restoration-result.png', `${localeCode} compact restoration result feedback`);
+    assert(
+      (await imageDifferenceRatio(page, timing, restorationResult)) > 0.08,
+      `${localeCode} compact restoration result did not visibly replace timing screen`,
+    );
+
+    const cashBeforeSale = await readSaveCash(page);
+    await clickGame(page, 928, 572);
+    const cashAfterSale = await waitForSaveCashAbove(page, cashBeforeSale);
+    await page.waitForTimeout(80);
+    await capture(page, outputDir, '06-sell-feedback.png', `${localeCode} compact sell acknowledgement`);
+    console.log(`${localeCode} compact restored sale persisted: ${cashBeforeSale} -> ${cashAfterSale}`);
+
     await page.close();
   } finally {
     await context.close();
@@ -306,6 +341,8 @@ const expectedFiles = [
   '02-appraisal.png',
   '03-restoration-mode.png',
   '04-restoration-timing.png',
+  '05-restoration-result.png',
+  '06-sell-feedback.png',
 ];
 for (const locale of ['ru', 'en']) {
   for (const file of expectedFiles) {
@@ -314,4 +351,4 @@ for (const locale of ['ru', 'en']) {
     console.log(path.relative(root, absolute).split(path.sep).join('/'));
   }
 }
-console.log(`P7 compact reveal/appraisal/restoration visual review capture OK (${VIEWPORT_WIDTH}x${VIEWPORT_HEIGHT})`);
+console.log(`P7 compact reveal/appraisal/restoration/decision visual review capture OK (${VIEWPORT_WIDTH}x${VIEWPORT_HEIGHT})`);
