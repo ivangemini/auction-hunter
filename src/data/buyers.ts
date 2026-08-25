@@ -101,6 +101,20 @@ export const SPECIALIST_BUYERS: readonly BuyerOfferDefinition[] = [
     multiplier: 1.32,
     traitIds: ['period-design', 'original-packaging', 'complete-set'],
   },
+  {
+    id: 'restoration-workshop',
+    name: { ru: 'Реставрационная мастерская', en: 'Restoration Workshop' },
+    description: { ru: 'Берёт неполные предметы и экземпляры с неродными деталями как проекты для восстановления.', en: 'Buys incomplete pieces and examples with replacement parts as restoration projects.' },
+    multiplier: 1.32,
+    traitIds: ['replacement-parts', 'incomplete'],
+  },
+  {
+    id: 'authenticity-gambler',
+    name: { ru: 'Охотник за спорными вещами', en: 'Authenticity Gambler' },
+    description: { ru: 'Рискует на предметах с сомнительной подлинностью и платит больше обычного быстрого рынка.', en: 'Takes chances on authenticity-risk pieces and pays above the normal quick-sale market.' },
+    multiplier: 1.42,
+    traitIds: ['replica-risk'],
+  },
 ];
 
 export const BUYER_OFFERS: readonly BuyerOfferDefinition[] = [
