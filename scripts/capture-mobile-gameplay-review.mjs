@@ -297,7 +297,7 @@ async function captureLocale(browser, localeCode, locale) {
     const cashBeforeSale = await readSaveCash(page);
     await clickGame(page, 928, 572);
     const cashAfterSale = await waitForSaveCashAbove(page, cashBeforeSale);
-    await page.waitForTimeout(80);
+    await page.waitForTimeout(260);
     await capture(page, outputDir, '06-sell-feedback.png', `${localeCode} compact sell acknowledgement`);
     console.log(`${localeCode} compact restored sale persisted: ${cashBeforeSale} -> ${cashAfterSale}`);
 
