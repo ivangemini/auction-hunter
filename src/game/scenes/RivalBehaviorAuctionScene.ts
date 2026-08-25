@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { trackEvent } from '../../analytics';
+import { jackpotVariantForTraits } from '../../data/jackpotVariants';
 import {
   chooseRandom,
   eligibleOpponents,
@@ -9,17 +11,21 @@ import {
 } from '../../domain/auction';
 import type { LotModifierDefinition } from '../../domain/lotModifier';
 import { rivalDossierLabel, rivalMemorySnapshot } from '../../domain/rivalMemory';
-import type { Locale, LotTemplate, PlayerSave } from '../../domain/types';
+import type { Locale, LotTemplate, PlayerSave, RevealedItem } from '../../domain/types';
 import { playFeedbackCue } from '../feedback';
 import { CharacterAuctionScene } from './CharacterAuctionScene';
 
 const VIP_RIVAL_PRESSURE_MULTIPLIER = 1.08;
+type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
 
 type RivalBehaviorRuntime = Phaser.Scene & {
   locale: Locale;
   lot: LotTemplate;
   lotModifier: LotModifierDefinition | null;
   opponents: AuctionOpponent[];
+  items: RevealedItem[];
+  revealIndex: number;
+  revealStage: RevealStage;
   currentBid: number;
   currentLeader: string;
   awaitingNpc: boolean;
@@ -33,17 +39,19 @@ type RivalBehaviorRuntime = Phaser.Scene & {
   npcRespond: () => void;
   finalizeWin: () => void;
   renderBidding: () => void;
+  renderReveal: () => void;
 };
 
 /**
- * Adds persistent rival learning plus bounded one-shot signature bids without
- * moving auction/economy ownership out of AuctionScene.
+ * Adds persistent rival learning, bounded one-shot signature bids, VIP pressure
+ * and concrete-copy jackpot presentation without moving economy ownership out of AuctionScene.
  */
 export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
   constructor() {
     super();
     const runtime = this as unknown as RivalBehaviorRuntime;
     const signatureUsed = new Set<string>();
+    const jackpotTracked = new Set<string>();
     let outcomeRecorded = false;
     let signatureNotice = '';
     let vipPressureApplied = false;
@@ -53,10 +61,12 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
     const passAuction = runtime.passAuction.bind(runtime);
     const finalizeWin = runtime.finalizeWin.bind(runtime);
     const renderBidding = runtime.renderBidding.bind(runtime);
+    const renderReveal = runtime.renderReveal.bind(runtime);
 
     runtime.prepareLot = (lot, modifier, valueMultiplier = 1) => {
       prepareLot(lot, modifier, valueMultiplier);
       vipPressureApplied = false;
+      jackpotTracked.clear();
     };
 
     runtime.startAuction = () => {
@@ -101,17 +111,19 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
         }).setOrigin(1, 0.5);
       }
       if (signatureNotice) {
-        const banner = runtime.add.rectangle(650, 221, 360, 30, 0x492f18, 0.94).setStrokeStyle(1, 0xe9b949, 0.62);
+        runtime.add.rectangle(650, 221, 360, 30, 0x492f18, 0.94).setStrokeStyle(1, 0xe9b949, 0.62);
         runtime.add.text(650, 221, signatureNotice, {
           fontFamily: 'Arial, sans-serif',
           fontSize: '11px',
           fontStyle: 'bold',
           color: '#f2cf77',
         }).setOrigin(0.5);
-        runtime.time.delayedCall(900, () => {
-          if (banner.active) signatureNotice = '';
-        });
       }
+    };
+
+    runtime.renderReveal = () => {
+      renderReveal();
+      renderJackpotStory(runtime, jackpotTracked);
     };
 
     runtime.npcRespond = () => {
@@ -144,6 +156,14 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
         signatureNotice = runtime.locale === 'ru'
           ? `${opponent.name.ru}: фирменный ход`
           : `${opponent.name.en}: signature move`;
+        if (opponent.signatureBehavior) {
+          trackEvent('rival_signature_move_used', {
+            rivalId: opponent.id,
+            behavior: opponent.signatureBehavior,
+            lotId: runtime.lot.id,
+            bid: specialBid,
+          });
+        }
       } else {
         signatureNotice = '';
       }
@@ -180,4 +200,40 @@ function renderRivalDossiers(scene: RivalBehaviorRuntime): void {
       }).setWordWrapWidth(235);
     }
   });
+}
+
+function renderJackpotStory(scene: RivalBehaviorRuntime, tracked: Set<string>): void {
+  if (scene.revealStage !== 'appraised') return;
+  const item = scene.items[scene.revealIndex];
+  if (!item) return;
+  const traitIds = item.traitIds ?? [];
+  const variant = jackpotVariantForTraits(traitIds);
+  if (!variant) return;
+
+  const key = `${scene.revealIndex}:${variant.id}`;
+  if (!tracked.has(key)) {
+    tracked.add(key);
+    trackEvent('jackpot_variant_revealed', {
+      variantId: variant.id,
+      itemId: item.definition.id,
+      traitIds: [...traitIds],
+      appraisedValue: item.appraisedValue,
+    });
+    playFeedbackCue(scene, 'reward');
+  }
+
+  scene.add.rectangle(845, 192, 310, 50, 0x34250c, 0.95)
+    .setStrokeStyle(2, 0xffc857, 0.72);
+  scene.add.text(690, 177, scene.locale === 'ru' ? '★ РЕДКИЙ ПРОВЕНАНС' : '★ RARE PROVENANCE', {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '9px',
+    fontStyle: 'bold',
+    color: '#e9b949',
+  });
+  scene.add.text(690, 193, variant.name[scene.locale], {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '14px',
+    fontStyle: 'bold',
+    color: '#fff0bd',
+  }).setWordWrapWidth(290);
 }
