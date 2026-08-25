@@ -176,6 +176,12 @@ export const ACHIEVEMENTS: readonly AchievementDefinition[] = [
     metric: 'uniqueCollection', target: 16, reward: 1700,
   },
   {
+    id: 'collector-twenty-four',
+    title: { ru: 'Большая коллекция', en: 'Major collection' },
+    description: { ru: 'Собери 24 уникальные находки.', en: 'Own 24 unique finds.' },
+    metric: 'uniqueCollection', target: 24, reward: 2600,
+  },
+  {
     id: 'sales-fifty-k',
     title: { ru: 'Оборот 50K', en: '50K turnover' },
     description: { ru: 'Достигни 50 000 ₽ суммарных продаж.', en: 'Reach 50,000 ₽ in lifetime sales.' },
