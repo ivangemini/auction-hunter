@@ -5,10 +5,12 @@ import { COLLECTOR_REQUESTS, COLLECTOR_REQUEST_WINDOW_AUCTIONS } from '../data/c
 import { localDayKey } from '../data/daily';
 import { DISCOVERY_CHAINS } from '../data/discoveryChains';
 import { itemTraitsFor } from '../data/itemTraits';
+import { MARKET_TRENDS, MARKET_TREND_SCHEDULE } from '../data/marketTrends';
 import { ACHIEVEMENTS, BUSINESS_UPGRADES, dailyContractsForDay } from '../data/meta';
 import { bestCollectorRequestMatch, collectorRequestForAuction } from '../domain/collectorRequests';
 import { advanceDiscoveryChains } from '../domain/discoveryChains';
 import { appendAuctionHistory } from '../domain/history';
+import { activeMarketTrendForAuction, marketTrendMultiplierForCategory } from '../domain/marketTrend';
 import {
   achievementMetricValue,
   contractRewardValue,
@@ -138,15 +140,25 @@ export class GameStore {
     const offer = dailyBuyerOffersForDay(dayKey).find((candidate) => candidate.id === buyerId);
     if (!offer) return 0;
 
+    const activeTrend = activeMarketTrendForAuction(
+      this.state.auctionsPlayed,
+      MARKET_TRENDS,
+      MARKET_TREND_SCHEDULE,
+    );
+    const trendMultiplier = marketTrendMultiplierForCategory(activeTrend, offer.category);
+    const effectiveOffer = trendMultiplier === 1
+      ? offer
+      : { ...offer, multiplier: offer.multiplier * trendMultiplier };
+
     const candidates = this.collectionItems()
       .filter((instance) => instance.id === itemKey || instance.itemId === itemKey)
       .map((instance) => {
         const item = ITEM_BY_ID.get(instance.itemId);
-        if (!item || !buyerOfferMatches(item, offer, instance.traitIds)) return null;
+        if (!item || !buyerOfferMatches(item, effectiveOffer, instance.traitIds)) return null;
         return {
           instance,
           item,
-          value: buyerOfferValue(item, offer, instance.appraisedValue, instance.traitIds),
+          value: buyerOfferValue(item, effectiveOffer, instance.appraisedValue, instance.traitIds),
         };
       })
       .filter((candidate): candidate is NonNullable<typeof candidate> => candidate !== null)
@@ -175,7 +187,7 @@ export class GameStore {
       itemId: best.item.id,
       dayKey,
       value: best.value,
-      premiumMultiplier: offer.multiplier,
+      premiumMultiplier: effectiveOffer.multiplier,
       traitIds: [...best.instance.traitIds],
     });
     trackEvent('item_dispositioned', { disposition: 'sell', itemId: best.item.id, value: best.value, source: 'collection' });
