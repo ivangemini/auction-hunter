@@ -54,6 +54,17 @@ const seedSave = {
   auctionHistory: [],
   buyerMarketDayKey: null,
   claimedBuyerOfferIds: [],
+  discoveryChainProgress: {
+    'watchmaker-ledger': 1,
+    'prototype-trail': 2,
+    'lost-master-study': 3,
+  },
+  discoveryChainLastAuction: {
+    'watchmaker-ledger': 31,
+    'prototype-trail': 32,
+    'lost-master-study': 33,
+  },
+  completedDiscoveryChains: ['lost-master-study'],
 };
 
 function assert(condition, message) {
@@ -75,7 +86,7 @@ async function waitForPreview() {
     }
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
-  throw new Error('Timed out waiting for Collection/Buyer Market review preview server');
+  throw new Error('Timed out waiting for Collection/Discovery/Buyer Market review preview server');
 }
 
 async function stopPreview(preview) {
@@ -182,14 +193,25 @@ async function captureLocale(browser, localeCode, locale) {
     validatePng(collection, `${localeCode} Collection Book`);
     fs.writeFileSync(path.join(outputDir, '01-collection-book.png'), collection);
 
-    // Collection Book -> Buyer Market through the real navigation button.
-    await clickGame(page, 820, 70);
+    // Collection Book -> Discovery Board through the real navigation button.
+    await clickGame(page, 646, 70);
+    await page.waitForTimeout(720);
+    const discovery = await page.screenshot({ type: 'png' });
+    validatePng(discovery, `${localeCode} Discovery Board`);
+    const discoveryDifference = await imageDifferenceRatio(page, collection, discovery);
+    assert(discoveryDifference > 0.22, `${localeCode} Discovery Board did not visibly replace Collection Book (${discoveryDifference.toFixed(3)})`);
+    fs.writeFileSync(path.join(outputDir, '02-discovery-board.png'), discovery);
+
+    // Discovery Board -> Collection Book -> Buyer Market through real navigation controls.
+    await clickGame(page, 1020, 72);
+    await page.waitForTimeout(520);
+    await clickGame(page, 817, 70);
     await page.waitForTimeout(720);
     const market = await page.screenshot({ type: 'png' });
     validatePng(market, `${localeCode} Buyer Market`);
-    const difference = await imageDifferenceRatio(page, collection, market);
-    assert(difference > 0.22, `${localeCode} Buyer Market did not visibly replace Collection Book (${difference.toFixed(3)})`);
-    fs.writeFileSync(path.join(outputDir, '02-buyer-market.png'), market);
+    const marketDifference = await imageDifferenceRatio(page, collection, market);
+    assert(marketDifference > 0.22, `${localeCode} Buyer Market did not visibly replace Collection Book (${marketDifference.toFixed(3)})`);
+    fs.writeFileSync(path.join(outputDir, '03-buyer-market.png'), market);
 
     await page.close();
   } finally {
@@ -227,8 +249,8 @@ try {
 }
 
 for (const locale of ['ru', 'en']) {
-  for (const file of ['01-collection-book.png', '02-buyer-market.png']) {
+  for (const file of ['01-collection-book.png', '02-discovery-board.png', '03-buyer-market.png']) {
     console.log(path.relative(root, path.join(reviewRoot, locale, file)).split(path.sep).join('/'));
   }
 }
-console.log('P7 Collection/Buyer Market visual review capture OK');
+console.log('P7 Collection/Discovery/Buyer Market visual review capture OK');
