@@ -333,6 +333,29 @@ export class GameStore {
     this.persist();
   }
 
+  recordRivalAuction(opponentIds: readonly string[], outcome: 'player-win' | 'player-pass', winningRivalId?: string): void {
+    this.sync();
+    const uniqueIds = [...new Set(opponentIds.filter(Boolean))];
+    if (uniqueIds.length === 0) return;
+
+    for (const rivalId of uniqueIds) {
+      this.state.rivalEncounters[rivalId] = (this.state.rivalEncounters[rivalId] ?? 0) + 1;
+      if (outcome === 'player-win') {
+        this.state.rivalPlayerWins[rivalId] = (this.state.rivalPlayerWins[rivalId] ?? 0) + 1;
+      }
+    }
+    if (outcome === 'player-pass' && winningRivalId && uniqueIds.includes(winningRivalId)) {
+      this.state.rivalWins[winningRivalId] = (this.state.rivalWins[winningRivalId] ?? 0) + 1;
+    }
+
+    this.persist();
+    trackEvent('rival_auction_resolved', {
+      opponentIds: uniqueIds,
+      outcome,
+      winningRivalId,
+    });
+  }
+
   completeOnboarding(): void {
     this.sync();
     if (this.state.onboardingComplete) return;
