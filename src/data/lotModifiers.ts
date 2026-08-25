@@ -99,4 +99,48 @@ export const LOT_MODIFIERS: readonly LotModifierDefinition[] = [
     bidIncrementMultiplier: 2,
     marketMultiplier: 1.04,
   },
+  {
+    id: 'museum-deaccession',
+    name: { ru: 'Списание музея', en: 'Museum deaccession' },
+    description: {
+      ru: 'Происхождение лота повышает интерес к находкам, но учреждение выставило жёсткий резерв.',
+      en: 'Institutional provenance raises buyer interest, but the seller set a firm reserve.'
+    },
+    reserveMultiplier: 1.2,
+    marketMultiplier: 1.25,
+    conditionDelta: { min: 0.04, max: 0.03 },
+  },
+  {
+    id: 'courier-damage',
+    name: { ru: 'Повреждение при перевозке', en: 'Courier damage' },
+    description: {
+      ru: 'Часть коробок пострадала в дороге: вход дешевле, но состояние находок заметно менее надёжно.',
+      en: 'Some boxes were damaged in transit: entry is cheaper, but find condition is materially less reliable.'
+    },
+    reserveMultiplier: 0.7,
+    conditionDelta: { min: -0.12, max: -0.06 },
+  },
+  {
+    id: 'private-preview',
+    name: { ru: 'Закрытый предпросмотр', en: 'Private preview' },
+    description: {
+      ru: 'Дилеры успели изучить лот заранее: ценность выглядит лучше обычного, но шаг ставки и конкуренция выше.',
+      en: 'Dealers previewed the lot early: value looks stronger than usual, but bidding steps and competition are higher.'
+    },
+    reserveMultiplier: 1.08,
+    bidIncrementMultiplier: 1.5,
+    marketMultiplier: 1.17,
+  },
+  {
+    id: 'mixed-pallet',
+    name: { ru: 'Смешанная палета', en: 'Mixed pallet' },
+    description: {
+      ru: 'На палете больше коробок и меньше уверенности: дополнительная находка компенсируется более слабым средним состоянием.',
+      en: 'The pallet carries more boxes and less certainty: one extra find is offset by rougher average condition.'
+    },
+    itemCountDelta: 1,
+    reserveMultiplier: 1.04,
+    conditionDelta: { min: -0.06, max: -0.03 },
+    marketMultiplier: 0.98,
+  },
 ];
