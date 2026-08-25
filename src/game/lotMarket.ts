@@ -28,6 +28,8 @@ export interface LotChoice {
 export interface LotMarketResult {
   tierId: AuctionTierId;
   choices: LotChoice[];
+  marketTrendId?: string;
+  marketTrendRemainingAuctions?: number;
 }
 
 interface PrepareLotMarketOptions {
@@ -52,8 +54,16 @@ export function prepareLotMarket(options: PrepareLotMarketOptions): LotMarketRes
     cachedChoicesByTier.clear();
   }
 
+  const activeTrend = activeMarketTrendForAuction(options.auctionsPlayed, MARKET_TRENDS, MARKET_TREND_SCHEDULE);
+  const trendMetadata = activeTrend
+    ? {
+      marketTrendId: activeTrend.definition.id,
+      marketTrendRemainingAuctions: activeTrend.remainingAuctions,
+    }
+    : {};
+
   const cached = cachedChoicesByTier.get(tier.id);
-  if (cached) return { tierId: tier.id, choices: cached };
+  if (cached) return { tierId: tier.id, choices: cached, ...trendMetadata };
 
   const tierLots = tier.lotIds
     .map((lotId) => ALL_LOTS.find((candidate) => candidate.id === lotId))
@@ -61,7 +71,6 @@ export function prepareLotMarket(options: PrepareLotMarketOptions): LotMarketRes
   const baseLots = chooseDistinctRandom(tierLots, LOT_CHOICE_COUNT, random);
   if (baseLots.length === 0) throw new Error(`No lot templates configured for tier ${tier.id}`);
 
-  const activeTrend = activeMarketTrendForAuction(options.auctionsPlayed, MARKET_TRENDS, MARKET_TREND_SCHEDULE);
   const vipAvailable = vipAuctionAvailable(tier.id, options.reputationXp, options.auctionsPlayed);
   const choices = baseLots.map((baseLot, index) => {
     const rareModifier = vipAvailable && index === 0
@@ -77,7 +86,7 @@ export function prepareLotMarket(options: PrepareLotMarketOptions): LotMarketRes
   });
 
   cachedChoicesByTier.set(tier.id, choices);
-  return { tierId: tier.id, choices };
+  return { tierId: tier.id, choices, ...trendMetadata };
 }
 
 export function resetLotMarketCache(): void {
