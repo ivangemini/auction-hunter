@@ -53,6 +53,11 @@ export interface AnalyticsEventMap {
     daily: boolean;
   };
   auction_passed: { lotId: string; tierId: AuctionTierId; currentBid: number; daily: boolean };
+  rival_auction_resolved: {
+    opponentIds: string[];
+    outcome: 'player-win' | 'player-pass';
+    winningRivalId?: string;
+  };
   item_revealed: { itemId: string; rarity: string };
   item_appraised: {
     itemId: string;
