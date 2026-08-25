@@ -3,6 +3,8 @@ import { ITEMS, ITEM_BY_ID } from '../../data/catalog';
 import {
   COLLECTION_RESALE_RATE,
   COLLECTION_SETS,
+  collectionExpertiseBonus,
+  collectionExpertiseResaleRate,
   collectionSetProgress,
   uniqueCollectionCount,
   type CollectionSetDefinition,
@@ -164,11 +166,17 @@ export class CollectionScene extends Phaser.Scene {
     });
     rewardPanel.add(this.label(14, 13, this.locale === 'ru' ? 'НАГРАДА' : 'SET REWARD', 9, VISUAL.faint, 'bold'));
     rewardPanel.add(this.label(14, 31, this.money(reward), 18, '#e9b949', 'bold'));
-    rewardPanel.add(this.label(14, 60, claimed
+    rewardPanel.add(this.label(14, 57, claimed
       ? t(this.locale, 'rewardClaimed')
       : progress.complete
         ? (this.locale === 'ru' ? 'Готово к получению' : 'Ready to claim')
-        : t(this.locale, 'completeSet'), 11, claimed ? '#63d28d' : progress.complete ? '#f0c55d' : VISUAL.muted, 'bold').setWordWrapWidth(146));
+        : t(this.locale, 'completeSet'), 10, claimed ? '#63d28d' : progress.complete ? '#f0c55d' : VISUAL.muted, 'bold').setWordWrapWidth(146));
+    rewardPanel.add(this.label(14, 84, claimed
+      ? (this.locale === 'ru' ? 'НАВЫК АКТИВЕН' : 'EXPERTISE ACTIVE')
+      : (this.locale === 'ru' ? 'ПОСТОЯННЫЙ НАВЫК' : 'PERMANENT EXPERTISE'), 8, claimed ? '#63d28d' : VISUAL.faint, 'bold'));
+    rewardPanel.add(this.label(14, 99, set.perk.description[this.locale], 9, claimed ? '#bfe8ce' : VISUAL.muted, claimed ? 'bold' : 'normal')
+      .setWordWrapWidth(146)
+      .setLineSpacing(1));
     card.add(rewardPanel);
 
     if (!claimed && progress.complete) {
@@ -249,7 +257,9 @@ export class CollectionScene extends Phaser.Scene {
       .filter((candidate) => candidate.itemId === itemId)
       .sort((left, right) => left.appraisedValue - right.appraisedValue || left.acquiredAt - right.acquiredAt);
     const instance = instances[0];
-    const rate = collectionResaleRate(COLLECTION_RESALE_RATE, save.businessUpgrades.warehouse);
+    const warehouseRate = collectionResaleRate(COLLECTION_RESALE_RATE, save.businessUpgrades.warehouse);
+    const expertiseBonus = collectionExpertiseBonus(save.claimedSetRewards, item.category);
+    const rate = collectionExpertiseResaleRate(warehouseRate, save.claimedSetRewards, item.category);
     const resaleBasis = instance?.appraisedValue ?? item.baseValue;
     const resale = collectionResaleValue(resaleBasis, rate);
     const traits = instance
@@ -295,6 +305,16 @@ export class CollectionScene extends Phaser.Scene {
     }
 
     modal.add(this.label(-18, -23, `${t(this.locale, 'resaleValue', { amount: this.money(resale) })}`, 22, '#63d28d', 'bold'));
+    if (expertiseBonus > 0) {
+      modal.add(addChip(
+        this,
+        280,
+        -10,
+        `${this.locale === 'ru' ? 'ЭКСПЕРТИЗА' : 'EXPERTISE'} +${Math.round(expertiseBonus * 100)}%`,
+        VISUAL.success,
+        { width: 142, filled: true, fontSize: 9 },
+      ));
+    }
     modal.add(this.label(-18, 12, this.locale === 'ru' ? 'Рыночные признаки' : 'Market traits', 10, VISUAL.faint, 'bold'));
     modal.add(this.label(-18, 32, traits.length > 0 ? traits.join(' · ') : (this.locale === 'ru' ? 'Нет особых признаков' : 'No special traits'), 12, traits.length > 0 ? '#61a8ff' : VISUAL.muted, 'bold')
       .setWordWrapWidth(340)
