@@ -7,6 +7,8 @@ export interface LotModifierDefinition {
   description: LocalizedText;
   itemCountDelta?: number;
   reserveMultiplier?: number;
+  bidIncrementMultiplier?: number;
+  clueLimit?: number;
   conditionDelta?: { min: number; max: number };
   marketMultiplier?: number;
 }
@@ -26,15 +28,25 @@ export function selectLotModifier(
 
 export function applyLotModifier(lot: LotTemplate, modifier: LotModifierDefinition | null): LotTemplate {
   if (!modifier) return lot;
+  const bidIncrementMultiplier = Number.isFinite(modifier.bidIncrementMultiplier)
+    ? Math.max(0.5, Math.min(3, modifier.bidIncrementMultiplier ?? 1))
+    : 1;
+  const adjustedBidIncrement = Math.max(1, Math.round(lot.bidIncrement * bidIncrementMultiplier));
   const reserveMultiplier = modifier.reserveMultiplier ?? 1;
   const adjustedReserve = Math.max(
-    lot.bidIncrement,
-    Math.round((lot.reservePrice * reserveMultiplier) / lot.bidIncrement) * lot.bidIncrement,
+    adjustedBidIncrement,
+    Math.round((lot.reservePrice * reserveMultiplier) / adjustedBidIncrement) * adjustedBidIncrement,
   );
   const itemCount = Math.max(1, Math.min(lot.itemPool.length, lot.itemCount + (modifier.itemCountDelta ?? 0)));
+  const clueLimit = Number.isFinite(modifier.clueLimit)
+    ? Math.max(0, Math.min(lot.clues.length, Math.floor(modifier.clueLimit ?? lot.clues.length)))
+    : lot.clues.length;
+
   return {
     ...lot,
+    clues: lot.clues.slice(0, clueLimit),
     reservePrice: adjustedReserve,
+    bidIncrement: adjustedBidIncrement,
     itemCount,
   };
 }
