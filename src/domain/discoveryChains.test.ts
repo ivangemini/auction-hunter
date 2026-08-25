@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ITEM_BY_ID } from '../data/catalog';
-import { DISCOVERY_CHAINS } from '../data/discoveryChains';
+import { DISCOVERY_CHAINS, discoveryStepItemIds } from '../data/discoveryChains';
 import { advanceDiscoveryChains } from './discoveryChains';
 
 const emptyState = () => ({
@@ -10,16 +10,23 @@ const emptyState = () => ({
 });
 
 describe('legendary discovery chains', () => {
-  it('references real catalog items and uses unique ordered steps', () => {
-    const seen = new Set<string>();
+  it('references real catalog items and keeps primary ordered steps unique', () => {
+    const seenPrimary = new Set<string>();
+    let branchingSteps = 0;
     for (const chain of DISCOVERY_CHAINS) {
       expect(chain.steps.length).toBeGreaterThanOrEqual(3);
       for (const step of chain.steps) {
         expect(ITEM_BY_ID.has(step.itemId)).toBe(true);
-        expect(seen.has(step.itemId)).toBe(false);
-        seen.add(step.itemId);
+        expect(seenPrimary.has(step.itemId)).toBe(false);
+        seenPrimary.add(step.itemId);
+
+        const alternatives = step.alternativeItemIds ?? [];
+        if (alternatives.length > 0) branchingSteps += 1;
+        expect(new Set(discoveryStepItemIds(step)).size).toBe(discoveryStepItemIds(step).length);
+        alternatives.forEach((itemId) => expect(ITEM_BY_ID.has(itemId)).toBe(true));
       }
     }
+    expect(branchingSteps).toBeGreaterThanOrEqual(3);
   });
 
   it('requires ordered discoveries and advances at most once per auction', () => {
@@ -46,6 +53,29 @@ describe('legendary discovery chains', () => {
     );
     expect(sameAuction.progress[chain.id]).toBe(1);
     expect(sameAuction.advances).toEqual([]);
+  });
+
+  it('accepts either branch item for a branching stage and converges on the same next stage', () => {
+    const chain = DISCOVERY_CHAINS.find((candidate) => candidate.steps.some((step) => (step.alternativeItemIds?.length ?? 0) > 0));
+    if (!chain) throw new Error('Expected at least one branching discovery chain');
+    const branchIndex = chain.steps.findIndex((step) => (step.alternativeItemIds?.length ?? 0) > 0);
+    expect(branchIndex).toBeGreaterThan(0);
+    const branchStep = chain.steps[branchIndex]!;
+    const alternative = branchStep.alternativeItemIds?.[0];
+    if (!alternative) throw new Error('Expected a branch alternative');
+
+    let state = emptyState();
+    for (let index = 0; index < branchIndex; index += 1) {
+      const result = advanceDiscoveryChains(DISCOVERY_CHAINS, state, chain.steps[index]!.itemId, index + 1);
+      state = { progress: result.progress, lastAuction: result.lastAuction, completed: result.completed };
+    }
+
+    const branched = advanceDiscoveryChains(DISCOVERY_CHAINS, state, alternative, branchIndex + 1);
+    expect(branched.progress[chain.id]).toBe(branchIndex + 1);
+    expect(branched.advances.find((advance) => advance.chainId === chain.id)).toMatchObject({
+      itemId: alternative,
+      stage: branchIndex + 1,
+    });
   });
 
   it('completes only across multiple auctions and emits the reward once', () => {
