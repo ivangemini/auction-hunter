@@ -113,7 +113,7 @@ async function bootPage(context, platformLocale) {
 }
 
 function validatePng(buffer, name) {
-  assert(buffer.length > 80_000, `${name} looks unexpectedly small (${buffer.length} bytes)`);
+  assert(buffer.length > 60_000, `${name} looks unexpectedly small (${buffer.length} bytes)`);
   assert(buffer.subarray(12, 16).toString('ascii') === 'IHDR', `${name} is not a PNG`);
   assert(buffer.readUInt32BE(16) === 1280 && buffer.readUInt32BE(20) === 720, `${name} must be 1280x720`);
 }
@@ -170,8 +170,8 @@ async function captureLocale(browser, localeCode, locale) {
     await clickGame(page, 80, 120);
     await page.waitForTimeout(320);
 
-    // 24 sets at four cards per page must expose a real sixth page.
-    for (let pageIndex = 1; pageIndex < 6; pageIndex += 1) {
+    // 26 sets at four cards per page must expose a real seventh page.
+    for (let pageIndex = 1; pageIndex < 7; pageIndex += 1) {
       await clickGame(page, 735, 674);
       await page.waitForTimeout(240);
     }

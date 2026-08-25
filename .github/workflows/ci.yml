@@ -39,6 +39,14 @@ jobs:
           path: release/screenshots/item-review/generated/*.png
           if-no-files-found: error
           retention-days: 7
+      - run: node scripts/capture-item-breadth-review.mjs
+      - name: Upload P5 second-wave item review
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-item-breadth-review-ci
+          path: release/screenshots/item-breadth-review/**/*.png
+          if-no-files-found: error
+          retention-days: 7
       - run: node scripts/capture-environment-art-review.mjs
       - name: Upload P7 environment visual review
         uses: actions/upload-artifact@v4

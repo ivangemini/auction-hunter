@@ -5,6 +5,7 @@ export const ITEM_ART_IDS = [
   'binoculars', 'gallery-print', 'enamel-brooch', 'mini-console', 'military-watch', 'preproduction-figure',
   'soldering-station', 'pocket-tv', 'model-train', 'manual-typewriter', 'porcelain-figurine', 'art-deco-lamp',
   'fountain-pen', 'chronograph-watch', 'first-edition-book', 'signed-vinyl', 'clockwork-automaton', 'master-study',
+  'slide-projector', 'watchmaker-tools', 'field-compass', 'tin-airplane', 'mantel-clock', 'numbered-lithograph',
 ] as const;
 
 export const LOT_ART_IDS = [
