@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import './styles.css';
 import { trackEvent } from './analytics';
+import { registerItemBreadth } from './data/itemBreadth';
 import { gameConfig } from './game/config';
 import { installAuctionHistoryTracking } from './game/historyTracking';
 import { installGameLifecycle } from './game/lifecycle';
@@ -26,6 +27,7 @@ function localizeOrientationGuard(locale: Locale): void {
 }
 
 async function bootstrap(): Promise<void> {
+  registerItemBreadth();
   installBrowserGuards();
   applyAccessibilityPreferences();
   await initYandexSdk();
