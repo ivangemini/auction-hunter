@@ -118,6 +118,11 @@ function combineLotModifiers(
       max: (rareModifier.conditionDelta?.max ?? 0) + (trendModifier.conditionDelta?.max ?? 0),
     }
     : undefined;
+  const clueLimit = rareModifier.clueLimit === undefined
+    ? trendModifier.clueLimit
+    : trendModifier.clueLimit === undefined
+      ? rareModifier.clueLimit
+      : Math.min(rareModifier.clueLimit, trendModifier.clueLimit);
 
   return {
     id: `${rareModifier.id}+${trendModifier.id}`,
@@ -131,7 +136,9 @@ function combineLotModifiers(
     },
     itemCountDelta: (rareModifier.itemCountDelta ?? 0) + (trendModifier.itemCountDelta ?? 0),
     reserveMultiplier: (rareModifier.reserveMultiplier ?? 1) * (trendModifier.reserveMultiplier ?? 1),
+    bidIncrementMultiplier: (rareModifier.bidIncrementMultiplier ?? 1) * (trendModifier.bidIncrementMultiplier ?? 1),
     marketMultiplier: (rareModifier.marketMultiplier ?? 1) * (trendModifier.marketMultiplier ?? 1),
+    ...(clueLimit === undefined ? {} : { clueLimit }),
     ...(conditionDelta ? { conditionDelta } : {}),
   };
 }
