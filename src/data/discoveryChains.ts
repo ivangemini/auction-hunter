@@ -2,6 +2,7 @@ import type { LocalizedText } from '../domain/types';
 
 export interface DiscoveryChainStep {
   itemId: string;
+  alternativeItemIds?: readonly string[];
   clue: LocalizedText;
 }
 
@@ -12,6 +13,10 @@ export interface DiscoveryChainDefinition {
   steps: readonly DiscoveryChainStep[];
   rewardCash: number;
   rewardReputationXp: number;
+}
+
+export function discoveryStepItemIds(step: DiscoveryChainStep): readonly string[] {
+  return [step.itemId, ...(step.alternativeItemIds ?? [])];
 }
 
 export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
@@ -29,7 +34,11 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'military-watch',
-        clue: { ru: 'Сопоставить метку с военными часами.', en: 'Match the mark to a military wristwatch.' },
+        alternativeItemIds: ['wristwatch'],
+        clue: {
+          ru: 'Сверить метку на военных или других механических наручных часах.',
+          en: 'Cross-check the mark on a military or another mechanical wristwatch.',
+        },
       },
       {
         itemId: 'pocket-watch',
@@ -53,7 +62,11 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'preproduction-figure',
-        clue: { ru: 'Найти предсерийную фигурку с тем же клеймом.', en: 'Find the pre-production figure with the same maker mark.' },
+        alternativeItemIds: ['prototype-robot'],
+        clue: {
+          ru: 'Пойти по одной из двух веток: предсерийная фигурка или ранний робот с тем же клеймом.',
+          en: 'Follow either branch: a pre-production figure or an early robot carrying the same maker mark.',
+        },
       },
       {
         itemId: 'prototype-toy',
@@ -77,7 +90,11 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'signed-poster',
-        clue: { ru: 'Сверить подпись с редким концертным постером.', en: 'Cross-check the signature on a rare concert poster.' },
+        alternativeItemIds: ['signed-photo'],
+        clue: {
+          ru: 'Сверить подпись по редкому постеру или подписанной фотографии.',
+          en: 'Cross-check the signature through either a rare poster or a signed photograph.',
+        },
       },
       {
         itemId: 'master-study',
@@ -125,7 +142,11 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'multimeter',
-        clue: { ru: 'Найти измеритель с теми же отметками ремонта.', en: 'Find the multimeter with matching repair marks.' },
+        alternativeItemIds: ['precision-caliper'],
+        clue: {
+          ru: 'Продолжить через измеритель или точный штангенциркуль с теми же отметками.',
+          en: 'Continue through either the multimeter or precision caliper carrying the same marks.',
+        },
       },
       {
         itemId: 'soldering-station',
@@ -149,7 +170,11 @@ export const DISCOVERY_CHAINS: readonly DiscoveryChainDefinition[] = [
       },
       {
         itemId: 'first-edition-book',
-        clue: { ru: 'Отыскать первое издание с заметкой тем же почерком.', en: 'Locate the first-edition book annotated in the same hand.' },
+        alternativeItemIds: ['annotated-manuscript'],
+        clue: {
+          ru: 'Выбрать ветку архива: первое издание или рукопись с тем же почерком.',
+          en: 'Follow either archive branch: a first edition or an annotated manuscript in the same hand.',
+        },
       },
       {
         itemId: 'manual-typewriter',
