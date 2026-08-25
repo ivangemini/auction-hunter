@@ -63,6 +63,14 @@ jobs:
           path: release/screenshots/mobile-landscape-review/**/*.png
           if-no-files-found: error
           retention-days: 7
+      - run: node scripts/capture-mobile-gameplay-review.mjs
+      - name: Upload P7 compact reveal and restoration review
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-mobile-gameplay-review-ci
+          path: release/screenshots/mobile-gameplay-review/**/*.png
+          if-no-files-found: error
+          retention-days: 7
       - run: node scripts/capture-character-tutorial-review.mjs
       - name: Upload P7 character and tutorial review
         uses: actions/upload-artifact@v4
