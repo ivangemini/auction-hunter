@@ -101,7 +101,7 @@ This pass is a product-quality priority, not optional decoration. Complete it be
 - [x] Redesign reveal + appraisal flow around the item as a hero visual with staged reveal, rarity/value feedback and less dashboard-like metadata.
 - [x] Redesign restoration so condition, tool/strategy choice and result feel tactile rather than form-like.
 - [x] Redesign Collection Book and Buyer Market with stronger collectible/buyer identity, set-progress visualization, concrete-copy hero treatment, premium-sale feedback and dedicated RU/EN visual-review captures.
-- [ ] Bring Business Office, contracts, achievements, statistics and secondary hubs onto the same visual system instead of generic panels.
+- [x] Bring Business Office, contracts, upgrades, achievements, statistics, history and settings onto the shared P7 visual system with distinct content hierarchy and dedicated RU/EN visual-review captures.
 - [ ] Upgrade the most schematic lot/item SVGs with higher-fidelity authored raster/vector art while preserving semantic asset IDs and coverage tests.
   - [x] First item-fidelity batch: nine high-visibility reveal/restoration finds upgraded with authored 512×360 vector art plus deterministic 3×3 CI visual review.
   - [x] Second item-fidelity batch: nine more electronics, collectibles, watch, optics and paper/metal finds upgraded; CI permanently reviews Batch 01 and Batch 02 as separate 3×3 contact sheets.
