@@ -4,16 +4,21 @@ import {
   eligibleOpponents,
   opponentResponseBid,
   opponentSignatureResponseBid,
+  roundToBid,
   type AuctionOpponent,
 } from '../../domain/auction';
+import type { LotModifierDefinition } from '../../domain/lotModifier';
 import { rivalDossierLabel, rivalMemorySnapshot } from '../../domain/rivalMemory';
 import type { Locale, LotTemplate, PlayerSave } from '../../domain/types';
 import { playFeedbackCue } from '../feedback';
 import { CharacterAuctionScene } from './CharacterAuctionScene';
 
+const VIP_RIVAL_PRESSURE_MULTIPLIER = 1.08;
+
 type RivalBehaviorRuntime = Phaser.Scene & {
   locale: Locale;
   lot: LotTemplate;
+  lotModifier: LotModifierDefinition | null;
   opponents: AuctionOpponent[];
   currentBid: number;
   currentLeader: string;
@@ -22,6 +27,7 @@ type RivalBehaviorRuntime = Phaser.Scene & {
     snapshot: Readonly<PlayerSave>;
     recordRivalAuction: (opponentIds: readonly string[], outcome: 'player-win' | 'player-pass', winningRivalId?: string) => void;
   };
+  prepareLot: (lot: LotTemplate, modifier: LotModifierDefinition | null, valueMultiplier?: number) => void;
   startAuction: () => void;
   passAuction: () => void;
   npcRespond: () => void;
@@ -40,16 +46,29 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
     const signatureUsed = new Set<string>();
     let outcomeRecorded = false;
     let signatureNotice = '';
+    let vipPressureApplied = false;
 
+    const prepareLot = runtime.prepareLot.bind(runtime);
     const startAuction = runtime.startAuction.bind(runtime);
     const passAuction = runtime.passAuction.bind(runtime);
     const finalizeWin = runtime.finalizeWin.bind(runtime);
     const renderBidding = runtime.renderBidding.bind(runtime);
 
+    runtime.prepareLot = (lot, modifier, valueMultiplier = 1) => {
+      prepareLot(lot, modifier, valueMultiplier);
+      vipPressureApplied = false;
+    };
+
     runtime.startAuction = () => {
       signatureUsed.clear();
       outcomeRecorded = false;
       signatureNotice = '';
+      if (!vipPressureApplied && runtime.lotModifier?.id.includes('vip-invitation')) {
+        runtime.opponents.forEach((opponent) => {
+          opponent.maxBid = roundToBid(opponent.maxBid * VIP_RIVAL_PRESSURE_MULTIPLIER, runtime.lot);
+        });
+        vipPressureApplied = true;
+      }
       startAuction();
     };
 
@@ -73,6 +92,14 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
     runtime.renderBidding = () => {
       renderBidding();
       renderRivalDossiers(runtime);
+      if (runtime.lotModifier?.id.includes('vip-invitation')) {
+        runtime.add.text(780, 174, runtime.locale === 'ru' ? 'VIP · ДИЛЕРЫ +8% ДАВЛЕНИЯ' : 'VIP · DEALER PRESSURE +8%', {
+          fontFamily: 'Arial, sans-serif',
+          fontSize: '10px',
+          fontStyle: 'bold',
+          color: '#e9b949',
+        }).setOrigin(1, 0.5);
+      }
       if (signatureNotice) {
         const banner = runtime.add.rectangle(650, 221, 360, 30, 0x492f18, 0.94).setStrokeStyle(1, 0xe9b949, 0.62);
         runtime.add.text(650, 221, signatureNotice, {
