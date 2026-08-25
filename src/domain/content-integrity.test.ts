@@ -33,7 +33,7 @@ describe('content integrity', () => {
     const lotIds = new Set(ALL_LOTS.map((lot) => lot.id));
 
     for (const tier of AUCTION_TIERS) {
-      expect(tier.lotIds.length, `${tier.id} should expose multiple lot variants`).toBeGreaterThanOrEqual(10);
+      expect(tier.lotIds.length, `${tier.id} should expose multiple lot variants`).toBeGreaterThanOrEqual(12);
       expect(new Set(tier.lotIds).size, `${tier.id} repeats a lot id`).toBe(tier.lotIds.length);
       for (const lotId of tier.lotIds) {
         expect(lotIds.has(lotId), `${tier.id} references missing lot ${lotId}`).toBe(true);

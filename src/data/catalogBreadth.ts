@@ -2,8 +2,8 @@ import type { LotTemplate } from '../domain/types';
 import { LOTS } from './catalog';
 
 /**
- * Second P5 lot-breadth pack.
- * Reuses accepted semantic environment art while adding new clue/pool combinations.
+ * P5 lot-breadth packs.
+ * Reuse accepted semantic environment art while adding new truthful clue/pool combinations.
  */
 export const BREADTH_LOTS: readonly LotTemplate[] = [
   {
@@ -77,6 +77,78 @@ export const BREADTH_LOTS: readonly LotTemplate[] = [
     ],
     reservePrice: 1250, bidIncrement: 150, itemCount: 4,
     itemPool: ['prototype-toy', 'preproduction-figure', 'mini-console', 'arcade-handheld', 'clockwork-automaton', 'chronograph-watch', 'pocket-watch'],
+  },
+  {
+    id: 'maker-locker-41', artId: 'garage-workshop',
+    name: { ru: 'Мастерская энтузиаста №41', en: 'Maker Locker #41' },
+    location: { ru: 'Гаражный ряд радиолюбителей', en: 'Electronics hobbyist garage row' },
+    clues: [
+      { text: { ru: 'На верстаке лежат паяльник, щупы и измеритель', en: 'A soldering iron, probes and meter cover the bench' }, signal: { categories: ['tools'] } },
+      { text: { ru: 'В коробках видны экраны, антенны и старые платы', en: 'Screens, antennas and old boards fill the boxes' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'В шкафу стоит тяжёлая механическая машинка', en: 'A heavy mechanical machine sits in the cabinet' }, signal: { categories: ['collectibles'] } },
+    ],
+    reservePrice: 425, bidIncrement: 75, itemCount: 4,
+    itemPool: ['soldering-station', 'multimeter', 'toolbox', 'portable-radio', 'pocket-tv', 'manual-typewriter', 'film-camera'],
+  },
+  {
+    id: 'toy-market-crate-9', artId: 'garage-market',
+    name: { ru: 'Игрушечный ящик №9', en: 'Toy Market Crate #9' },
+    location: { ru: 'Склад закрытой барахолки', en: 'Closed flea-market storage' },
+    clues: [
+      { text: { ru: 'Сверху лежат жестяные машинки и детали моделей', en: 'Tin cars and model parts are stacked on top' }, signal: { categories: ['toys'] } },
+      { text: { ru: 'Под ними видны комиксы и музыкальные коробки', en: 'Comics and music boxes are visible underneath' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'В углу лежит небольшое устройство с экраном', en: 'A small screened device sits in one corner' }, signal: { categories: ['electronics'] } },
+    ],
+    reservePrice: 450, bidIncrement: 75, itemCount: 4,
+    itemPool: ['tin-car', 'toy-robot', 'model-train', 'comic-stack', 'vinyl-box', 'mini-console', 'portable-radio'],
+  },
+  {
+    id: 'writer-estate-33', artId: 'estate-attic',
+    name: { ru: 'Архив писателя №33', en: 'Writer Estate #33' },
+    location: { ru: 'Чердак дома частного издателя', en: 'Private publisher estate attic' },
+    clues: [
+      { text: { ru: 'На столе лежат рукописи, редкие книги и футляр ручки', en: 'Manuscripts, rare books and a pen case cover the desk' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'У стены стоят подписанные афиши и номерные листы', en: 'Signed posters and numbered sheets line the wall' }, signal: { categories: ['art'] } },
+      { text: { ru: 'В кофре осталась старая камера для поездок', en: 'An old travel camera remains in a trunk' }, signal: { categories: ['electronics'] } },
+    ],
+    reservePrice: 750, bidIncrement: 100, itemCount: 4,
+    itemPool: ['first-edition-book', 'fountain-pen', 'manual-typewriter', 'gallery-print', 'signed-poster', 'travel-clock', 'film-camera'],
+  },
+  {
+    id: 'collector-parlor-15', artId: 'estate-studio',
+    name: { ru: 'Салон коллекционера №15', en: 'Collector Parlor #15' },
+    location: { ru: 'Гостиная старого городского особняка', en: 'Old townhouse parlor' },
+    clues: [
+      { text: { ru: 'В центре комнаты стоят лампа и фарфоровая фигура', en: 'A lamp and porcelain figure dominate the room' }, signal: { categories: ['art', 'collectibles'] } },
+      { text: { ru: 'На комоде лежит часовой футляр и коробка украшений', en: 'A watch case and jewelry box sit on the dresser' }, signal: { categories: ['watches', 'collectibles'] } },
+      { text: { ru: 'На полке видна подписанная пластинка', en: 'A signed record is visible on the shelf' }, signal: { itemIds: ['signed-vinyl'] } },
+    ],
+    reservePrice: 775, bidIncrement: 100, itemCount: 4,
+    itemPool: ['art-deco-lamp', 'porcelain-figurine', 'enamel-brooch', 'silver-ring', 'chronograph-watch', 'instant-camera', 'signed-vinyl'],
+  },
+  {
+    id: 'media-vault-31', artId: 'collector-gallery',
+    name: { ru: 'Медиа-хранилище №31', en: 'Media Vault #31' },
+    location: { ru: 'Закрытый архив частного продюсера', en: 'Private producer archive' },
+    clues: [
+      { text: { ru: 'На стенах стоят подписанные пластинки, афиши и графика', en: 'Signed records, posters and prints line the walls' }, signal: { categories: ['art'] } },
+      { text: { ru: 'В антистатических боксах лежат ранние игровые устройства', en: 'Early gaming devices sit in anti-static cases' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'В сейфе видны редкие печатные издания', en: 'Rare printed editions are visible in the safe' }, signal: { categories: ['collectibles'] } },
+    ],
+    reservePrice: 1300, bidIncrement: 150, itemCount: 4,
+    itemPool: ['signed-vinyl', 'signed-poster', 'master-study', 'first-edition-book', 'mini-console', 'arcade-handheld', 'preproduction-figure'],
+  },
+  {
+    id: 'mechanical-vault-18', artId: 'collector-vault',
+    name: { ru: 'Механическое хранилище №18', en: 'Mechanical Vault #18' },
+    location: { ru: 'Частная коллекция инженера-механика', en: 'Mechanical engineer private collection' },
+    clues: [
+      { text: { ru: 'В витрине лежат несколько сложных часовых механизмов', en: 'Several complex watch movements sit in a display' }, signal: { categories: ['watches'] } },
+      { text: { ru: 'Под стеклом видны заводные игрушки и прототипные детали', en: 'Clockwork toys and prototype parts are visible under glass' }, signal: { categories: ['toys'] } },
+      { text: { ru: 'В отдельном футляре лежит дорогой письменный инструмент', en: 'A premium writing instrument rests in a separate case' }, signal: { itemIds: ['fountain-pen'] } },
+    ],
+    reservePrice: 1350, bidIncrement: 150, itemCount: 4,
+    itemPool: ['pocket-watch', 'chronograph-watch', 'military-watch', 'clockwork-automaton', 'prototype-toy', 'preproduction-figure', 'fountain-pen'],
   },
 ];
 
