@@ -461,33 +461,34 @@ function showDecisionFeedback(scene: AuctionRuntime, kind: DecisionFeedbackKind,
   const label = selling
     ? `${scene.locale === 'ru' ? 'ПРОДАНО' : 'SOLD'} · +${scene.money(item.appraisedValue)}`
     : `${scene.locale === 'ru' ? 'В КОЛЛЕКЦИЮ' : 'KEPT'} · ${item.definition.name[scene.locale]}`;
-  const receipt = scene.add.container(640, 674).setDepth(820);
-  const shadow = scene.add.rectangle(0, 4, 430, 42, 0x000000, 0.34);
-  const body = scene.add.rectangle(0, 0, 430, 42, 0x10151b, 0.98).setStrokeStyle(1, accent, 0.62);
-  const stripe = scene.add.rectangle(-211, 0, 6, 42, accent, 0.9);
-  const copy = center(scene, 0, 0, label, 12, selling ? '#8ee7ad' : '#9bc8ff', 'bold');
-  receipt.add([shadow, body, stripe, copy]);
+  const receipt = scene.add.container(640, 620).setDepth(820).setName('decision-feedback');
+  const shadow = scene.add.rectangle(0, 5, 430, 46, 0x000000, 0.42);
+  const body = scene.add.rectangle(0, 0, 430, 46, accent, 0.18).setStrokeStyle(2, accent, 0.9);
+  const inner = scene.add.rectangle(0, 0, 416, 34, 0x10151b, 0.96).setStrokeStyle(1, 0xffffff, 0.05);
+  const stripe = scene.add.rectangle(-211, 0, 8, 46, accent, 1);
+  const copy = center(scene, 0, 0, label, 12, selling ? '#a9f0bf' : '#b3d8ff', 'bold');
+  receipt.add([shadow, body, inner, stripe, copy]);
 
   if (prefersReducedMotion()) {
-    scene.time.delayedCall(560, () => receipt.destroy());
+    scene.time.delayedCall(620, () => receipt.destroy());
     return;
   }
 
-  receipt.setAlpha(0).setY(688).setScale(0.985);
+  receipt.setAlpha(0).setY(634).setScale(0.985);
   scene.tweens.add({
     targets: receipt,
-    y: 674,
+    y: 620,
     alpha: 1,
     scaleX: 1,
     scaleY: 1,
     duration: MOTION.settleMs,
     ease: 'Cubic.Out',
   });
-  scene.time.delayedCall(520, () => {
+  scene.time.delayedCall(560, () => {
     if (!receipt.active) return;
     scene.tweens.add({
       targets: receipt,
-      y: 664,
+      y: 610,
       alpha: 0,
       duration: MOTION.hoverMs,
       ease: 'Cubic.In',
