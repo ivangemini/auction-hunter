@@ -39,6 +39,24 @@ describe('analytics market trend context', () => {
     });
   });
 
+  it('attributes Buyer Market sales to the same active trend context', () => {
+    setMarketTrendAnalyticsContext({ marketTrendId: 'watch-fever', marketTrendRemainingAuctions: 2 });
+    const sale = trackEvent('buyer_sale_completed', {
+      buyerId: 'watch-specialist',
+      itemId: 'pocket-watch',
+      dayKey: '2026-08-25',
+      value: 6200,
+      premiumMultiplier: 1.2,
+      traitIds: ['mechanical'],
+    });
+    setMarketTrendAnalyticsContext(null);
+
+    expect(sale.payload).toMatchObject({
+      marketTrendId: 'watch-fever',
+      marketTrendRemainingAuctions: 2,
+    });
+  });
+
   it('clears trend attribution when the market is in cooldown', () => {
     setMarketTrendAnalyticsContext({ marketTrendId: 'art-buzz', marketTrendRemainingAuctions: 1 });
     setMarketTrendAnalyticsContext(null);
