@@ -11,12 +11,12 @@ import { AUCTION_TIERS } from './tiers';
 describe('replayability floor', () => {
   it('keeps enough configured variety for repeated auction sessions', () => {
     expect(ITEMS.length).toBeGreaterThanOrEqual(36);
-    expect(ALL_LOTS.length).toBeGreaterThanOrEqual(36);
+    expect(ALL_LOTS.length).toBeGreaterThanOrEqual(42);
     expect(COLLECTION_SETS.length).toBeGreaterThanOrEqual(16);
     expect(AUCTION_TIERS).toHaveLength(3);
 
     for (const tier of AUCTION_TIERS) {
-      expect(tier.lotIds.length, `${tier.id} lot variety`).toBeGreaterThanOrEqual(12);
+      expect(tier.lotIds.length, `${tier.id} lot variety`).toBeGreaterThanOrEqual(14);
     }
   });
 

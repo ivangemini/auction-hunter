@@ -150,6 +150,78 @@ export const BREADTH_LOTS: readonly LotTemplate[] = [
     reservePrice: 1350, bidIncrement: 150, itemCount: 4,
     itemPool: ['pocket-watch', 'chronograph-watch', 'military-watch', 'clockwork-automaton', 'prototype-toy', 'preproduction-figure', 'fountain-pen'],
   },
+  {
+    id: 'photo-lab-locker-27', artId: 'garage-workshop',
+    name: { ru: 'Фотолаборатория №27', en: 'Photo Lab Locker #27' },
+    location: { ru: 'Гараж бывшего фотокружка', en: 'Former photo-club garage' },
+    clues: [
+      { text: { ru: 'На столе лежат камеры, кассеты и старые кабели', en: 'Cameras, cassettes and old cables cover the desk' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'В шкафу стоят подписанные коробки с бумагой и архивом', en: 'Labeled paper and archive boxes fill a cabinet' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'Под увеличителем лежит измерительный прибор', en: 'A measuring instrument rests beneath the enlarger' }, signal: { categories: ['tools'] } },
+    ],
+    reservePrice: 475, bidIncrement: 75, itemCount: 4,
+    itemPool: ['film-camera', 'instant-camera', 'cassette-player', 'portable-radio', 'manual-typewriter', 'comic-stack', 'multimeter'],
+  },
+  {
+    id: 'rail-hobby-unit-44', artId: 'garage-market',
+    name: { ru: 'Железнодорожный клуб №44', en: 'Rail Hobby Unit #44' },
+    location: { ru: 'Склад закрытого клуба моделистов', en: 'Closed model-club storage' },
+    clues: [
+      { text: { ru: 'На макете стоят локомотивы и жестяные машинки', en: 'Locomotives and tin cars sit on a layout' }, signal: { categories: ['toys'] } },
+      { text: { ru: 'В коробках лежат старые журналы и коллекционные детали', en: 'Old magazines and collectible parts fill the boxes' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'У стены видны паяльная станция и радиоприёмник', en: 'A soldering station and radio sit by the wall' }, signal: { categories: ['tools', 'electronics'] } },
+    ],
+    reservePrice: 475, bidIncrement: 75, itemCount: 4,
+    itemPool: ['model-train', 'tin-car', 'toy-robot', 'comic-stack', 'travel-clock', 'soldering-station', 'portable-radio'],
+  },
+  {
+    id: 'scholar-estate-26', artId: 'estate-attic',
+    name: { ru: 'Кабинет учёного №26', en: 'Scholar Estate #26' },
+    location: { ru: 'Дом частного исследователя', en: 'Private researcher estate' },
+    clues: [
+      { text: { ru: 'На столе лежат редкие книги, ручка и машинописные листы', en: 'Rare books, a pen and typed pages cover the desk' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'На стене висит номерная графика', en: 'A numbered print hangs on the wall' }, signal: { categories: ['art'] } },
+      { text: { ru: 'В ящике лежат дорожные и наручные часы', en: 'Travel and wrist watches sit in a drawer' }, signal: { categories: ['watches'] } },
+    ],
+    reservePrice: 800, bidIncrement: 100, itemCount: 4,
+    itemPool: ['first-edition-book', 'fountain-pen', 'manual-typewriter', 'gallery-print', 'porcelain-figurine', 'travel-clock', 'military-watch'],
+  },
+  {
+    id: 'photographer-studio-34', artId: 'estate-studio',
+    name: { ru: 'Студия фотографа №34', en: 'Photographer Studio #34' },
+    location: { ru: 'Мастерская известного городского фотографа', en: 'Known city photographer studio' },
+    clues: [
+      { text: { ru: 'В кейсах лежат несколько поколений фототехники', en: 'Several generations of camera gear sit in cases' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'На стенах висят принты и подписанные афиши', en: 'Prints and signed posters hang on the walls' }, signal: { categories: ['art'] } },
+      { text: { ru: 'На полке стоит оптика в мягком футляре', en: 'Optics sit on a shelf in a padded case' }, signal: { categories: ['collectibles'] } },
+    ],
+    reservePrice: 825, bidIncrement: 100, itemCount: 4,
+    itemPool: ['film-camera', 'instant-camera', 'pocket-tv', 'gallery-print', 'signed-poster', 'binoculars', 'art-deco-lamp'],
+  },
+  {
+    id: 'jeweler-vault-12', artId: 'collector-vault',
+    name: { ru: 'Ювелирное хранилище №12', en: 'Jeweler Vault #12' },
+    location: { ru: 'Закрытый архив частного ювелира', en: 'Private jeweler archive' },
+    clues: [
+      { text: { ru: 'В сейфе лежат кольца, броши и бархатные футляры', en: 'Rings, brooches and velvet cases fill the safe' }, signal: { categories: ['collectibles'] } },
+      { text: { ru: 'На столе открыты несколько дорогих часовых коробок', en: 'Several premium watch boxes are open on the desk' }, signal: { categories: ['watches'] } },
+      { text: { ru: 'На стене висит небольшой этюд с архивной биркой', en: 'A small tagged study hangs on the wall' }, signal: { itemIds: ['master-study'] } },
+    ],
+    reservePrice: 1400, bidIncrement: 150, itemCount: 4,
+    itemPool: ['silver-ring', 'enamel-brooch', 'fountain-pen', 'porcelain-figurine', 'chronograph-watch', 'pocket-watch', 'master-study'],
+  },
+  {
+    id: 'prototype-gallery-23', artId: 'collector-gallery',
+    name: { ru: 'Галерея прототипов №23', en: 'Prototype Gallery #23' },
+    location: { ru: 'Закрытая коллекция промышленного дизайна', en: 'Private industrial-design collection' },
+    clues: [
+      { text: { ru: 'Под стеклом стоят предсерийные игрушки и механизмы', en: 'Pre-production toys and mechanisms sit under glass' }, signal: { categories: ['toys'] } },
+      { text: { ru: 'В кейсах лежат ранние портативные устройства', en: 'Early portable devices sit in fitted cases' }, signal: { categories: ['electronics'] } },
+      { text: { ru: 'В архивном тубусе лежит подписанная графика', en: 'Signed artwork rests in an archival tube' }, signal: { categories: ['art'] } },
+    ],
+    reservePrice: 1450, bidIncrement: 150, itemCount: 4,
+    itemPool: ['prototype-toy', 'preproduction-figure', 'clockwork-automaton', 'arcade-handheld', 'mini-console', 'signed-poster', 'master-study'],
+  },
 ];
 
 export const ALL_LOTS: readonly LotTemplate[] = [...LOTS, ...BREADTH_LOTS];

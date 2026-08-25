@@ -5,19 +5,19 @@ import { COLLECTION_SETS } from './collections';
 import { AUCTION_TIERS } from './tiers';
 
 describe('content scale', () => {
-  it('ships the expanded 36-item, 36-lot and 16-set catalog', () => {
+  it('ships the expanded 36-item, 42-lot and 16-set catalog', () => {
     expect(ITEMS).toHaveLength(36);
-    expect(ALL_LOTS).toHaveLength(36);
+    expect(ALL_LOTS).toHaveLength(42);
     expect(COLLECTION_SETS).toHaveLength(16);
     expect(new Set(ITEMS.map((item) => item.id)).size).toBe(36);
-    expect(new Set(ALL_LOTS.map((lot) => lot.id)).size).toBe(36);
+    expect(new Set(ALL_LOTS.map((lot) => lot.id)).size).toBe(42);
     expect(new Set(COLLECTION_SETS.map((set) => set.id)).size).toBe(16);
   });
 
-  it('gives every tier twelve distinct lot variants', () => {
+  it('gives every tier fourteen distinct lot variants', () => {
     for (const tier of AUCTION_TIERS) {
-      expect(tier.lotIds).toHaveLength(12);
-      expect(new Set(tier.lotIds).size).toBe(12);
+      expect(tier.lotIds).toHaveLength(14);
+      expect(new Set(tier.lotIds).size).toBe(14);
       for (const lotId of tier.lotIds) expect(ALL_LOTS.some((lot) => lot.id === lotId)).toBe(true);
     }
   });
