@@ -64,7 +64,7 @@ export class CollectionScene extends Phaser.Scene {
     const save = this.store.snapshot;
     const uniqueCount = uniqueCollectionCount(save.collection);
     this.addStatPlate(62, 126, this.locale === 'ru' ? 'УНИКАЛЬНЫЕ' : 'UNIQUE FINDS', `${uniqueCount}/${ITEMS.length}`, VISUAL.warm);
-    this.addStatPlate(265, 126, this.locale === 'ru' ? 'НАБОРЫ' : 'SET REWARDS', `${save.claimedSetRewards.length}/${COLLECTION_SETS.length}`, VISUAL.rare);
+    this.addStatPlate(265, 126, this.locale === 'ru' ? 'ЭКСПЕРТИЗА' : 'EXPERTISE', `${save.claimedSetRewards.length}/${COLLECTION_SETS.length}`, VISUAL.success);
     this.addStatPlate(468, 126, this.locale === 'ru' ? 'БАЛАНС' : 'CASH', this.money(save.cash), VISUAL.success);
 
     button(this, 820, 70, this.locale === 'ru' ? 'Рынок покупателей' : 'Buyer Market', () => this.scene.start('buyer-market'), {
@@ -157,18 +157,22 @@ export class CollectionScene extends Phaser.Scene {
     card.add(addProgressBar(this, 20, 74, 340, progress.total > 0 ? progress.collected / progress.total : 0, accent));
 
     const rewardPanel = addSurface(this, 382, 18, 174, 174, {
-      accent: VISUAL.warm,
+      accent: claimed ? VISUAL.success : VISUAL.warm,
       fill: VISUAL.panelDeep,
-      strokeAlpha: claimed ? 0.18 : 0.24,
-      glowAlpha: claimed ? 0.008 : 0.018,
+      strokeAlpha: claimed ? 0.32 : 0.24,
+      glowAlpha: claimed ? 0.018 : 0.018,
     });
-    rewardPanel.add(this.label(14, 13, this.locale === 'ru' ? 'НАГРАДА' : 'SET REWARD', 9, VISUAL.faint, 'bold'));
-    rewardPanel.add(this.label(14, 31, this.money(reward), 18, '#e9b949', 'bold'));
-    rewardPanel.add(this.label(14, 60, claimed
-      ? t(this.locale, 'rewardClaimed')
+    rewardPanel.add(this.label(14, 11, this.locale === 'ru' ? 'НАГРАДА' : 'SET REWARD', 9, VISUAL.faint, 'bold'));
+    rewardPanel.add(this.label(14, 28, this.money(reward), 17, '#e9b949', 'bold'));
+    rewardPanel.add(this.label(14, 51, claimed
+      ? (this.locale === 'ru' ? 'Получено' : 'Claimed')
       : progress.complete
         ? (this.locale === 'ru' ? 'Готово к получению' : 'Ready to claim')
-        : t(this.locale, 'completeSet'), 11, claimed ? '#63d28d' : progress.complete ? '#f0c55d' : VISUAL.muted, 'bold').setWordWrapWidth(146));
+        : (this.locale === 'ru' ? 'Собери набор' : 'Complete the set'), 10, claimed ? '#63d28d' : progress.complete ? '#f0c55d' : VISUAL.muted, 'bold').setWordWrapWidth(146));
+    rewardPanel.add(this.add.rectangle(14, 76, 146, 1, claimed ? VISUAL.success : VISUAL.rare, 0.18).setOrigin(0));
+    rewardPanel.add(this.label(14, 85, this.locale === 'ru' ? 'ПОСТОЯННАЯ ЭКСПЕРТИЗА' : 'PERMANENT EXPERTISE', 8, VISUAL.faint, 'bold'));
+    rewardPanel.add(this.label(14, 101, set.perk.name[this.locale], 11, claimed ? '#63d28d' : '#d9dee5', 'bold').setWordWrapWidth(146));
+    rewardPanel.add(this.label(14, 122, `${this.locale === 'ru' ? 'Рынок покупателей' : 'Buyer Market'} +${Math.round(set.perk.buyerMarketBonus * 100)}%`, 10, claimed ? '#63d28d' : '#61a8ff', 'bold'));
     card.add(rewardPanel);
 
     if (!claimed && progress.complete) {
@@ -178,11 +182,13 @@ export class CollectionScene extends Phaser.Scene {
       }, { width: 148, height: 38, background: VISUAL.warm, fontSize: this.locale === 'ru' ? 12 : 13 });
       card.add(claimButton);
     } else {
-      card.add(addChip(this, 469, 161, claimed ? (this.locale === 'ru' ? 'ПОЛУЧЕНО' : 'CLAIMED') : (this.locale === 'ru' ? 'НЕПОЛНЫЙ' : 'INCOMPLETE'), claimed ? VISUAL.success : VISUAL.steel, {
-        width: 128,
+      card.add(addChip(this, 469, 161, claimed
+        ? (this.locale === 'ru' ? 'ЭКСПЕРТИЗА АКТИВНА' : 'EXPERTISE ACTIVE')
+        : (this.locale === 'ru' ? 'НЕПОЛНЫЙ' : 'INCOMPLETE'), claimed ? VISUAL.success : VISUAL.steel, {
+        width: claimed ? 150 : 128,
         height: 28,
         filled: claimed,
-        fontSize: 10,
+        fontSize: claimed && this.locale === 'ru' ? 8 : 9,
       }));
     }
 

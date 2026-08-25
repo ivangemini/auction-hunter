@@ -92,6 +92,7 @@ export class BuyerMarketScene extends Phaser.Scene {
     const match = claimed
       ? null
       : bestBuyerMatch(save.collection, ITEM_BY_ID, offer, save.collectionItems ?? [], save.claimedSetRewards);
+    const expertiseBonus = match?.expertiseBonus ?? 0;
     const shownMultiplier = match?.effectiveMultiplier ?? offer.multiplier;
     const shownPremium = Math.round((shownMultiplier - 1) * 100);
     const accent = this.offerAccent(offer, index);
@@ -127,8 +128,8 @@ export class BuyerMarketScene extends Phaser.Scene {
       filled: false,
       fontSize: 9,
     }));
-    if (match && match.expertiseBonus > 0) {
-      card.add(addChip(this, 294, 133, `${this.locale === 'ru' ? 'ЭКСПЕРТ' : 'EXPERTISE'} +${Math.round(match.expertiseBonus * 100)}%`, VISUAL.success, {
+    if (expertiseBonus > 0) {
+      card.add(addChip(this, 294, 133, `${this.locale === 'ru' ? 'ЭКСПЕРТ' : 'EXPERTISE'} +${Math.round(expertiseBonus * 100)}%`, VISUAL.success, {
         width: 148,
         height: 29,
         filled: true,

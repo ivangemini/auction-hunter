@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buyerOfferMatches, dailyBuyerOffersForDay } from '../data/buyers';
 import { ITEMS } from '../data/catalog';
+import { buyerMarketExpertiseBonus, COLLECTION_SETS } from '../data/collections';
 import { createDefaultSave, SAVE_STORAGE_KEY } from './save';
 import { GameStore } from './store';
 
@@ -86,6 +87,41 @@ describe('GameStore buyer market', () => {
     expect(value).toBe(Math.round(5000 * offer!.multiplier));
     expect(store.snapshot.collection).toEqual([]);
     expect(store.snapshot.collectionItems).toEqual([]);
+  });
+
+  it('uses claimed collection expertise in the exact sale transaction', () => {
+    const dayKey = '2026-08-24';
+    const offer = dailyBuyerOffersForDay(dayKey)[0];
+    expect(offer?.category).toBeDefined();
+    const item = ITEMS.find((candidate) => buyerOfferMatches(candidate, offer!));
+    expect(item).toBeDefined();
+    const expertiseSet = COLLECTION_SETS.find((set) => set.perk.category === item!.category);
+    expect(expertiseSet).toBeDefined();
+
+    const save = createDefaultSave();
+    save.collection = [item!.id];
+    save.collectionItems = [{
+      id: 'expert-copy',
+      itemId: item!.id,
+      appraisedValue: 5000,
+      condition: 0.9,
+      restored: false,
+      traitIds: [],
+      acquiredAt: 20,
+    }];
+    save.claimedSetRewards = [expertiseSet!.id];
+    save.buyerMarketDayKey = dayKey;
+    storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
+
+    const expertise = buyerMarketExpertiseBonus(save.claimedSetRewards, item!.category);
+    const expected = Math.round(5000 * (offer!.multiplier + expertise));
+    const store = new GameStore();
+    const value = store.sellToBuyer(offer!.id, 'expert-copy', dayKey);
+
+    expect(expertise).toBe(0.04);
+    expect(value).toBe(expected);
+    expect(store.snapshot.cash).toBe(2500 + expected);
+    expect(store.snapshot.lifetimeSales).toBe(expected);
   });
 
   it('resets claimed offers when the local market day changes', () => {
