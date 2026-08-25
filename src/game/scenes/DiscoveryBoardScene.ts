@@ -107,14 +107,14 @@ export class DiscoveryBoardScene extends Phaser.Scene {
     this.addStatPlate(270, 128, copy.active, `${active}`, VISUAL.rare);
     this.addStatPlate(476, 128, copy.reputation, `${Math.round(save.reputationXp)} REP`, VISUAL.warm);
 
-    button(this, 1020, 72, t(this.locale, 'backToCollection'), () => this.scene.start('collection'), {
-      width: 180,
+    button(this, 995, 72, t(this.locale, 'backToCollection'), () => this.scene.start('collection'), {
+      width: 168,
       height: 48,
       background: VISUAL.steel,
       fontSize: this.locale === 'ru' ? 13 : 14,
     });
-    button(this, 1174, 72, t(this.locale, 'backToAuction'), () => this.scene.start('auction'), {
-      width: 150,
+    button(this, 1160, 72, t(this.locale, 'backToAuction'), () => this.scene.start('auction'), {
+      width: 156,
       height: 48,
       background: VISUAL.rare,
       fontSize: this.locale === 'ru' ? 12 : 14,
