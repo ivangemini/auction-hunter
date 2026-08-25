@@ -86,4 +86,17 @@ export const LOT_MODIFIERS: readonly LotModifierDefinition[] = [
     reserveMultiplier: 1.1,
     marketMultiplier: 1.16,
   },
+  {
+    id: 'sealed-storage',
+    name: { ru: 'Запечатанный склад', en: 'Sealed storage' },
+    description: {
+      ru: 'Опись неполная: видна только одна подсказка. Внутри на один предмет больше, старт ниже, но шаг ставки вдвое крупнее.',
+      en: 'The inventory is incomplete: only one clue is visible. There is one extra find, entry is cheaper, but bid steps are doubled.',
+    },
+    clueLimit: 1,
+    itemCountDelta: 1,
+    reserveMultiplier: 0.84,
+    bidIncrementMultiplier: 2,
+    marketMultiplier: 1.04,
+  },
 ];
