@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BIDDER_PROFILES, ITEM_CONDITION_RANGE, MARKET_FACTOR_RANGE } from './balance';
-import { ITEM_BY_ID, LOTS } from './catalog';
+import { ITEM_BY_ID } from './catalog';
+import { ALL_LOTS } from './catalogBreadth';
 import { AUCTION_TIERS } from './tiers';
 import { createAuctionOpponents, createLotItems, totalAppraisedValue, type RandomSource } from '../domain/auction';
 
@@ -36,7 +37,7 @@ function hash(value: string): number {
 }
 
 function sampleLot(lotId: string): Sample[] {
-  const lot = LOTS.find((candidate) => candidate.id === lotId);
+  const lot = ALL_LOTS.find((candidate) => candidate.id === lotId);
   if (!lot) throw new Error(`Missing lot ${lotId}`);
 
   return Array.from({ length: SAMPLES_PER_LOT }, (_, index) => {
@@ -79,11 +80,8 @@ describe('economy strategy simulation', () => {
       const lossRate = losses / samples.length;
       const averageMargin = samples.reduce((sum, sample) => sum + sample.margin, 0) / samples.length;
 
-      // If losses disappear, the optimal strategy degenerates into "always force the win".
       expect(lossRate, `${tier.id} forced-win loss rate`).toBeGreaterThan(0.05);
-      // If close to half or more forced wins lose money, the auction becomes too punishing for casual play.
       expect(lossRate, `${tier.id} forced-win loss rate`).toBeLessThan(0.45);
-      // Blind forcing may have a small positive expectation, but should not be an outsized money printer.
       expect(averageMargin, `${tier.id} forced-win average margin`).toBeGreaterThan(-0.05);
       expect(averageMargin, `${tier.id} forced-win average margin`).toBeLessThan(0.2);
       expect(samples.some((sample) => sample.profit > 0), `${tier.id} needs profitable wins`).toBe(true);
@@ -107,7 +105,7 @@ describe('economy strategy simulation', () => {
     if (!garage) throw new Error('Garage tier missing');
 
     for (const lotId of garage.lotIds) {
-      const lot = LOTS.find((candidate) => candidate.id === lotId);
+      const lot = ALL_LOTS.find((candidate) => candidate.id === lotId);
       if (!lot) throw new Error(`Missing Garage lot ${lotId}`);
       expect(lot.reservePrice + lot.bidIncrement, `${lot.id} first bid`).toBeLessThanOrEqual(STARTING_CASH);
     }
