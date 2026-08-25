@@ -2,8 +2,10 @@ import { trackEvent } from '../analytics';
 import { dailyBuyerOffersForDay, buyerOfferMatches, buyerOfferValue } from '../data/buyers';
 import { ITEM_BY_ID } from '../data/catalog';
 import { localDayKey } from '../data/daily';
+import { DISCOVERY_CHAIN_BY_ID, DISCOVERY_CHAINS } from '../data/discoveryChains';
 import { itemTraitsFor } from '../data/itemTraits';
 import { ACHIEVEMENTS, BUSINESS_UPGRADES, dailyContractsForDay } from '../data/meta';
+import { advanceDiscoveryProgress, discoveryChainComplete } from '../domain/discovery';
 import { appendAuctionHistory } from '../domain/history';
 import {
   achievementMetricValue,
@@ -21,6 +23,11 @@ import type {
 } from '../domain/types';
 import { scheduleCloudSave } from '../platform/cloudSave';
 import { loadLocalSave, writeLocalSave } from './save';
+
+export interface DiscoveryChainReward {
+  cash: number;
+  reputationXp: number;
+}
 
 export class GameStore {
   private state: PlayerSave = loadLocalSave();
@@ -88,6 +95,7 @@ export class GameStore {
     this.state.collection.push(collectionItem.itemId);
     this.collectionItems().push(collectionItem);
     this.addContractProgress('itemsKept', 1);
+    this.advanceDiscoveryChains(collectionItem.itemId);
     this.persist();
     trackEvent('item_dispositioned', { disposition: 'keep', itemId: collectionItem.itemId, source: 'round' });
   }
@@ -209,6 +217,31 @@ export class GameStore {
     return true;
   }
 
+  claimDiscoveryChainReward(chainId: string): DiscoveryChainReward | null {
+    this.sync();
+    if (this.state.claimedDiscoveryChainRewards.includes(chainId)) return null;
+    const chain = DISCOVERY_CHAIN_BY_ID.get(chainId);
+    if (!chain) return null;
+    const progress = this.state.discoveryChainProgress[chain.id] ?? 0;
+    if (!discoveryChainComplete(progress, chain)) return null;
+
+    const reward = {
+      cash: this.cleanCashAmount(chain.rewardCash),
+      reputationXp: this.cleanCashAmount(chain.rewardReputationXp),
+    };
+    this.state.claimedDiscoveryChainRewards.push(chain.id);
+    this.state.cash += reward.cash;
+    this.state.reputationXp += reward.reputationXp;
+    this.updateHighestCash();
+    this.persist();
+    trackEvent('discovery_chain_reward_claimed', {
+      chainId: chain.id,
+      rewardCash: reward.cash,
+      rewardReputationXp: reward.reputationXp,
+    });
+    return reward;
+  }
+
   claimDailyContractReward(contractId: string): number {
     this.sync();
     this.resetDailyContractsIfNeeded(localDayKey());
@@ -308,6 +341,23 @@ export class GameStore {
       ? globalThis.crypto.randomUUID()
       : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
     return `item-${itemId}-${randomId}`;
+  }
+
+  private advanceDiscoveryChains(itemId: string): void {
+    for (const chain of DISCOVERY_CHAINS) {
+      if (this.state.claimedDiscoveryChainRewards.includes(chain.id)) continue;
+      const current = this.state.discoveryChainProgress[chain.id] ?? 0;
+      const result = advanceDiscoveryProgress(current, itemId, chain);
+      if (!result.advanced) continue;
+      this.state.discoveryChainProgress[chain.id] = result.progress;
+      trackEvent('discovery_chain_advanced', {
+        chainId: chain.id,
+        itemId,
+        progress: result.progress,
+        totalSteps: chain.steps.length,
+        complete: result.complete,
+      });
+    }
   }
 
   private sync(): void {
