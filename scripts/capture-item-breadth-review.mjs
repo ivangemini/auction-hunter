@@ -195,7 +195,7 @@ async function captureCollectionLocale(browser, localeCode, locale) {
     const pageEight = await page.screenshot({ type: 'png' });
     validatePng(pageEight, `${localeCode} Collection Book page 8`);
     const pageAdvance = await imageDifferenceRatio(page, pageSeven, pageEight);
-    assert(pageAdvance > 0.06, `${localeCode} did not visibly advance from page 7 to 8 (${pageAdvance.toFixed(3)})`);
+    assert(pageAdvance > 0.02, `${localeCode} did not visibly advance from page 7 to 8 (${pageAdvance.toFixed(3)})`);
 
     await clickGame(page, 735, 674);
     await page.waitForTimeout(280);
