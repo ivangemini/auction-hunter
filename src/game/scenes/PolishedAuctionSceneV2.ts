@@ -15,6 +15,7 @@ import { PolishedAuctionScene } from './PolishedAuctionScene';
 
 type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
 type DecisionFeedbackKind = 'sell' | 'keep';
+type DecisionFeedback = { kind: DecisionFeedbackKind; item: RevealedItem };
 
 type AuctionRuntime = Phaser.Scene & {
   locale: Locale;
@@ -31,6 +32,7 @@ type AuctionRuntime = Phaser.Scene & {
   roundCost: number;
   roundReputationGain: number;
   restorationUsed: boolean;
+  decisionFeedback?: DecisionFeedback | null;
   store: {
     snapshot: { cash: number; reputationXp: number; collection: string[] };
     canAfford: (value: number) => boolean;
@@ -77,16 +79,37 @@ export class PolishedAuctionSceneV2 extends PolishedAuctionScene {
     const keepCurrentItem = runtime.keepCurrentItem.bind(runtime);
     runtime.renderBidding = () => renderBidding(runtime);
     runtime.renderWin = () => renderWin(runtime);
-    runtime.renderReveal = () => renderReveal(runtime);
+    runtime.renderReveal = () => {
+      renderReveal(runtime);
+      if (runtime.decisionFeedback) {
+        showDecisionFeedback(runtime, runtime.decisionFeedback.kind, runtime.decisionFeedback.item);
+      }
+    };
     runtime.sellCurrentItem = () => {
       const item = runtime.items[runtime.revealIndex];
-      sellCurrentItem();
-      if (item) showDecisionFeedback(runtime, 'sell', item);
+      if (!item) {
+        sellCurrentItem();
+        return;
+      }
+      runtime.decisionFeedback = { kind: 'sell', item };
+      try {
+        sellCurrentItem();
+      } finally {
+        runtime.decisionFeedback = null;
+      }
     };
     runtime.keepCurrentItem = () => {
       const item = runtime.items[runtime.revealIndex];
-      keepCurrentItem();
-      if (item) showDecisionFeedback(runtime, 'keep', item);
+      if (!item) {
+        keepCurrentItem();
+        return;
+      }
+      runtime.decisionFeedback = { kind: 'keep', item };
+      try {
+        keepCurrentItem();
+      } finally {
+        runtime.decisionFeedback = null;
+      }
     };
   }
 }
