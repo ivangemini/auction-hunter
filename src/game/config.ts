@@ -1,10 +1,10 @@
 import Phaser from 'phaser';
 import { BuyerMarketScene } from './scenes/BuyerMarketScene';
-import { CharacterAuctionScene } from './scenes/CharacterAuctionScene';
 import { CollectionScene } from './scenes/CollectionScene';
 import { DiscoveryBoardScene } from './scenes/DiscoveryBoardScene';
 import { OfficeScene } from './scenes/OfficeScene';
 import { OnboardingScene } from './scenes/OnboardingScene';
+import { RivalBehaviorAuctionScene } from './scenes/RivalBehaviorAuctionScene';
 
 export const gameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -12,7 +12,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   width: 1280,
   height: 720,
   backgroundColor: '#101216',
-  scene: [OnboardingScene, CharacterAuctionScene, CollectionScene, DiscoveryBoardScene, BuyerMarketScene, OfficeScene],
+  scene: [OnboardingScene, RivalBehaviorAuctionScene, CollectionScene, DiscoveryBoardScene, BuyerMarketScene, OfficeScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,

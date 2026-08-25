@@ -4,6 +4,7 @@ import type { ItemCategory, ItemDefinition, LocalizedText, LotClue, LotTemplate,
 
 export type RandomSource = () => number;
 export type BidderTell = 'calm' | 'watching' | 'hesitating' | 'out';
+export type BidderBehavior = 'steady' | 'cautious' | 'pressure';
 
 export interface NumericRange {
   min: number;
@@ -15,6 +16,7 @@ export interface BidderProfile {
   name: LocalizedText;
   hiddenValueFactor: NumericRange;
   trait?: LocalizedText;
+  behavior?: BidderBehavior;
   specialtyCategories?: readonly ItemCategory[];
   specialtyValueMultiplier?: number;
 }
@@ -24,6 +26,7 @@ export interface AuctionOpponent {
   name: LocalizedText;
   maxBid: number;
   trait?: LocalizedText;
+  behavior?: BidderBehavior;
   specialtyCategories?: readonly ItemCategory[];
   specialtyValueMultiplier?: number;
 }
@@ -198,10 +201,33 @@ export function createAuctionOpponents(
     id: profile.id,
     name: profile.name,
     trait: profile.trait,
+    behavior: profile.behavior,
     specialtyCategories: profile.specialtyCategories,
     specialtyValueMultiplier: profile.specialtyValueMultiplier,
     maxBid: roundToBid(rivalValuation(items, profile) * randomBetween(profile.hiddenValueFactor, random), lot),
   }));
+}
+
+export function opponentBidCeiling(opponent: AuctionOpponent, lot: LotTemplate): number {
+  if (opponent.behavior !== 'cautious') return opponent.maxBid;
+  return Math.max(lot.reservePrice, opponent.maxBid - lot.bidIncrement);
+}
+
+export function opponentResponseBid(
+  opponent: AuctionOpponent,
+  currentBid: number,
+  lot: LotTemplate,
+): number | null {
+  const requiredBid = nextBid(currentBid, lot);
+  const ceiling = opponentBidCeiling(opponent, lot);
+  if (ceiling < requiredBid) return null;
+
+  if (opponent.behavior === 'pressure') {
+    const pressureBid = currentBid + lot.bidIncrement * 2;
+    if (pressureBid <= ceiling) return pressureBid;
+  }
+
+  return requiredBid;
 }
 
 export function eligibleOpponents(
@@ -209,13 +235,13 @@ export function eligibleOpponents(
   currentBid: number,
   lot: LotTemplate,
 ): AuctionOpponent[] {
-  const requiredBid = nextBid(currentBid, lot);
-  return opponents.filter((opponent) => opponent.maxBid >= requiredBid);
+  return opponents.filter((opponent) => opponentResponseBid(opponent, currentBid, lot) !== null);
 }
 
 export function opponentTell(opponent: AuctionOpponent, currentBid: number, lot: LotTemplate): BidderTell {
-  if (opponent.maxBid < nextBid(currentBid, lot)) return 'out';
-  const ratio = opponent.maxBid > 0 ? currentBid / opponent.maxBid : 1;
+  const ceiling = opponentBidCeiling(opponent, lot);
+  if (opponentResponseBid(opponent, currentBid, lot) === null) return 'out';
+  const ratio = ceiling > 0 ? currentBid / ceiling : 1;
   if (ratio < 0.6) return 'calm';
   if (ratio < 0.82) return 'watching';
   return 'hesitating';

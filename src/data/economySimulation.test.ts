@@ -3,7 +3,13 @@ import { BIDDER_PROFILES, ITEM_CONDITION_RANGE, MARKET_FACTOR_RANGE } from './ba
 import { ITEM_BY_ID } from './catalog';
 import { ALL_LOTS } from './catalogBreadth';
 import { AUCTION_TIERS } from './tiers';
-import { createAuctionOpponents, createLotItems, totalAppraisedValue, type RandomSource } from '../domain/auction';
+import {
+  createAuctionOpponents,
+  createLotItems,
+  opponentBidCeiling,
+  totalAppraisedValue,
+  type RandomSource,
+} from '../domain/auction';
 
 interface Sample {
   lotId: string;
@@ -52,7 +58,10 @@ function sampleLot(lotId: string): Sample[] {
     );
     const opponents = createAuctionOpponents(lot, items, BIDDER_PROFILES, random);
     const hiddenValue = totalAppraisedValue(items);
-    const highestNpcBid = Math.max(lot.reservePrice, ...opponents.map((opponent) => opponent.maxBid));
+    const highestNpcBid = Math.max(
+      lot.reservePrice,
+      ...opponents.map((opponent) => opponentBidCeiling(opponent, lot)),
+    );
     const forceWinPrice = highestNpcBid + lot.bidIncrement;
     const profit = hiddenValue - forceWinPrice;
     return {
