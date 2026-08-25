@@ -120,7 +120,7 @@ export interface AnalyticsEventMap {
     premiumMultiplier: number;
     traitIds: ItemTraitId[];
     marketTrendId?: string;
-    marketTrendMultiplier?: number;
+    marketTrendRemainingAuctions?: number;
   };
   collector_request_completed: {
     requestId: string;
@@ -215,6 +215,9 @@ export function trackEvent<K extends AnalyticsEventName>(
   } else if (eventName === 'lot_option_selected') {
     const selectionPayload = payload as AnalyticsEventMap['lot_option_selected'];
     effectivePayload = { ...selectionPayload, ...marketTrendContext, marketCycle } as AnalyticsEventMap[K];
+  } else if (eventName === 'buyer_sale_completed') {
+    const buyerPayload = payload as AnalyticsEventMap['buyer_sale_completed'];
+    effectivePayload = { ...buyerPayload, ...marketTrendContext } as AnalyticsEventMap[K];
   }
 
   sequence += 1;
