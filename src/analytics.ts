@@ -93,6 +93,16 @@ export interface AnalyticsEventMap {
     premiumMultiplier: number;
     traitIds: ItemTraitId[];
   };
+  collector_request_completed: {
+    requestId: string;
+    requestKey: string;
+    tier: 'common' | 'demanding' | 'rare';
+    itemId: string;
+    value: number;
+    premiumMultiplier: number;
+    remainingAuctions: number;
+    traitIds: ItemTraitId[];
+  };
   collection_set_reward_claimed: { setId: string; reward: number };
   daily_special_completed: { dayKey: string; reputationGain: number };
   daily_contract_reward_claimed: { contractId: string; dayKey: string; reward: number };
