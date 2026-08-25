@@ -1,61 +1,64 @@
-# Rival dealers v0.3
+# Rival dealers v0.4
 
 ## Purpose
-The same named dealers appear across auctions so players can learn behavior rather than treating every NPC as an interchangeable random budget.
+The same named dealers recur across auctions so the player can learn readable personalities instead of facing interchangeable random budgets. P8 adds a persistent relationship layer and rare dealer-specific signature moves without ever exposing exact maximum bids.
 
-Rival identity and tuning live in `src/data/balance.ts`; valuation and profile selection live in `src/domain/auction.ts`. The active auction presentation shows the dealer identity, visible behavior/specialty text and current tell while exact max bids remain hidden.
+Rival identity/tuning live in `src/data/balance.ts`; valuation, selection and bounded response rules live in `src/domain/auction.ts`; persistent learned knowledge lives in `src/domain/rivalMemory.ts`. Presentation remains a consumer of those rules.
 
 ## Stable dealers
-The persistent roster now contains six dealers:
+The persistent roster contains six dealers:
 
-| Dealer | Visible behavior | Specialty | Specialty value premium |
-| --- | --- | --- | ---: |
-| Victor | cautious reseller / exits early | electronics + tools | 8% |
-| Mira | calculated / steady | watches + art | 10% |
-| Anton | pressure / double-step bids | toys + collectibles | 12% |
-| Leah | style hunter / steady | art + collectibles | 14% |
-| Roman | tech-minded / pressure | electronics + toys | 11% |
-| Sofia | patient / steady | watches + tools | 13% |
+| Dealer | Base behavior | Specialty | Specialty premium | Rare signature move |
+| --- | --- | --- | ---: | --- |
+| Victor | cautious / exits early | electronics + tools | 8% | early two-step opening jump |
+| Mira | calculated / steady | watches + art | 10% | one late two-step last stand |
+| Anton | pressure / double-step | toys + collectibles | 12% | one situational three-step counterpunch |
+| Leah | steady style hunter | art + collectibles | 14% | early two-step opening jump |
+| Roman | pressure / tech-minded | electronics + toys | 11% | one situational three-step counterpunch |
+| Sofia | patient / steady | watches + tools | 13% | one late two-step last stand |
 
-The same dealer ID always keeps the same specialty. The roster is deliberately larger than the three opponents present in one auction so repeated lots do not collapse into one fixed trio.
-
-## Opponent selection
-The auction selects at most three unique rivals. Up to two slots preferentially come from dealers whose specialties match categories in the **concrete generated lot**, while remaining room is reserved for a wildcard rival.
-
-That affects who turns up after the player commits to a lot but does not leak hidden contents beforehand. Lot-choice information continues to come only from truthful public clues, modifiers, persistent market-trend copy and Dealer Memory.
+Only three unique rivals appear in one auction. Up to two slots preferentially come from specialists matching the concrete generated lot; the remaining room preserves wildcard variation.
 
 ## Hidden budget model
-Each generated lot has a hidden appraised value based on the exact generated copies. For a rival, matching specialty items are valued at that dealer's specialty multiplier before the dealer's normal hidden-value factor is sampled.
-
-Conceptually:
+Each generated lot has a hidden appraisal based on concrete copies, condition and traits. A rival gives a modest premium only to matching specialty value before their existing hidden-value factor is sampled.
 
 `rival lot value = normal hidden value + specialty item value × (specialty multiplier - 1)`
 
-The bidder-specific hidden-value factor is then applied and the result is rounded to the lot's bid increment.
+The result is rounded to the lot's bid increment. Market trends therefore affect rivals naturally through the same concrete appraisal path rather than a separate cheat multiplier.
 
-Consequences:
-- a dealer does not receive a flat advantage on every lot;
-- a mixed lot only receives the premium on the relevant share of hidden value;
-- market trends that change concrete appraisal values naturally change rival pressure through the same valuation path;
-- per-copy condition/traits remain relevant because pressure starts from generated concrete copies rather than catalog base value.
+VIP auctions are the only explicit format-level pressure adjustment: after the normal rival ceilings are generated, all participating ceilings receive a bounded 8% uplift. The VIP modifier is visible before commitment and the normal ceiling/eligibility rules still apply.
 
-## Live behavior
-The launch behavior vocabulary remains intentionally readable:
+## Persistent dossier knowledge
+Every resolved auction records one encounter against each participating rival. A player win records a head-to-head win against all participants; on a pass, only the actual rival leader receives a rival win. Duplicate IDs cannot produce duplicate encounter credit.
 
-- `cautious`: effectively leaves one normal bid step earlier;
-- `steady`: follows the normal ceiling without special bid-step pressure;
-- `pressure`: can answer with a two-step raise when budget allows.
+Knowledge unlocks from encounter count:
 
-Exact max bids remain communicated only through `calm` / `watching` / `hesitating` / `out` tells. Presentation code may animate or characterize these decisions, but domain rules remain the source of truth.
+- **1 encounter:** meeting count becomes visible.
+- **3 encounters:** the head-to-head record and learned-style state become visible.
+- **6 encounters:** the dealer's authored weakness is revealed.
 
-Six dealer identities currently map onto three mechanical behavior archetypes. P8 rival work should add a new dealer only when it brings a genuinely new readable rule or long-horizon relationship/dossier payoff; numeric reskins are not a content goal.
+The dossier derives from additive v1 save fields `rivalEncounters`, `rivalPlayerWins` and `rivalWins`. Legacy saves normalize these records to empty objects; save version remains `1`. Knowledge never contains or derives an exact `maxBid` value.
+
+## Rare signature moves
+Each dealer has one authored signature pattern. Activation is deterministic from rival + lot + generated ceiling and occurs on roughly one fifth of eligible rival/lot combinations without consuming extra economy RNG.
+
+A signature move:
+- is situational rather than available on every response;
+- can be used at most once by that rival during the auction;
+- returns `null` when its trigger conditions are not met;
+- can never exceed `opponentBidCeiling()`;
+- falls back to the normal behavior response when unused or unavailable.
+
+This creates memorable opponent moments without granting an invisible budget beyond the already-generated ceiling. `rival_signature_move_used` analytics separates these auctions from ordinary responses.
 
 ## Economy guardrails
-- Specialty multipliers are additive only on matching item value, not the whole lot.
-- Current authored specialty premiums remain modest (8–14%).
-- Domain code clamps specialty multipliers to a maximum of 2× as a defensive bound.
-- Profiles without a specialty preserve the old valuation behavior exactly.
-- Rival identity is content definition rather than player-owned state; the current roster requires no save migration.
+- Specialty premiums apply only to matching item value, not the whole lot.
+- Current specialty premiums remain 8–14%.
+- Specialty multipliers are defensively capped at 2×.
+- Signature moves alter bid shape, never the underlying ceiling.
+- A signature is one-shot and sparse.
+- VIP pressure is explicit, visible and bounded at +8% ceiling pressure.
+- Existing profiles without specialty/signature fields preserve old behavior.
 
 ## Validation
-Automated coverage protects roster breadth, valuation compatibility, specialty behavior, bid response rules and the global economy simulation. Any future rival-memory layer must add persisted knowledge without exposing exact max bids or creating a mandatory grind advantage.
+Automated coverage protects six-dealer breadth, profile selection, specialty valuation, standard response rules, signature activation/ceiling bounds, dossier knowledge thresholds, persistent win/loss records and the global economy simulation. Player-facing CI continues to cover the auction scene so dossier copy and VIP/signature presentation remain subject to browser/screenshot QA.
