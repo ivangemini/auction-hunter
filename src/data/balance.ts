@@ -15,7 +15,8 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
   {
     id: 'npc-0',
     name: { ru: 'Виктор', en: 'Victor' },
-    trait: { ru: 'Осторожный · техника и инструменты', en: 'Cautious · electronics & tools' },
+    trait: { ru: 'Осторожный · выходит раньше', en: 'Cautious · exits early' },
+    behavior: 'cautious',
     hiddenValueFactor: { min: 0.45, max: 0.65 },
     specialtyCategories: ['electronics', 'tools'],
     specialtyValueMultiplier: 1.08,
@@ -23,7 +24,8 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
   {
     id: 'npc-1',
     name: { ru: 'Мира', en: 'Mira' },
-    trait: { ru: 'Считает маржу · часы и искусство', en: 'Margin-focused · watches & art' },
+    trait: { ru: 'Расчётливая · часы и искусство', en: 'Calculated · watches & art' },
+    behavior: 'steady',
     hiddenValueFactor: { min: 0.6, max: 0.85 },
     specialtyCategories: ['watches', 'art'],
     specialtyValueMultiplier: 1.1,
@@ -31,7 +33,8 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
   {
     id: 'npc-2',
     name: { ru: 'Антон', en: 'Anton' },
-    trait: { ru: 'Дожимает · игрушки и коллекционка', en: 'Pushes hard · toys & collectibles' },
+    trait: { ru: 'Агрессивный · двойной шаг', en: 'Aggressive · double-step bids' },
+    behavior: 'pressure',
     hiddenValueFactor: { min: 0.75, max: 1.02 },
     specialtyCategories: ['toys', 'collectibles'],
     specialtyValueMultiplier: 1.12,
@@ -39,7 +42,8 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
   {
     id: 'npc-3',
     name: { ru: 'Лея', en: 'Leah' },
-    trait: { ru: 'Охотится за стилем · искусство и коллекционка', en: 'Style hunter · art & collectibles' },
+    trait: { ru: 'Стиль · искусство и коллекционка', en: 'Style hunter · art & collectibles' },
+    behavior: 'steady',
     hiddenValueFactor: { min: 0.52, max: 0.78 },
     specialtyCategories: ['art', 'collectibles'],
     specialtyValueMultiplier: 1.14,
@@ -47,7 +51,8 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
   {
     id: 'npc-4',
     name: { ru: 'Роман', en: 'Roman' },
-    trait: { ru: 'Технарь · электроника и игрушки', en: 'Tech-minded · electronics & toys' },
+    trait: { ru: 'Технарь · двойной шаг', en: 'Tech-minded · double-step bids' },
+    behavior: 'pressure',
     hiddenValueFactor: { min: 0.66, max: 0.9 },
     specialtyCategories: ['electronics', 'toys'],
     specialtyValueMultiplier: 1.11,
@@ -56,6 +61,7 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
     id: 'npc-5',
     name: { ru: 'София', en: 'Sofia' },
     trait: { ru: 'Терпеливая · часы и инструменты', en: 'Patient · watches & tools' },
+    behavior: 'steady',
     hiddenValueFactor: { min: 0.56, max: 0.82 },
     specialtyCategories: ['watches', 'tools'],
     specialtyValueMultiplier: 1.13,
