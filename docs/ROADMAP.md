@@ -111,8 +111,8 @@ This pass is a product-quality priority, not optional decoration. Complete it be
   - [x] Fourth item-fidelity batch: final nine jewelry/watch/electronics/rail/writing/music identities upgraded; all 36 catalog item identities now meet the accepted P7 fidelity floor.
   - [x] Environment fidelity: all nine semantic lot environments meet the P7 floor — three Estate WebPs plus upgraded Garage/Collector SVGs — with deterministic 3×2 Garage/Collector CI visual review.
 - [ ] Add restrained game-feel polish across important actions: press/selection response, number tweens, reveal highlights, particles/reactions and staged transitions with reduced-motion support.
-- [ ] Add production screenshot review as an explicit acceptance step for each major screen family and keep desktop + mobile-landscape captures visually credible.
+- [x] Add production screenshot review as an explicit acceptance step for each major screen family and keep desktop + mobile-landscape captures visually credible.
   - [x] Add a true compact 844×390 RU/EN mobile+touch gate for lot selection, active bidding, Collection Book, Discovery Board, Buyer Market and Business Office; validate FIT canvas/orientation behavior and inspect the generated CI artifact.
-  - [ ] Extend compact mobile-landscape evidence to reveal/appraisal/restoration before closing the overall acceptance item.
+  - [x] Extend compact mobile-landscape evidence to reveal/appraisal/restoration and inspect the generated RU/EN CI artifact before closing the overall acceptance item.
 
 See `V1_ROADMAP.md` for the detailed v1.0 plan, `CONTENT_DURATION.md` for moderation evidence/checks, `BUYER_MARKET.md` for the trading loop, `RIVALS.md` for stable dealer specialties, `DISCOVERY_CHAINS.md` for the multi-auction treasure-trail contract, `skills/auction-hunter-visual-design/SKILL.md` for presentation work and `PRE_RELEASE_AUDIT.md` for the latest release-risk review.
