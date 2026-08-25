@@ -2,6 +2,7 @@ import { ITEM_BY_ID } from '../data/catalog';
 import { ALL_LOTS } from '../data/catalogBreadth';
 import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from '../data/lotModifiers';
 import { MARKET_TRENDS, MARKET_TREND_SCHEDULE } from '../data/marketTrends';
+import { VIP_AUCTION_MODIFIER, vipAuctionAvailable } from '../data/specialAuctions';
 import { getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../data/tiers';
 import type { RandomSource } from '../domain/auction';
 import { applyLotModifier, selectLotModifier, type LotModifierDefinition } from '../domain/lotModifier';
@@ -61,10 +62,14 @@ export function prepareLotMarket(options: PrepareLotMarketOptions): LotMarketRes
   if (baseLots.length === 0) throw new Error(`No lot templates configured for tier ${tier.id}`);
 
   const activeTrend = activeMarketTrendForAuction(options.auctionsPlayed, MARKET_TRENDS, MARKET_TREND_SCHEDULE);
-  const choices = baseLots.map((baseLot) => {
-    const rareModifier = selectLotModifier(LOT_MODIFIERS, LOT_MODIFIER_CHANCE, random);
+  const vipAvailable = vipAuctionAvailable(tier.id, options.reputationXp, options.auctionsPlayed);
+  const choices = baseLots.map((baseLot, index) => {
+    const rareModifier = vipAvailable && index === 0
+      ? null
+      : selectLotModifier(LOT_MODIFIERS, LOT_MODIFIER_CHANCE, random);
     const trendModifier = marketTrendModifierForLot(baseLot, activeTrend);
-    const modifier = combineLotModifiers(rareModifier, trendModifier);
+    const vipModifier = vipAvailable && index === 0 ? VIP_AUCTION_MODIFIER : null;
+    const modifier = combineLotModifiers(combineLotModifiers(rareModifier, trendModifier), vipModifier);
     return {
       lot: applyLotModifier(baseLot, modifier),
       modifier,
@@ -106,38 +111,38 @@ function marketTrendModifierForLot(
 }
 
 function combineLotModifiers(
-  rareModifier: LotModifierDefinition | null,
-  trendModifier: LotModifierDefinition | null,
+  left: LotModifierDefinition | null,
+  right: LotModifierDefinition | null,
 ): LotModifierDefinition | null {
-  if (!rareModifier) return trendModifier;
-  if (!trendModifier) return rareModifier;
+  if (!left) return right;
+  if (!right) return left;
 
-  const conditionDelta = rareModifier.conditionDelta || trendModifier.conditionDelta
+  const conditionDelta = left.conditionDelta || right.conditionDelta
     ? {
-      min: (rareModifier.conditionDelta?.min ?? 0) + (trendModifier.conditionDelta?.min ?? 0),
-      max: (rareModifier.conditionDelta?.max ?? 0) + (trendModifier.conditionDelta?.max ?? 0),
+      min: (left.conditionDelta?.min ?? 0) + (right.conditionDelta?.min ?? 0),
+      max: (left.conditionDelta?.max ?? 0) + (right.conditionDelta?.max ?? 0),
     }
     : undefined;
-  const clueLimit = rareModifier.clueLimit === undefined
-    ? trendModifier.clueLimit
-    : trendModifier.clueLimit === undefined
-      ? rareModifier.clueLimit
-      : Math.min(rareModifier.clueLimit, trendModifier.clueLimit);
+  const clueLimit = left.clueLimit === undefined
+    ? right.clueLimit
+    : right.clueLimit === undefined
+      ? left.clueLimit
+      : Math.min(left.clueLimit, right.clueLimit);
 
   return {
-    id: `${rareModifier.id}+${trendModifier.id}`,
+    id: `${left.id}+${right.id}`,
     name: {
-      ru: `${rareModifier.name.ru} / ${trendModifier.name.ru}`,
-      en: `${rareModifier.name.en} / ${trendModifier.name.en}`,
+      ru: `${left.name.ru} / ${right.name.ru}`,
+      en: `${left.name.en} / ${right.name.en}`,
     },
     description: {
-      ru: `${rareModifier.description.ru} ${trendModifier.description.ru}`,
-      en: `${rareModifier.description.en} ${trendModifier.description.en}`,
+      ru: `${left.description.ru} ${right.description.ru}`,
+      en: `${left.description.en} ${right.description.en}`,
     },
-    itemCountDelta: (rareModifier.itemCountDelta ?? 0) + (trendModifier.itemCountDelta ?? 0),
-    reserveMultiplier: (rareModifier.reserveMultiplier ?? 1) * (trendModifier.reserveMultiplier ?? 1),
-    bidIncrementMultiplier: (rareModifier.bidIncrementMultiplier ?? 1) * (trendModifier.bidIncrementMultiplier ?? 1),
-    marketMultiplier: (rareModifier.marketMultiplier ?? 1) * (trendModifier.marketMultiplier ?? 1),
+    itemCountDelta: (left.itemCountDelta ?? 0) + (right.itemCountDelta ?? 0),
+    reserveMultiplier: (left.reserveMultiplier ?? 1) * (right.reserveMultiplier ?? 1),
+    bidIncrementMultiplier: (left.bidIncrementMultiplier ?? 1) * (right.bidIncrementMultiplier ?? 1),
+    marketMultiplier: (left.marketMultiplier ?? 1) * (right.marketMultiplier ?? 1),
     ...(clueLimit === undefined ? {} : { clueLimit }),
     ...(conditionDelta ? { conditionDelta } : {}),
   };
