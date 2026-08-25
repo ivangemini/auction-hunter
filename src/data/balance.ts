@@ -36,6 +36,30 @@ export const BIDDER_PROFILES: readonly BidderProfile[] = [
     specialtyCategories: ['toys', 'collectibles'],
     specialtyValueMultiplier: 1.12,
   },
+  {
+    id: 'npc-3',
+    name: { ru: 'Лея', en: 'Leah' },
+    trait: { ru: 'Охотится за стилем · искусство и коллекционка', en: 'Style hunter · art & collectibles' },
+    hiddenValueFactor: { min: 0.52, max: 0.78 },
+    specialtyCategories: ['art', 'collectibles'],
+    specialtyValueMultiplier: 1.14,
+  },
+  {
+    id: 'npc-4',
+    name: { ru: 'Роман', en: 'Roman' },
+    trait: { ru: 'Технарь · электроника и игрушки', en: 'Tech-minded · electronics & toys' },
+    hiddenValueFactor: { min: 0.66, max: 0.9 },
+    specialtyCategories: ['electronics', 'toys'],
+    specialtyValueMultiplier: 1.11,
+  },
+  {
+    id: 'npc-5',
+    name: { ru: 'София', en: 'Sofia' },
+    trait: { ru: 'Терпеливая · часы и инструменты', en: 'Patient · watches & tools' },
+    hiddenValueFactor: { min: 0.56, max: 0.82 },
+    specialtyCategories: ['watches', 'tools'],
+    specialtyValueMultiplier: 1.13,
+  },
 ];
 
 export const BIDDER_TELL_TEXT: Record<BidderTell, LocalizedText> = {
