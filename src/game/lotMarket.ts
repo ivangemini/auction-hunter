@@ -1,4 +1,4 @@
-import { LOTS } from '../data/catalog';
+import { ALL_LOTS } from '../data/catalogBreadth';
 import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from '../data/lotModifiers';
 import { getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../data/tiers';
 import type { RandomSource } from '../domain/auction';
@@ -44,7 +44,7 @@ export function prepareLotMarket(options: PrepareLotMarketOptions): LotMarketRes
   if (cached) return { tierId: tier.id, choices: cached };
 
   const tierLots = tier.lotIds
-    .map((lotId) => LOTS.find((candidate) => candidate.id === lotId))
+    .map((lotId) => ALL_LOTS.find((candidate) => candidate.id === lotId))
     .filter((candidate): candidate is LotTemplate => Boolean(candidate));
   const baseLots = chooseDistinctRandom(tierLots, LOT_CHOICE_COUNT, random);
   if (baseLots.length === 0) throw new Error(`No lot templates configured for tier ${tier.id}`);

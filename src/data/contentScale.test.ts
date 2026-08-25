@@ -1,28 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { ITEMS, ITEM_BY_ID, LOTS } from './catalog';
+import { ITEMS, ITEM_BY_ID } from './catalog';
+import { ALL_LOTS } from './catalogBreadth';
 import { COLLECTION_SETS } from './collections';
 import { AUCTION_TIERS } from './tiers';
 
 describe('content scale', () => {
-  it('ships the expanded 36-item, 24-lot and 16-set catalog', () => {
+  it('ships the expanded 36-item, 30-lot and 16-set catalog', () => {
     expect(ITEMS).toHaveLength(36);
-    expect(LOTS).toHaveLength(24);
+    expect(ALL_LOTS).toHaveLength(30);
     expect(COLLECTION_SETS).toHaveLength(16);
     expect(new Set(ITEMS.map((item) => item.id)).size).toBe(36);
-    expect(new Set(LOTS.map((lot) => lot.id)).size).toBe(24);
+    expect(new Set(ALL_LOTS.map((lot) => lot.id)).size).toBe(30);
     expect(new Set(COLLECTION_SETS.map((set) => set.id)).size).toBe(16);
   });
 
-  it('gives every tier eight distinct lot variants', () => {
+  it('gives every tier ten distinct lot variants', () => {
     for (const tier of AUCTION_TIERS) {
-      expect(tier.lotIds).toHaveLength(8);
-      expect(new Set(tier.lotIds).size).toBe(8);
-      for (const lotId of tier.lotIds) expect(LOTS.some((lot) => lot.id === lotId)).toBe(true);
+      expect(tier.lotIds).toHaveLength(10);
+      expect(new Set(tier.lotIds).size).toBe(10);
+      for (const lotId of tier.lotIds) expect(ALL_LOTS.some((lot) => lot.id === lotId)).toBe(true);
     }
   });
 
   it('keeps every clue truthful against its configured pool', () => {
-    for (const lot of LOTS) {
+    for (const lot of ALL_LOTS) {
       for (const itemId of lot.itemPool) expect(ITEM_BY_ID.has(itemId), `${lot.id}:${itemId}`).toBe(true);
       for (const clue of lot.clues) {
         const matches = lot.itemPool.some((itemId) => {
