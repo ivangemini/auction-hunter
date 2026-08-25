@@ -124,6 +124,7 @@ export interface PlayerSave {
   auctionHistory: AuctionHistoryEntry[];
   buyerMarketDayKey: string | null;
   claimedBuyerOfferIds: string[];
+  claimedCollectorRequests: string[];
   discoveryChainProgress: Record<string, number>;
   discoveryChainLastAuction: Record<string, number>;
   completedDiscoveryChains: string[];
