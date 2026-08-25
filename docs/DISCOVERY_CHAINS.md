@@ -32,5 +32,15 @@ Cloud save continues to serialize the canonical `PlayerSave` through the existin
 ## Analytics
 `discovery_chain_progressed` records chain id, item id, stage, total stages, auction number, completion state and any completion rewards. It is available to the normal analytics/Metrica parameter stream but is not a launch funnel goal.
 
-## Presentation still required
-The foundation intentionally does not claim the P6 roadmap item complete yet. A player-facing follow-up must surface active trails, next clue/progress, completion feedback and RU/EN visual QA without turning the mechanic into a dashboard or revealing hidden lot contents.
+## Player presentation
+`DiscoveryBoardScene` is reachable from Collection Book and presents the three authored trails as investigation cases rather than a generic progress dashboard.
+
+- Completed steps show the discovered item identity.
+- The current authored lead is visible; later stages stay visually locked until prerequisites advance.
+- The board shows stage progress and the fixed completion reward without inspecting any active lot's hidden contents.
+- A fresh Sell/Keep discovery produces an immediate modal acknowledgement in the reveal loop. Ordinary progression shows the newly unlocked lead; final progression shows the one-time cash/REP reward.
+- Presentation is derived from already-persisted save state. The modal does not decide or persist progression.
+- Reduced-motion users receive the same information without relying on entrance animation.
+
+## Visual QA
+`scripts/capture-collection-market-review.mjs` now covers Collection Book -> Discovery Board -> Buyer Market through real navigation. It seeds one early trail, one near-complete trail and one completed trail, then captures both RU and EN at the production 1280×720 review size. This keeps active, locked and completed case states in the persistent screenshot gate.
