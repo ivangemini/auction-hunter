@@ -170,8 +170,8 @@ async function captureLocale(browser, localeCode, locale) {
     await clickGame(page, 80, 120);
     await page.waitForTimeout(320);
 
-    // 26 sets at four cards per page must expose a real seventh page.
-    for (let pageIndex = 1; pageIndex < 7; pageIndex += 1) {
+    // 32 sets at four cards per page must expose a real eighth page.
+    for (let pageIndex = 1; pageIndex < 8; pageIndex += 1) {
       await clickGame(page, 735, 674);
       await page.waitForTimeout(240);
     }
