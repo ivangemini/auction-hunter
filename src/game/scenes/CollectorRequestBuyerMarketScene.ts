@@ -1,8 +1,15 @@
 import Phaser from 'phaser';
+import type { BuyerOfferDefinition } from '../../data/buyers';
 import { ITEM_BY_ID } from '../../data/catalog';
 import { COLLECTOR_REQUESTS, COLLECTOR_REQUEST_WINDOW_AUCTIONS } from '../../data/collectorRequests';
 import { itemTraitNamesForIds } from '../../data/itemTraits';
+import { MARKET_TRENDS, MARKET_TREND_SCHEDULE } from '../../data/marketTrends';
 import { bestCollectorRequestMatch, collectorRequestForAuction, type ActiveCollectorRequest } from '../../domain/collectorRequests';
+import {
+  activeMarketTrendForAuction,
+  marketTrendMultiplierForCategory,
+  type ActiveMarketTrend,
+} from '../../domain/marketTrend';
 import type { ItemCategory, Locale } from '../../domain/types';
 import { getPlatformLocale } from '../../platform/yandex';
 import { resolveItemTexture } from '../art';
@@ -15,6 +22,7 @@ import { BuyerMarketScene } from './BuyerMarketScene';
 
 type BuyerMarketRuntime = Phaser.Scene & {
   renderMarket: () => void;
+  renderOfferCard: (offer: BuyerOfferDefinition, index: number, dayKey: string) => void;
 };
 
 const TIER_ACCENT = {
@@ -24,8 +32,8 @@ const TIER_ACCENT = {
 } as const;
 
 /**
- * Adds a longer-horizon collector commission to the existing daily Buyer Market.
- * Matching, pricing, persistence and completion live outside presentation code.
+ * Adds longer-horizon collector commissions and persistent category trends to the
+ * existing daily Buyer Market. Matching, pricing and persistence stay outside UI.
  */
 export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
   private readonly requestStore = new GameStore();
@@ -36,13 +44,66 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
     super();
     const runtime = this as unknown as BuyerMarketRuntime;
     const renderDailyMarket = runtime.renderMarket.bind(runtime);
+    const renderDailyOfferCard = runtime.renderOfferCard.bind(runtime);
 
     this.rerenderMarket = () => runtime.renderMarket();
+    runtime.renderOfferCard = (offer, index, dayKey) => {
+      renderDailyOfferCard(this.withMarketTrend(offer), index, dayKey);
+    };
     runtime.renderMarket = () => {
       renderDailyMarket();
       this.localeForRequests = getPlatformLocale();
       this.renderCollectorRequestEntry();
+      this.renderMarketTrendStatus();
     };
+  }
+
+  private activeMarketTrend(): ActiveMarketTrend | null {
+    return activeMarketTrendForAuction(
+      this.requestStore.snapshot.auctionsPlayed,
+      MARKET_TRENDS,
+      MARKET_TREND_SCHEDULE,
+    );
+  }
+
+  private withMarketTrend(offer: BuyerOfferDefinition): BuyerOfferDefinition {
+    const trend = this.activeMarketTrend();
+    const multiplier = marketTrendMultiplierForCategory(trend, offer.category);
+    if (!trend || multiplier === 1) return offer;
+
+    const direction = multiplier > 1 ? '+' : '';
+    const change = `${direction}${Math.round((multiplier - 1) * 100)}%`;
+    return {
+      ...offer,
+      multiplier: offer.multiplier * multiplier,
+      description: {
+        ru: `${offer.description.ru} Тренд «${trend.definition.name.ru}» меняет спрос на ${change}.`,
+        en: `${offer.description.en} ${trend.definition.name.en} shifts current demand by ${change}.`,
+      },
+    };
+  }
+
+  private renderMarketTrendStatus(): void {
+    const trend = this.activeMarketTrend();
+    if (!trend) {
+      addChip(this, 620, 106, this.localeForRequests === 'ru' ? 'РЫНОК · ПАУЗА' : 'MARKET · COOLDOWN', VISUAL.steel, {
+        width: 206,
+        height: 30,
+        fontSize: 9,
+      });
+      return;
+    }
+
+    const multiplier = trend.definition.valueMultiplier;
+    const delta = Math.round((multiplier - 1) * 100);
+    const sign = delta > 0 ? '+' : '';
+    const accent = delta >= 0 ? VISUAL.success : VISUAL.copper;
+    addChip(this, 620, 106, `${trend.definition.name[this.localeForRequests]} · ${sign}${delta}% · ${trend.remainingAuctions}`, accent, {
+      width: 248,
+      height: 30,
+      filled: true,
+      fontSize: this.localeForRequests === 'ru' ? 9 : 10,
+    });
   }
 
   private renderCollectorRequestEntry(): void {
@@ -60,9 +121,9 @@ export class CollectorRequestBuyerMarketScene extends BuyerMarketScene {
       ? `${claimed ? 'ЗАКАЗ ЗАКРЫТ' : 'ЗАКАЗ КОЛЛЕКЦИОНЕРА'} · ${active.remainingAuctions} аукц.`
       : `${claimed ? 'REQUEST CLOSED' : 'COLLECTOR REQUEST'} · ${active.remainingAuctions} auc.`;
 
-    button(this, 618, 106, label, () => this.renderCollectorRequestModal(active), {
+    button(this, 618, 67, label, () => this.renderCollectorRequestModal(active), {
       width: 262,
-      height: 36,
+      height: 34,
       background: claimed ? 0x244c3b : 0x49315f,
       accent,
       foreground: claimed ? '#c9f2d8' : '#f4e7ff',
