@@ -3,7 +3,12 @@ import { ITEM_BY_ID } from '../data/catalog';
 import { ALL_LOTS } from '../data/catalogBreadth';
 import { LOT_MODIFIERS, LOT_MODIFIER_CHANCE } from '../data/lotModifiers';
 import { MARKET_TRENDS, MARKET_TREND_SCHEDULE } from '../data/marketTrends';
-import { VIP_AUCTION_MODIFIER, vipAuctionAvailable } from '../data/specialAuctions';
+import {
+  SEALED_AUCTION_MODIFIER,
+  VIP_AUCTION_MODIFIER,
+  sealedAuctionAvailable,
+  vipAuctionAvailable,
+} from '../data/specialAuctions';
 import { getAuctionTier, highestUnlockedAuctionTier, type AuctionTierId } from '../data/tiers';
 import type { RandomSource } from '../domain/auction';
 import { applyLotModifier, selectLotModifier, type LotModifierDefinition } from '../domain/lotModifier';
@@ -74,13 +79,20 @@ export function prepareLotMarket(options: PrepareLotMarketOptions): LotMarketRes
   if (baseLots.length === 0) throw new Error(`No lot templates configured for tier ${tier.id}`);
 
   const vipAvailable = vipAuctionAvailable(tier.id, options.reputationXp, options.auctionsPlayed);
+  const sealedAvailable = sealedAuctionAvailable(tier.id, options.reputationXp, options.auctionsPlayed);
   const choices = baseLots.map((baseLot, index) => {
-    const rareModifier = vipAvailable && index === 0
+    const specialModifier = index === 0
+      ? vipAvailable
+        ? VIP_AUCTION_MODIFIER
+        : sealedAvailable
+          ? SEALED_AUCTION_MODIFIER
+          : null
+      : null;
+    const rareModifier = specialModifier
       ? null
       : selectLotModifier(LOT_MODIFIERS, LOT_MODIFIER_CHANCE, random);
     const trendModifier = marketTrendModifierForLot(baseLot, activeTrend);
-    const vipModifier = vipAvailable && index === 0 ? VIP_AUCTION_MODIFIER : null;
-    const modifier = combineLotModifiers(combineLotModifiers(rareModifier, trendModifier), vipModifier);
+    const modifier = combineLotModifiers(combineLotModifiers(rareModifier, trendModifier), specialModifier);
     return {
       lot: applyLotModifier(baseLot, modifier),
       modifier,
