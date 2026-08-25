@@ -255,7 +255,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function cleanStringArray(value: unknown): string[] {
-  return Array.isArray(value) ? [...new Set(value.filter((id): id is string => typeof id === 'string'))] : [];
+  return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : [];
 }
 
 function cleanNumberRecord(value: unknown): Record<string, number> {
