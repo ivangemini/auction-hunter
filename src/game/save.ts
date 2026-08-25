@@ -1,5 +1,5 @@
 import { ITEM_BY_ID } from '../data/catalog';
-import { isItemTraitId, itemTraitsFor } from '../data/itemTraits';
+import { ITEM_TRAITS, isItemTraitId, itemTraitsFor } from '../data/itemTraits';
 import type {
   AuctionHistoryEntry,
   BusinessUpgradeState,
@@ -85,6 +85,7 @@ export function normalizeSave(value: unknown): PlayerSave {
   const cash = cleanNonNegativeNumber(value.cash, DEFAULT_SAVE.cash);
   const collection = cleanStringArray(value.collection);
   const collectionItems = reconcileCollectionItems(collection, cleanCollectionItems(value.collectionItems));
+  const discoveryHistory = normalizeDiscoveryHistory(value, collection, collectionItems);
 
   return {
     version: 1,
@@ -112,10 +113,7 @@ export function normalizeSave(value: unknown): PlayerSave {
     rivalEncounters: cleanIntegerRecord(value.rivalEncounters),
     rivalPlayerWins: cleanIntegerRecord(value.rivalPlayerWins),
     rivalWins: cleanIntegerRecord(value.rivalWins),
-    discoveredItemIds: cleanStringArray(value.discoveredItemIds),
-    bestConditionByItem: cleanUnitRecord(value.bestConditionByItem),
-    bestValueByItem: cleanNumberRecord(value.bestValueByItem),
-    discoveredVariantTraitIds: cleanTraitIds(value.discoveredVariantTraitIds),
+    ...discoveryHistory,
     discoveryChainProgress: cleanIntegerRecord(value.discoveryChainProgress),
     discoveryChainLastAuction: cleanIntegerRecord(value.discoveryChainLastAuction),
     completedDiscoveryChains: cleanStringArray(value.completedDiscoveryChains),
@@ -143,6 +141,35 @@ export function writeLocalSave(save: PlayerSave, touchTimestamp = true): PlayerS
     console.error('[Save] Failed to persist local progress.', error);
   }
   return next;
+}
+
+function normalizeDiscoveryHistory(
+  value: Record<string, unknown>,
+  collection: readonly string[],
+  collectionItems: readonly CollectionItem[],
+): Pick<PlayerSave, 'discoveredItemIds' | 'bestConditionByItem' | 'bestValueByItem' | 'discoveredVariantTraitIds'> {
+  const discoveredItemIds = new Set(cleanStringArray(value.discoveredItemIds));
+  for (const itemId of collection) discoveredItemIds.add(itemId);
+
+  const bestConditionByItem = cleanUnitRecord(value.bestConditionByItem);
+  const bestValueByItem = cleanNumberRecord(value.bestValueByItem);
+  const discoveredVariantTraitIds = new Set(cleanTraitIds(value.discoveredVariantTraitIds));
+
+  for (const instance of collectionItems) {
+    discoveredItemIds.add(instance.itemId);
+    bestConditionByItem[instance.itemId] = Math.max(bestConditionByItem[instance.itemId] ?? 0, instance.condition);
+    bestValueByItem[instance.itemId] = Math.max(bestValueByItem[instance.itemId] ?? 0, instance.appraisedValue);
+    for (const traitId of instance.traitIds) {
+      if (ITEM_TRAITS[traitId].variant) discoveredVariantTraitIds.add(traitId);
+    }
+  }
+
+  return {
+    discoveredItemIds: [...discoveredItemIds],
+    bestConditionByItem,
+    bestValueByItem,
+    discoveredVariantTraitIds: [...discoveredVariantTraitIds],
+  };
 }
 
 function reconcileCollectionItems(collection: readonly string[], persisted: readonly CollectionItem[]): CollectionItem[] {
