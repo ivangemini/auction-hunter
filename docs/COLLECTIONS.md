@@ -1,4 +1,4 @@
-# Collection Book v0.4
+# Collection Book v0.5
 
 ## Purpose
 The collection book creates a session-to-session reason to keep selected finds instead of always maximizing immediate cash. It also provides a recovery route so collecting cannot permanently strand the bankroll.
@@ -25,9 +25,29 @@ Set overlap is intentional: an item can contribute to more than one themed long-
 ## Reward rules
 - A set becomes claimable only when every required unique item is owned.
 - Each set reward can be claimed once.
+- Claiming pays the cash reward and permanently activates that set's expertise perk.
 - Selling an item can reduce current set progress.
-- A reward already claimed is never revoked and cannot be claimed again.
-- Showroom upgrades may scale the actual reward through the existing meta-progression rule.
+- A reward and expertise perk already claimed are never revoked and cannot be claimed again.
+- Showroom upgrades may scale the actual cash reward through the existing meta-progression rule; expertise values are not scaled by business upgrades.
+
+## Permanent expertise
+Claimed sets now provide a lasting reason to complete the Collection Book beyond the one-time cash payout.
+
+Each set grants **+4 percentage points** to Buyer Market pricing for one item category. Multiple claimed sets for the same category stack to a global **+12 percentage-point cap**. The bonus is added to the buyer's normal multiplier rather than multiplying the premium again.
+
+Current expertise mapping:
+- Electronics — Retro Tech, Field Tech.
+- Watches — Timekeepers, Travel Case.
+- Toys — Toy Vault, Street Nostalgia, Miniature Worlds.
+- Collectibles — Treasure Shelf, Estate Library.
+- Art — Optics & Print, Patron Vault.
+- Tools — Repair Bench.
+
+The perk is derived from the existing `claimedSetRewards` IDs. No new save field or migration is required. Once claimed, expertise remains active even if the player later sells one of the items that originally completed the set.
+
+For category Buyer Market offers, expertise applies to the matching category directly. For trait-specialist offers, expertise follows the category of the concrete matched copy, so a signed art item and a signed collectible can receive different permanent bonuses from the same specialist buyer.
+
+Collection Book previews the permanent expertise before claim and changes the set state to `EXPERTISE ACTIVE` after claim so the long-term reward is visible rather than hidden in economy math.
 
 ## Concrete copies
 The compatibility `collection: string[]` list remains the source for set membership and copy counts. Every owned entry is also represented by a concrete `collectionItems` record containing its appraisal, condition, restoration state, traits and acquisition timestamp.
@@ -43,7 +63,7 @@ Quick-sale value is derived from that concrete copy's saved appraisal and the cu
 
 Selling removes exactly one matching compatibility entry and the corresponding concrete instance, adds cash, increments lifetime sales and persists through the same local/cloud save boundary as other economy mutations.
 
-This is an anti-soft-lock path, not an optimal trading strategy; the resale haircut preserves the opportunity cost of keeping finds. Higher-value concrete copies may be more profitable through Buyer Market specialist demand.
+This is an anti-soft-lock path, not an optimal trading strategy; the resale haircut preserves the opportunity cost of keeping finds. Higher-value concrete copies may be more profitable through Buyer Market specialist demand and permanent collection expertise.
 
 ## Pagination and scale
 Collection Book displays four sets per page. Twelve sets therefore occupy three pages without requiring a layout redesign, and further breadth can continue through the same pagination model.

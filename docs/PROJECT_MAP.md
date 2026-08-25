@@ -40,7 +40,7 @@ Fast navigation map for humans and coding agents.
 - `PRE_RELEASE_AUDIT.md` — latest release-risk and maintainability audit.
 - `ARCHITECTURE.md`, `ENGINEERING.md`, `DECISIONS.md` — technical contracts/workflow.
 - `CONTENT_MODEL.md`, `ECONOMY_AND_RETENTION.md`, `CONTENT_DURATION.md` — content/economy/replayability rules and moderation evidence.
-- `BUYER_MARKET.md` — daily specialist demand, identity/per-copy trait rules and exact-copy premium-sale economics.
+- `BUYER_MARKET.md` — daily specialist demand, identity/per-copy trait rules, permanent collection expertise and exact-copy premium-sale economics.
 - `RESTORATION.md`, `COLLECTIONS.md`, `TIERS.md`, `DAILY_SPECIAL.md`, `FIRST_SESSION.md` — gameplay contracts.
 - `CLOUD_SAVE.md`, `YANDEX_INTEGRATION.md`, `MONETIZATION.md`, `MODERATION.md` — persistence/platform/release contracts.
 - `YANDEX_DRAFT_METADATA.md` — ready-to-paste draft fields, generated promotional-art workflow and gameplay screenshot guidance.
@@ -72,12 +72,13 @@ Static content/tuning inputs.
 - `catalog.ts` — 36 items and 24 clue-backed lot templates, including their lot `artId` assignments.
 - `itemTraits.ts` — stable identity traits plus bounded positive/negative per-find variants, their appraisal multipliers and compatibility rules.
 - `itemTraits.test.ts` — variant multiplier and contradictory-trait regression coverage.
-- `buyers.ts` — category/specialist buyer definitions, deterministic daily offer selection and exact-copy premium-sale matching/value rules.
+- `buyers.ts` — category/specialist buyer definitions, deterministic daily offer selection and exact-copy premium pricing with optional collection-expertise percentage points.
 - `buyers.test.ts` — deterministic offer, trait matching and concrete-copy premium regression coverage.
+- `collectionExpertise.test.ts` — permanent expertise unlock/stack/cap and preview-pricing regression coverage.
 - `artManifest.ts` — direct item-art IDs and the nine allowed lot-environment art IDs.
 - `artCoverage.test.ts` — prevents catalog item art aliases/fallback and enforces the lot-environment floor.
 - `balance.ts` — condition/market ranges and bidder profiles and tell text.
-- `collections.ts` — 12 sets and resale-rate tuning.
+- `collections.ts` — 12 sets, resale-rate tuning and permanent category expertise mapping; claimed sets contribute +4 percentage points each up to a +12-point Buyer Market cap.
 - `tiers.ts` — reputation/tier definitions and 8 lots per tier.
 - `lotModifiers.ts` — rare visible lot events and their probability.
 - `inspection.ts` — inspection unlock/cost tuning.
@@ -95,11 +96,11 @@ Static content/tuning inputs.
 - `lotMarket.ts` — normal-auction tier validation, three-choice generation, visible modifier application and page-session market-cycle cache.
 - `lotMarket.test.ts` — deterministic tier fallback/distinct-choice/cache regression coverage.
 - `restorationUi.ts` — P7 restoration workbench presentation: Safe/Pro/Risky decision cards with visible speed/window/reward tradeoffs, persistent item condition/value context, explicit Good/Perfect timing bands, dominant STOP control and one-shot input guards; formula/reward truth remains in `src/domain/restoration.ts`.
-- `scenes/CollectionScene.ts` — P7 archival/showcase Collection Book: visual set progress, reward state, larger inspectable item slots, concrete-copy hero modal, Buyer Market navigation and lowest-value-first quick sale; collection/set/save rules remain outside presentation.
-- `scenes/BuyerMarketScene.ts` — P7 buyer-dossier presentation for the three deterministic daily buyers: demand/premium hierarchy, concrete-copy hero match, claimed/no-match/match states and sale feedback while exact-copy pricing/one-sale-per-day behavior remains unchanged.
+- `scenes/CollectionScene.ts` — P7 archival/showcase Collection Book: visual set progress, cash reward plus permanent-expertise preview/active state, larger inspectable item slots, concrete-copy hero modal, Buyer Market navigation and lowest-value-first quick sale.
+- `scenes/BuyerMarketScene.ts` — P7 buyer dossiers with expertise-aware premium display, concrete-copy hero match, claimed/no-match/match states and sale feedback; specialist expertise follows the concrete matched item's category.
 - `scenes/OfficeScene.ts` — P7 Business Office/meta hub: shared atmosphere/surfaces plus distinct Contracts, Upgrades, Achievements, Stats, History and Settings compositions; existing meta/store formulas and persistence semantics stay unchanged.
 - `scenes/OnboardingScene.ts` — mentor-led first-session briefing with explicit tutorial-start/skip actions.
-- `store.ts`, `save.ts` — gameplay mutation and persistence boundaries, including concrete `collectionItems`, legacy collection reconciliation, Buyer Market day/claim state and exact-copy transactions.
+- `store.ts`, `save.ts` — gameplay mutation and persistence boundaries, including concrete `collectionItems`, legacy collection reconciliation, Buyer Market day/claim state, claimed set rewards and expertise-aware exact-copy transactions without a save-schema bump.
 - `historyTracking.ts` — turns canonical typed analytics outcomes into capped persisted history; Dealer Memory reads this existing save data rather than introducing a new schema.
 - `preferences.ts` — device-local sound/reduced-motion/high-contrast preferences.
 - `feedback.ts` — lightweight Web Audio cues and motion-aware camera juice.
@@ -126,11 +127,11 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 
 ## Tests
 - `src/domain/*.test.ts` — fast economy/game-rule unit tests, including deterministic lot-option sampling, per-find appraisal variance, restoration-mode tradeoffs and Dealer Memory aggregation.
-- `src/data/*.test.ts` — content integrity, item-trait compatibility, Buyer Market exact-copy rules, direct-art coverage, 36/24/12 scale and replayability regression coverage.
+- `src/data/*.test.ts` — content integrity, item-trait compatibility, Buyer Market/expertise rules, direct-art coverage, 36/24/12 scale and replayability regression coverage.
 - `src/game/lotMarket.test.ts` — isolated normal-market tier/cache behavior.
 - `src/game/tutorial.test.ts` — first-session page-session activation/reset lifecycle regression coverage.
 - `src/game/save.test.ts` — save normalization, legacy-to-instance collection migration and persisted-instance sanitization.
-- `src/game/buyerMarket.test.ts` — focused persistence/transaction coverage for exact-copy sale, one-offer-per-day and daily reset semantics.
+- `src/game/buyerMarket.test.ts` — exact-copy sale, expertise-aware realized pricing/cash, one-offer-per-day and daily reset transaction coverage.
 - `src/platform/*.test.ts` — platform adapter contracts, including cloud-save ordering, that can be verified without live Yandex services.
 - `tests/browser.spec.ts` — responsive/runtime/orientation smoke coverage.
 - `tests/lot-selection.spec.ts` — browser funnel coverage for three unique options, market-cycle semantics, Dealer Memory rendering path, committed choice and delayed auction start.
@@ -149,6 +150,7 @@ RU/EN gameplay, lot-selection/Dealer Memory, restoration-mode, Office, inspectio
 - Add/change stable or randomized collectible traits: `src/data/itemTraits.ts` + `src/domain/auction.ts` + `docs/BUYER_MARKET.md`.
 - Change concrete owned-copy persistence: `src/game/save.ts` + `src/game/store.ts` + migration tests. Keep `collection: string[]` synchronized while legacy set/progression logic depends on it.
 - Change Buyer Market buyers/premiums/matching: `src/data/buyers.ts`; transaction semantics live in `src/game/store.ts`; presentation lives in `src/game/scenes/BuyerMarketScene.ts` and visual evidence in `scripts/capture-collection-market-review.mjs`.
+- Change Collection expertise mapping/stacking: `src/data/collections.ts` + `src/data/collectionExpertise.test.ts`; keep preview and realized sale pricing aligned through `src/data/buyers.ts` and `src/game/store.ts`.
 - Change Collection Book presentation: `src/game/scenes/CollectionScene.ts`; preserve collection/set/resale behavior in domain/data/store and update the dedicated Collection/Buyer Market visual review.
 - Change Business Office presentation: `src/game/scenes/OfficeScene.ts`; preserve meta/store formulas and update `scripts/capture-office-review.mjs` when the screen family changes materially.
 - Change first-session character/tutorial presentation: `src/game/scenes/OnboardingScene.ts`, `src/game/scenes/CharacterAuctionScene.ts`, `src/game/characters.ts`; keep save completion semantics in the store and update `scripts/capture-character-tutorial-review.mjs`.
