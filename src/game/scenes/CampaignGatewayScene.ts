@@ -12,6 +12,14 @@ export class CampaignGatewayScene extends CampaignScene {
   override create(): void {
     super.create();
     const locale = getPlatformLocale();
+    button(this, 644, 50, locale === 'ru' ? 'Телефон' : 'Inbox', () => this.scene.start('campaign-inbox'), {
+      width: 118,
+      height: 36,
+      background: 0x242b31,
+      accent: VISUAL.rare,
+      fontSize: 9,
+      hitSlop: 4,
+    });
     button(this, 790, 50, locale === 'ru' ? 'Доп. цели' : 'Bonus goals', () => this.scene.start('campaign-optional'), {
       width: 128,
       height: 36,
