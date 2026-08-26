@@ -5,7 +5,7 @@ import {
   campaignProvenanceBonusMultiplier,
   campaignProvenanceVariantFor,
 } from './campaignProvenanceVariants';
-import { ITEM_TRAITS } from './itemTraits';
+import { ITEM_TRAITS, rollItemTraits } from './itemTraits';
 
 describe('P9 story-critical provenance variants', () => {
   it('ships at least ten authored item-specific variants', () => {
@@ -24,6 +24,25 @@ describe('P9 story-critical provenance variants', () => {
       for (const traitId of variant.requiredTraits) expect(ITEM_TRAITS[traitId], `${variant.id}:${traitId}`).toBeTruthy();
       expect(variant.bonusMultiplier).toBeGreaterThan(1);
       expect(variant.bonusMultiplier).toBeLessThanOrEqual(1.12);
+    }
+  });
+
+  it('keeps every authored required trait reachable through the concrete-copy roller', () => {
+    for (const variant of CAMPAIGN_PROVENANCE_VARIANTS) {
+      const item = ITEM_BY_ID.get(variant.itemId);
+      if (!item) throw new Error(`Missing provenance item ${variant.itemId}`);
+
+      for (const requiredTrait of variant.requiredTraits) {
+        let reachable = false;
+        for (let index = 0; index < 100 && !reachable; index += 1) {
+          const picker = index / 100;
+          const values = [0, picker, 1, 1];
+          let cursor = 0;
+          const rolled = rollItemTraits(item, () => values[cursor++] ?? 1);
+          reachable = rolled.includes(requiredTrait);
+        }
+        expect(reachable, `${variant.id}:${requiredTrait}`).toBe(true);
+      }
     }
   });
 
