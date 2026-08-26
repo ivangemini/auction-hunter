@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import { CampaignScene } from './scenes/CampaignScene';
+import { CampaignFinaleScene } from './scenes/CampaignFinaleScene';
+import { CampaignGatewayScene } from './scenes/CampaignGatewayScene';
 import { CollectionScene } from './scenes/CollectionScene';
 import { CollectorRequestBuyerMarketScene } from './scenes/CollectorRequestBuyerMarketScene';
 import { DiscoveryBoardScene } from './scenes/DiscoveryBoardScene';
@@ -13,7 +14,7 @@ export const gameConfig: Phaser.Types.Core.GameConfig = {
   width: 1280,
   height: 720,
   backgroundColor: '#101216',
-  scene: [OnboardingScene, CampaignScene, RivalBehaviorAuctionScene, CollectionScene, DiscoveryBoardScene, CollectorRequestBuyerMarketScene, OfficeScene],
+  scene: [OnboardingScene, CampaignGatewayScene, CampaignFinaleScene, RivalBehaviorAuctionScene, CollectionScene, DiscoveryBoardScene, CollectorRequestBuyerMarketScene, OfficeScene],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
