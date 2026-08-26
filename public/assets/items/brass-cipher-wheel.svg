@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#121619"/><stop offset="1" stop-color="#2c251c"/></linearGradient>
+    <radialGradient id="brass"><stop stop-color="#f3d47d"/><stop offset=".38" stop-color="#bd8438"/><stop offset=".72" stop-color="#6e4320"/><stop offset="1" stop-color="#2f1b10"/></radialGradient>
+    <linearGradient id="steel"><stop stop-color="#68737a"/><stop offset=".5" stop-color="#2c3338"/><stop offset="1" stop-color="#161c20"/></linearGradient>
+    <filter id="shadow"><feGaussianBlur stdDeviation="9"/></filter>
+  </defs>
+  <rect width="512" height="360" fill="url(#bg)"/>
+  <ellipse cx="256" cy="298" rx="163" ry="26" fill="#000" opacity=".46" filter="url(#shadow)"/>
+  <circle cx="256" cy="181" r="124" fill="url(#brass)" stroke="#d2a45a" stroke-width="5"/>
+  <circle cx="256" cy="181" r="91" fill="#362318" stroke="#e0b05d" stroke-width="5"/>
+  <circle cx="256" cy="181" r="67" fill="url(#brass)" stroke="#5a351a" stroke-width="4"/>
+  <circle cx="256" cy="181" r="34" fill="url(#steel)" stroke="#d1a75f" stroke-width="5"/>
+  <circle cx="256" cy="181" r="10" fill="#111619" stroke="#c59042" stroke-width="3"/>
+  <g stroke="#f1ce78" stroke-width="3" opacity=".78">
+    <path d="M256 58 v19 M318 75 l-10 17 M363 119 l-17 10 M380 181 h-19 M363 243 l-17-10 M318 287 l-10-17 M256 304 v-19 M194 287 l10-17 M149 243 l17-10 M132 181 h19 M149 119 l17 10 M194 75 l10 17"/>
+  </g>
+  <g fill="#27180f" stroke="#d1a052" stroke-width="2">
+    <circle cx="256" cy="101" r="7"/><circle cx="312" cy="125" r="7"/><circle cx="336" cy="181" r="7"/><circle cx="312" cy="237" r="7"/>
+    <circle cx="256" cy="261" r="7"/><circle cx="200" cy="237" r="7"/><circle cx="176" cy="181" r="7"/><circle cx="200" cy="125" r="7"/>
+  </g>
+  <path d="M246 119 L268 119 L278 145 L256 155 L234 145Z" fill="#9c6a30" stroke="#e6bd67" stroke-width="3"/>
+  <path d="M408 238 q28 17 2 37 l-59 37 q-23 14 -40-8 l-8-11 85-55q10-7 20 0Z" fill="#543321" stroke="#8c5b35" stroke-width="4"/>
+  <circle cx="404" cy="257" r="8" fill="#c38c40"/>
+</svg>
