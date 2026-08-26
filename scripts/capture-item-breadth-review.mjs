@@ -18,21 +18,27 @@ const NEW_ITEMS = [
   'tin-airplane',
   'mantel-clock',
   'numbered-lithograph',
+  'archivist-loupe',
+  'microfilm-reader',
+  'wax-seal-box',
+  'auctioneers-ledger',
+  'brass-cipher-wheel',
+  'expedition-camera',
 ];
 
 const seedSave = {
   version: 1,
   updatedAt: 1,
   cash: 125000,
-  collection: [...NEW_ITEMS, 'film-camera', 'gallery-print'],
+  collection: [...NEW_ITEMS, 'film-camera', 'gallery-print', 'fountain-pen'],
   collectionItems: [],
   claimedSetRewards: [],
-  reputationXp: 720,
+  reputationXp: 920,
   lastDailyCompletedDay: null,
   onboardingComplete: true,
-  auctionsWon: 24,
-  auctionsPlayed: 34,
-  lifetimeSales: 68400,
+  auctionsWon: 30,
+  auctionsPlayed: 44,
+  lifetimeSales: 88400,
   highestCash: 125000,
   contractDayKey: null,
   contractProgress: {},
@@ -139,17 +145,17 @@ async function captureArtSheet(browser) {
   `).join('');
   await page.setContent(`<!doctype html><html><head><meta charset="utf-8"><style>
     *{box-sizing:border-box}body{margin:0;width:1280px;height:720px;overflow:hidden;background:#0b0e13;color:#f7f3e8;font-family:Arial,sans-serif}
-    main{width:1280px;height:720px;padding:30px 38px;background:radial-gradient(circle at 50% 20%,#1b2028 0,#0b0e13 60%)}
-    header{height:68px;border-bottom:1px solid rgba(233,185,73,.24);display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-    h1{font-size:26px;margin:0}.meta{font-size:12px;color:#8f98a4;font-weight:700;letter-spacing:.08em}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:16px;height:564px}
-    .card{position:relative;border:1px solid rgba(233,185,73,.24);background:linear-gradient(145deg,rgba(24,29,36,.98),rgba(12,16,22,.98));overflow:hidden;box-shadow:0 8px 18px rgba(0,0,0,.34)}
-    img{width:100%;height:calc(100% - 38px);object-fit:contain;padding:8px 28px 0}.rank{position:absolute;top:10px;left:11px;z-index:2;padding:6px 9px;border:1px solid rgba(233,185,73,.32);background:rgba(18,22,28,.86);color:#d8a94e;font-size:10px;font-weight:700}
-    .name{position:absolute;bottom:0;left:0;right:0;height:38px;padding:11px 14px 0;background:rgba(5,8,12,.86);border-top:1px solid rgba(255,255,255,.06);font-size:12px;font-weight:700}
-  </style></head><body><main><header><h1>P5 · Second-Wave Item Art</h1><div class="meta">6 NEW IDS · DIRECT 512×360 SVG</div></header><section class="grid">${cards}</section></main></body></html>`, { waitUntil: 'load' });
+    main{width:1280px;height:720px;padding:26px 32px;background:radial-gradient(circle at 50% 18%,#1b2028 0,#0b0e13 62%)}
+    header{height:58px;border-bottom:1px solid rgba(233,185,73,.24);display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    h1{font-size:23px;margin:0}.meta{font-size:11px;color:#8f98a4;font-weight:700;letter-spacing:.08em}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:11px;height:588px}
+    .card{position:relative;border:1px solid rgba(233,185,73,.22);background:linear-gradient(145deg,rgba(24,29,36,.98),rgba(12,16,22,.98));overflow:hidden;box-shadow:0 7px 16px rgba(0,0,0,.32)}
+    img{width:100%;height:calc(100% - 31px);object-fit:contain;padding:5px 17px 0}.rank{position:absolute;top:7px;left:8px;z-index:2;padding:4px 7px;border:1px solid rgba(233,185,73,.32);background:rgba(18,22,28,.86);color:#d8a94e;font-size:9px;font-weight:700}
+    .name{position:absolute;bottom:0;left:0;right:0;height:31px;padding:8px 10px 0;background:rgba(5,8,12,.88);border-top:1px solid rgba(255,255,255,.06);font-size:10px;font-weight:700}
+  </style></head><body><main><header><h1>P5 + P9 · Expansion Item Art</h1><div class="meta">12 DIRECT IDS · 512×360 SVG · NO FALLBACKS</div></header><section class="grid">${cards}</section></main></body></html>`, { waitUntil: 'load' });
   await page.waitForFunction((count) => [...document.images].length === count && [...document.images].every((image) => image.complete && image.naturalWidth > 0), NEW_ITEMS.length);
   const screenshot = await page.screenshot({ type: 'png' });
-  validatePng(screenshot, 'second-wave item art');
+  validatePng(screenshot, 'expanded item art');
   fs.writeFileSync(path.join(outputRoot, '01-item-art-breadth.png'), screenshot);
   await page.close();
 }
@@ -238,4 +244,4 @@ try {
 console.log('release/screenshots/item-breadth-review/01-item-art-breadth.png');
 console.log('release/screenshots/item-breadth-review/ru/02-collection-page-7.png');
 console.log('release/screenshots/item-breadth-review/en/02-collection-page-7.png');
-console.log('P5 second-wave item/Collection Book visual review capture OK');
+console.log('P5 + P9 item/Collection Book visual review capture OK');
