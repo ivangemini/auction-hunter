@@ -236,7 +236,14 @@ export class CampaignScene extends Phaser.Scene {
       this.completeButton(mission.id);
       return;
     }
-    this.label(610, 578, `${this.locale === 'ru' ? 'Остаток бюджета' : 'Budget left'}: ${this.money(linkedBudgetRemaining(state))}`, 11, '#e9b949', 'bold');
+
+    const remaining = linkedBudgetRemaining(state);
+    const requiredRemainingCost = CHAPTER_TWO_OFFERS
+      .filter((offer) => required.includes(offer.id) && !choices.has(`linked-buy:${offer.id}`))
+      .reduce((sum, offer) => sum + offer.price, 0);
+    const deadEnd = requiredRemainingCost > remaining;
+
+    this.label(610, 578, `${this.locale === 'ru' ? 'Остаток бюджета' : 'Budget left'}: ${this.money(remaining)}`, 11, deadEnd ? '#ff8d85' : '#e9b949', 'bold');
     const labels: Record<string, string> = this.locale === 'ru'
       ? { 'decorative-decoy': 'Витринный набор\n2 600 ₽', 'estate-ledger-box': 'Архивная коробка\n3 100 ₽', 'estate-photo-box': 'Фото-коробка\n2 800 ₽' }
       : { 'decorative-decoy': 'Display set\n2,600 ₽', 'estate-ledger-box': 'Archive box\n3,100 ₽', 'estate-photo-box': 'Photo box\n2,800 ₽' };
@@ -249,6 +256,15 @@ export class CampaignScene extends Phaser.Scene {
         this.render();
       }, { width: 166, height: 60, disabled: bought || !affordable, background: offer.target ? 0x3a3021 : 0x342932, accent: offer.target ? VISUAL.warm : VISUAL.purple, fontSize: 9 });
     });
+
+    if (deadEnd) {
+      this.label(610, 598, this.locale === 'ru' ? 'Бюджета уже не хватает на обе целевые коробки.' : 'The remaining budget can no longer cover both target boxes.', 9, '#ff8d85', 'bold').setWordWrapWidth(360);
+      button(this, 1110, 576, this.locale === 'ru' ? 'Начать заново' : 'Reset attempt', () => {
+        this.campaign.resetBranchChoices('linked-buy:');
+        this.feedback = null;
+        this.render();
+      }, { width: 190, height: 34, background: 0x4a2b2b, accent: 0xc35d54, fontSize: 9 });
+    }
   }
 
   private renderForgeryMission(mission: CampaignMission): void {
@@ -262,12 +278,17 @@ export class CampaignScene extends Phaser.Scene {
   }
 
   private renderMiraNegotiation(mission: CampaignMission): void {
+    const cash = this.campaign.snapshot.cash;
     this.add.image(1090, 420, 'private-invitation').setDisplaySize(195, 118);
     this.label(610, 574, this.locale === 'ru' ? 'Выбор сохранится и позже изменит помощь или давление Миры.' : "This choice persists and will later alter Mira's help or pressure.", 10, VISUAL.faint).setWordWrapWidth(390);
     button(this, 706, 624, this.locale === 'ru' ? 'Заплатить 1 200 ₽' : 'Pay 1,200 ₽', () => {
-      this.campaign.chooseBranch('mira-paid-cash', 'npc-1', { trust: 6, debt: -4 });
+      if (!this.campaign.payBranchChoice('mira-paid-cash', 1200, 'npc-1', { trust: 6, debt: -4 })) {
+        this.feedback = this.locale === 'ru' ? 'Недостаточно денег для этой сделки.' : 'Not enough cash for this deal.';
+        this.render();
+        return;
+      }
       this.complete(mission.id);
-    }, { width: 190, height: 54, background: 0x3b3020, accent: VISUAL.warm, fontSize: 9 });
+    }, { width: 190, height: 54, disabled: cash < 1200, background: 0x3b3020, accent: VISUAL.warm, fontSize: 9 });
     button(this, 910, 624, this.locale === 'ru' ? 'Пообещать услугу' : 'Owe a favor', () => {
       this.campaign.chooseBranch('mira-owed-favor', 'npc-1', { trust: 3, debt: 12 });
       this.complete(mission.id);
