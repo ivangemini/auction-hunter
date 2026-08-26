@@ -1,0 +1,39 @@
+name: Restore campaign entry hit contract
+
+on:
+  push:
+    branches: [production-visual-integration-2026-08-26]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: production-visual-integration-2026-08-26
+      - name: Restore campaign entry coordinate
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('src/game/scenes/RivalBehaviorAuctionScene.ts')
+          s = p.read_text()
+          old = "        740,\n        112,\n        runtime.locale === 'ru' ? 'Дело: Чёрный реестр' : 'Case: Black Ledger',"
+          new = "        740,\n        218,\n        runtime.locale === 'ru' ? 'Дело: Чёрный реестр' : 'Case: Black Ledger',"
+          if old not in s:
+              raise SystemExit('campaign entry marker not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+          rm .github/workflows/fix-campaign-entry.yml
+      - name: Commit correction
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Visual: preserve campaign entry interaction contract [skip ci]"
+          git push origin HEAD:production-visual-integration-2026-08-26
