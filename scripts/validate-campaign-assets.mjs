@@ -19,12 +19,17 @@ const assetById = {
   'veyr-portrait-case': 'veyr-portrait-case.svg',
   'veyr-cipher-cabinet': 'veyr-cipher-cabinet.svg',
   'veyr-chronometer': 'veyr-chronometer.svg',
+  'evidence-restored-serial': 'evidence-restored-serial.svg',
+  'campaign-records-basement': 'campaign-records-basement.svg',
+  'dealer-proxy-sheet': 'dealer-proxy-sheet.svg',
+  'counterfeit-table': 'counterfeit-table.svg',
+  'final-route-map': 'final-route-map.svg',
 };
 
 const referenced = new Set();
 for (const match of campaignSource.matchAll(/artId:\s*['"]([^'"]+)['"]/g)) referenced.add(match[1]);
 
-if (referenced.size < 8) throw new Error(`Campaign art breadth regressed: expected >=8 authored mission/evidence art IDs, got ${referenced.size}`);
+if (referenced.size < 13) throw new Error(`Campaign art breadth regressed: expected >=13 authored mission/evidence art IDs, got ${referenced.size}`);
 for (const artId of referenced) {
   if (!assetById[artId]) throw new Error(`Campaign art id is not mapped to a production asset: ${artId}`);
 }
@@ -34,6 +39,8 @@ for (const [artId, filename] of Object.entries(assetById)) {
   if (!fs.existsSync(filepath)) throw new Error(`Campaign production asset is missing for ${artId}: ${filename}`);
   const stats = fs.statSync(filepath);
   if (stats.size < 500) throw new Error(`Campaign asset looks like a placeholder/empty file: ${filename}`);
+  const source = fs.readFileSync(filepath, 'utf8');
+  if (!source.includes('<svg')) throw new Error(`Campaign asset is not a valid SVG source: ${filename}`);
 }
 
 if (new Set(Object.values(assetById)).size !== Object.keys(assetById).length) {
