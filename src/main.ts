@@ -3,6 +3,7 @@ import './styles.css';
 import { trackEvent } from './analytics';
 import { registerCampaignBreadth } from './data/campaignBreadth';
 import { registerCampaignBreadthTwo } from './data/campaignBreadthTwo';
+import { registerCampaignDiscoveryChains } from './data/campaignDiscoveryChains';
 import { registerCampaignFinaleBreadth } from './data/campaignFinaleBreadth';
 import { registerItemBreadth } from './data/itemBreadth';
 import { gameConfig } from './game/config';
@@ -34,6 +35,7 @@ async function bootstrap(): Promise<void> {
   registerCampaignBreadth();
   registerCampaignBreadthTwo();
   registerCampaignFinaleBreadth();
+  registerCampaignDiscoveryChains();
   installBrowserGuards();
   applyAccessibilityPreferences();
   await initYandexSdk();
