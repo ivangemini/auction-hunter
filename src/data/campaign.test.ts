@@ -7,12 +7,12 @@ function localized(value: { ru: string; en: string }) {
 }
 
 describe('P9 campaign content', () => {
-  it('defines the complete five-act campaign spine with 26 authored missions', () => {
+  it('defines the complete five-act campaign spine with 28 authored missions', () => {
     expect(CAMPAIGN_CHAPTERS).toHaveLength(5);
     expect(CAMPAIGN_CHAPTERS.map((chapter) => chapter.order)).toEqual([1, 2, 3, 4, 5]);
     expect(CAMPAIGN_CHAPTERS.every((chapter) => localized(chapter.title) && localized(chapter.subtitle))).toBe(true);
-    expect(CAMPAIGN_MISSIONS).toHaveLength(26);
-    expect(CAMPAIGN_CHAPTERS.map((chapter) => CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === chapter.id).length)).toEqual([4, 6, 7, 6, 3]);
+    expect(CAMPAIGN_MISSIONS).toHaveLength(28);
+    expect(CAMPAIGN_CHAPTERS.map((chapter) => CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === chapter.id).length)).toEqual([4, 6, 7, 6, 5]);
   });
 
   it('keeps Chapter I compact while Estate Trail expands into a six-mission gameplay chapter', () => {
@@ -33,6 +33,26 @@ describe('P9 campaign content', () => {
     ]);
     expect(estate[4]?.objective.target).toBe(2);
     expect(estate.every((mission) => localized(mission.title) && localized(mission.briefing) && localized(mission.objective.description))).toBe(true);
+  });
+
+  it('keeps Chapter V as a five-mission endgame ramp before the finale', () => {
+    const finale = CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'lost-collection');
+    expect(finale).toHaveLength(5);
+    expect(finale.map((mission) => mission.order)).toEqual([1, 2, 3, 4, 5]);
+    expect(finale.map((mission) => mission.id)).toEqual([
+      'lost-collection-route',
+      'lost-collection-market-read',
+      'lost-collection-pressure-run',
+      'lost-collection-prep',
+      'lost-collection-finale',
+    ]);
+    expect(finale.map((mission) => mission.objective.type)).toEqual([
+      'route-plan',
+      'play-auction',
+      'win-auction',
+      'finale-prep',
+      'finale',
+    ]);
   });
 
   it('has no dead mission prerequisites', () => {

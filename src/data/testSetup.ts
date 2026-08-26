@@ -5,6 +5,7 @@ import { registerCampaignBreadthFour } from './campaignBreadthFour';
 import { registerCampaignBreadthThree } from './campaignBreadthThree';
 import { registerCampaignBreadthTwo } from './campaignBreadthTwo';
 import { registerCampaignDiscoveryChains } from './campaignDiscoveryChains';
+import { registerCampaignFinaleBreadth } from './campaignFinaleBreadth';
 import { registerNadiaCampaignArc } from './campaignPrincipalArc';
 import { registerItemBreadth } from './itemBreadth';
 
@@ -14,6 +15,7 @@ registerCampaignBreadthTwo();
 registerCampaignBreadthThree();
 registerCampaignBreadthFour();
 registerCampaignBreadthFive();
+registerCampaignFinaleBreadth();
 registerNadiaCampaignArc();
 registerCampaignDiscoveryChains();
 registerCampaignAftermathDiscovery();
