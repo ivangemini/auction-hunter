@@ -2,6 +2,14 @@ import Phaser from 'phaser';
 import { CAMPAIGN_CHAPTERS, CAMPAIGN_EVIDENCE, CAMPAIGN_MISSIONS, type CampaignMission } from '../../data/campaign';
 import { campaignMissionAvailable, campaignMissionById } from '../../domain/campaign';
 import {
+  bestClosedCircleSponsor,
+  closedCirclePreviewComplete,
+  closedCircleSponsorOptions,
+  createClosedCirclePreview,
+  inspectClosedCircleItem,
+  resolveClosedCircleSealedBid,
+} from '../../domain/campaignClosedCircle';
+import {
   buyLinkedBudgetOffer,
   createLinkedBudgetState,
   linkedBudgetMissionComplete,
@@ -21,6 +29,13 @@ const CHAPTER_TWO_OFFERS: readonly LinkedBudgetOffer[] = [
   { id: 'estate-ledger-box', price: 3100, target: true },
   { id: 'estate-photo-box', price: 2800, target: true },
 ];
+const CLOSED_CIRCLE_PREVIEW_ITEMS = [
+  { id: 'silver-mask', clueStrength: 1, linkedToVeyr: false },
+  { id: 'ledger-frame', clueStrength: 3, linkedToVeyr: true },
+  { id: 'bronze-clock', clueStrength: 1, linkedToVeyr: false },
+  { id: 'ivory-catalogue', clueStrength: 3, linkedToVeyr: true },
+  { id: 'lacquer-box', clueStrength: 2, linkedToVeyr: false },
+] as const;
 
 export class CampaignScene extends Phaser.Scene {
   private readonly campaign = new CampaignStore();
@@ -37,6 +52,9 @@ export class CampaignScene extends Phaser.Scene {
     this.load.svg('evidence-ledger-fragment', 'assets/campaign/evidence-ledger-fragment.svg');
     this.load.svg('private-invitation', 'assets/campaign/private-invitation.svg');
     this.load.svg('provenance-folder', 'assets/campaign/provenance-folder.svg');
+    this.load.svg('closed-circle-room', 'assets/campaign/closed-circle-room.svg');
+    this.load.svg('sealed-bid-card', 'assets/campaign/sealed-bid-card.svg');
+    this.load.svg('circle-sponsor-token', 'assets/campaign/circle-sponsor-token.svg');
   }
 
   create(): void {
@@ -201,7 +219,19 @@ export class CampaignScene extends Phaser.Scene {
       this.renderDealerAllyMission(mission);
       return;
     }
-    if (mission.objective.type === 'negotiate') this.renderMiraNegotiation(mission);
+    if (mission.objective.type === 'negotiate') {
+      this.renderMiraNegotiation(mission);
+      return;
+    }
+    if (mission.objective.type === 'limited-preview') {
+      this.renderClosedCirclePreview(mission);
+      return;
+    }
+    if (mission.objective.type === 'sealed-bid') {
+      this.renderClosedCircleSealedBid(mission);
+      return;
+    }
+    if (mission.objective.type === 'relationship-gate') this.renderClosedCircleSponsor(mission);
   }
 
   private renderEvidenceLotChoice(mission: CampaignMission): void {
@@ -217,11 +247,17 @@ export class CampaignScene extends Phaser.Scene {
           { id: 'YARD-17', good: true, hint: this.locale === 'ru' ? 'сдвоенная точка в рамке' : 'double-dot frame defect' },
           { id: 'HALL-4', good: false, hint: this.locale === 'ru' ? 'другой картон' : 'different card stock' },
         ]
-        : [
-          { id: '12-A', good: false, hint: this.locale === 'ru' ? 'Фарфор · без архивной отметки' : 'Porcelain · no archive mark' },
-          { id: '47-B', good: true, hint: this.locale === 'ru' ? 'Бумаги · чёрная печать' : 'Papers · black seal' },
-          { id: '83-C', good: false, hint: this.locale === 'ru' ? 'Инструменты · складская бирка' : 'Tools · warehouse tag' },
-        ];
+        : mission.id === 'closed-circle-ledger-room'
+          ? [
+            { id: 'B-12', good: false, hint: this.locale === 'ru' ? 'буква не совпадает с жетоном' : 'letter conflicts with token' },
+            { id: 'C-17', good: true, hint: this.locale === 'ru' ? 'код + список + жетон' : 'code + list + token' },
+            { id: 'C-71', good: false, hint: this.locale === 'ru' ? 'цифры переставлены' : 'digits reversed' },
+          ]
+          : [
+            { id: '12-A', good: false, hint: this.locale === 'ru' ? 'Фарфор · без архивной отметки' : 'Porcelain · no archive mark' },
+            { id: '47-B', good: true, hint: this.locale === 'ru' ? 'Бумаги · чёрная печать' : 'Papers · black seal' },
+            { id: '83-C', good: false, hint: this.locale === 'ru' ? 'Инструменты · складская бирка' : 'Tools · warehouse tag' },
+          ];
     options.forEach((option, index) => {
       const x = 650 + index * 182;
       button(this, x + 78, 602, `${option.id}\n${option.hint}`, () => {
@@ -345,6 +381,103 @@ export class CampaignScene extends Phaser.Scene {
       this.campaign.chooseBranch('dealer-ally-mira-victor-reaction', 'npc-0', { rivalry: 5 });
       this.complete(mission.id);
     }, { width: 260, height: 54, background: 0x302843, accent: VISUAL.purple, fontSize: 10 });
+  }
+
+  private renderClosedCirclePreview(mission: CampaignMission): void {
+    const choices = new Set(this.campaign.progress.branchChoiceIds);
+    let state = createClosedCirclePreview(mission.objective.maxInspections ?? 3);
+    for (const item of CLOSED_CIRCLE_PREVIEW_ITEMS) {
+      if (choices.has(`circle-preview:${item.id}`)) state = inspectClosedCircleItem(state, item.id).state;
+    }
+    const required = mission.objective.targetIds ?? [];
+    this.add.image(1092, 416, 'closed-circle-room').setDisplaySize(205, 130);
+    this.label(610, 570, `${this.locale === 'ru' ? 'Проверки' : 'Inspections'}: ${state.inspectedIds.length}/${state.maxInspections}`, 10, VISUAL.faint, 'bold');
+
+    if (closedCirclePreviewComplete(state, required)) {
+      this.completeButton(mission.id, this.locale === 'ru' ? 'Зафиксировать C-17' : 'Lock in C-17');
+      return;
+    }
+
+    const visible = CLOSED_CIRCLE_PREVIEW_ITEMS.filter((item) => !choices.has(`circle-preview:${item.id}`)).slice(0, 3);
+    visible.forEach((item, index) => {
+      button(this, 700 + index * 190, 624, this.previewItemLabel(item.id), () => {
+        const decision = inspectClosedCircleItem(state, item.id);
+        if (!decision.ok) return;
+        this.campaign.chooseBranch(`circle-preview:${item.id}`);
+        this.feedback = item.linkedToVeyr
+          ? (this.locale === 'ru' ? 'Микрометка C-17 совпадает.' : 'Micro-mark C-17 matches.')
+          : (this.locale === 'ru' ? 'Связи с Вейром нет.' : 'No Veyr connection found.');
+        this.render();
+      }, { width: 174, height: 54, disabled: state.inspectedIds.length >= state.maxInspections, background: item.linkedToVeyr ? 0x3a3021 : 0x29313b, accent: item.linkedToVeyr ? VISUAL.warm : 0x68717d, fontSize: 9 });
+    });
+
+    if (state.inspectedIds.length >= state.maxInspections && !closedCirclePreviewComplete(state, required)) {
+      button(this, 1110, 570, this.locale === 'ru' ? 'Повторить просмотр' : 'Retry preview', () => {
+        this.campaign.resetBranchChoices('circle-preview:');
+        this.feedback = null;
+        this.render();
+      }, { width: 190, height: 34, background: 0x4a2b2b, accent: 0xc35d54, fontSize: 9 });
+    }
+  }
+
+  private renderClosedCircleSealedBid(mission: CampaignMission): void {
+    this.add.image(1090, 416, 'sealed-bid-card').setDisplaySize(200, 127);
+    this.label(610, 570, this.locale === 'ru' ? 'Антон оценивает лот примерно в 8 000–8 400 ₽. У вас одна ставка.' : 'Anton appears to value the lot around 8,000–8,400 ₽. You get one bid.', 10, VISUAL.faint).setWordWrapWidth(420);
+    const bids = [7800, 8800, 10200];
+    bids.forEach((bid, index) => {
+      button(this, 710 + index * 202, 624, this.money(bid), () => {
+        const result = resolveClosedCircleSealedBid(bid, 8200, mission.objective.budget ?? 9600);
+        this.campaign.chooseBranch(`circle-bid:${result.bid}`);
+        if (result.won && !result.overpaid) {
+          this.complete(mission.id);
+          return;
+        }
+        this.feedback = result.overpaid
+          ? (this.locale === 'ru' ? 'Вы выиграли, но переплата нарушает лимит задания. Попытка сброшена.' : 'You won, but the overpay breaks the mission cap. Attempt reset.')
+          : (this.locale === 'ru' ? 'Ставка ниже скрытого порога. Антон забирает лот. Попытка сброшена.' : 'Bid below the hidden threshold. Anton takes it. Attempt reset.');
+        this.campaign.resetBranchChoices('circle-bid:');
+        this.render();
+      }, { width: 184, height: 52, background: bid === 8800 ? 0x3a3021 : 0x29313b, accent: bid === 8800 ? VISUAL.warm : 0x68717d, fontSize: 10 });
+    });
+  }
+
+  private renderClosedCircleSponsor(mission: CampaignMission): void {
+    const save = this.campaign.snapshot;
+    const options = closedCircleSponsorOptions(save.campaign);
+    const best = bestClosedCircleSponsor(options);
+    this.add.image(1092, 416, 'circle-sponsor-token').setDisplaySize(136, 136);
+    this.label(610, 570, this.locale === 'ru' ? 'Поручительство зависит от старых решений. Без доверия организатор требует денежный залог.' : 'Sponsorship depends on earlier choices. Without trust, the host demands a cash bond.', 10, VISUAL.faint).setWordWrapWidth(420);
+
+    if (best) {
+      const name = best.rivalId === 'npc-0' ? (this.locale === 'ru' ? 'Виктор' : 'Victor') : (this.locale === 'ru' ? 'Мира' : 'Mira');
+      button(this, 920, 624, `${name}\n${this.locale === 'ru' ? 'поручится' : 'will sponsor'}`, () => {
+        this.campaign.chooseBranch(`circle-sponsored:${best.rivalId}`, best.rivalId, { trust: 2, debt: 4 });
+        this.complete(mission.id);
+      }, { width: 260, height: 56, background: 0x3a3021, accent: VISUAL.warm, fontSize: 10 });
+      return;
+    }
+
+    const cheapest = [...options].sort((a, b) => a.cashSettlement - b.cashSettlement)[0];
+    const cost = cheapest?.cashSettlement ?? 1800;
+    button(this, 920, 624, `${this.locale === 'ru' ? 'Внести залог' : 'Post bond'}\n${this.money(cost)}`, () => {
+      if (!this.campaign.payBranchChoice('circle-paid-bond', cost)) {
+        this.feedback = this.locale === 'ru' ? 'Не хватает денег на залог.' : 'Not enough cash for the bond.';
+        this.render();
+        return;
+      }
+      this.complete(mission.id);
+    }, { width: 260, height: 56, disabled: save.cash < cost, background: 0x4a3024, accent: VISUAL.warm, fontSize: 10 });
+  }
+
+  private previewItemLabel(id: string): string {
+    const labels: Record<string, { ru: string; en: string }> = {
+      'silver-mask': { ru: 'Серебряная маска', en: 'Silver mask' },
+      'ledger-frame': { ru: 'Рама с описью', en: 'Ledger frame' },
+      'bronze-clock': { ru: 'Бронзовые часы', en: 'Bronze clock' },
+      'ivory-catalogue': { ru: 'Светлый каталог', en: 'Ivory catalogue' },
+      'lacquer-box': { ru: 'Лаковая шкатулка', en: 'Lacquer box' },
+    };
+    return labels[id]?.[this.locale] ?? id;
   }
 
   private auctionButton(status: string): void {
