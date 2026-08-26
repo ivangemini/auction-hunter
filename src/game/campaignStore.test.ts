@@ -60,4 +60,33 @@ describe('CampaignStore', () => {
     expect(store.progress.relationshipTrust['npc-0']).toBe(100);
     expect(store.progress.relationshipRivalry['npc-0']).toBe(5);
   });
+
+  it('charges a paid branch exactly once and refuses unaffordable choices', () => {
+    const save = createDefaultSave();
+    save.cash = 1500;
+    storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
+    const store = new CampaignStore();
+
+    expect(store.payBranchChoice('mira-paid-cash', 1200, 'npc-1', { trust: 6, debt: -4 })).toBe(true);
+    expect(store.snapshot.cash).toBe(300);
+    expect(store.progress.relationshipTrust['npc-1']).toBe(6);
+    expect(store.payBranchChoice('mira-paid-cash', 1200, 'npc-1', { trust: 6 })).toBe(false);
+    expect(store.snapshot.cash).toBe(300);
+    expect(store.payBranchChoice('too-expensive', 500)).toBe(false);
+    expect(store.progress.branchChoiceIds).not.toContain('too-expensive');
+  });
+
+  it('can reset only linked-budget decisions without erasing story choices', () => {
+    const save = createDefaultSave();
+    save.campaign.branchChoiceIds = [
+      'linked-buy:decorative-decoy',
+      'linked-buy:estate-ledger-box',
+      'show-victor-black-seal',
+    ];
+    storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
+    const store = new CampaignStore();
+
+    store.resetBranchChoices('linked-buy:');
+    expect(store.progress.branchChoiceIds).toEqual(['show-victor-black-seal']);
+  });
 });
