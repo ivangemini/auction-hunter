@@ -116,7 +116,7 @@ export class CampaignStore {
     save.reputationXp += 300;
     save.highestCash = Math.max(save.highestCash, save.cash);
     this.persist(save);
-    trackEvent('campaign_completed', { epilogueId, acquiredLotIds: [...acquiredLotIds] });
+    trackEvent('campaign_branch_chosen', { choiceId: `campaign-completed:${epilogueId}` });
     return true;
   }
 
