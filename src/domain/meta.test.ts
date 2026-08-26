@@ -41,6 +41,18 @@ const save: PlayerSave = {
   discoveryChainProgress: {},
   discoveryChainLastAuction: {},
   completedDiscoveryChains: [],
+  campaign: {
+    started: false,
+    activeMissionId: null,
+    completedMissionIds: [],
+    evidenceIds: [],
+    branchChoiceIds: [],
+    relationshipTrust: {},
+    relationshipRivalry: {},
+    relationshipDebt: {},
+    completed: false,
+    epilogueId: null,
+  },
 };
 
 describe('meta progression domain', () => {
