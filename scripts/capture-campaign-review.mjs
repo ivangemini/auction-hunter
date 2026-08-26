@@ -56,22 +56,25 @@ const earlyCampaignSave = {
 const finaleCampaignSave = {
   ...baseSave,
   cash: 28600,
-  reputationXp: 780,
+  reputationXp: 1120,
   highestCash: 28600,
   campaign: {
     started: true,
-    activeMissionId: null,
+    activeMissionId: 'lost-collection-finale',
     completedMissionIds: [
       'first-day-floor', 'victor-test', 'black-seal', 'missing-inventory',
-      'estate-paper-trail', 'estate-linked-lots', 'estate-false-paper', 'estate-mira-offer',
-      'dealer-war-leak', 'dealer-war-pressure', 'dealer-war-ally', 'dealer-war-address',
-      'closed-circle-preview', 'closed-circle-sealed-bid', 'closed-circle-debt', 'closed-circle-ledger-room',
+      'estate-paper-trail', 'estate-linked-lots', 'estate-false-paper', 'estate-restoration-trace', 'estate-night-clearances', 'estate-mira-offer',
+      'dealer-war-leak', 'dealer-war-pressure', 'dealer-war-ally', 'dealer-war-proxy', 'dealer-war-counteroffer', 'dealer-war-address',
+      'closed-circle-preview', 'closed-circle-sealed-bid', 'closed-circle-debt', 'closed-circle-counterfeit', 'closed-circle-silent-room', 'closed-circle-ledger-room',
+      'lost-collection-route', 'lost-collection-prep',
     ],
-    evidenceIds: ['veyr-black-seal', 'lost-collection-index'],
-    branchChoiceIds: ['dealer-ally-mira'],
-    missionBaselineAuctionsPlayed: {},
-    missionBaselineAuctionsWon: {},
-    relationshipTrust: { 'npc-0': 8, 'npc-1': 18 },
+    evidenceIds: [
+      'veyr-black-seal', 'veyr-buyer-list', 'circle-sponsor-token', 'lost-collection-index', 'veyr-river-route',
+    ],
+    branchChoiceIds: ['dealer-ally-mira', 'finale-route:river-archive', 'finale-partner-mira'],
+    missionBaselineAuctionsPlayed: { 'lost-collection-finale': 24 },
+    missionBaselineAuctionsWon: { 'lost-collection-finale': 15 },
+    relationshipTrust: { 'npc-0': 8, 'npc-1': 30 },
     relationshipRivalry: { 'npc-2': 22 },
     relationshipDebt: { 'npc-1': 4 },
     completed: false,
@@ -159,8 +162,8 @@ async function captureFinale(browser, localeCode, locale, viewport, file) {
     await page.locator('canvas').waitFor({ state: 'visible' });
     await page.waitForTimeout(650);
     await clickGame(page, 740, 218);
-    await page.waitForTimeout(500);
-    await clickGame(page, 1112, 205);
+    await page.waitForTimeout(550);
+    await clickGame(page, 1036, 612);
     await page.waitForTimeout(700);
     await saveShot(page, localeCode, file);
   } finally {
