@@ -16,6 +16,13 @@ import {
   linkedBudgetRemaining,
   type LinkedBudgetOffer,
 } from '../../domain/campaignLinkedBudget';
+import {
+  evaluateCounterfeitSelection,
+  resolveFinaleRoute,
+  resolveProxyBidAllocation,
+  resolveRestorationTrace,
+  type FinaleRouteId,
+} from '../../domain/campaignMidgame';
 import type { Locale } from '../../domain/types';
 import { getPlatformLocale } from '../../platform/yandex';
 import { CampaignStore } from '../campaignStore';
@@ -36,6 +43,12 @@ const CLOSED_CIRCLE_PREVIEW_ITEMS = [
   { id: 'ivory-catalogue', clueStrength: 3, linkedToVeyr: true },
   { id: 'lacquer-box', clueStrength: 2, linkedToVeyr: false },
 ] as const;
+const COUNTERFEIT_OPTIONS = [
+  { id: 'folder-17', ru: 'Папка 17\nстарая бумага · чёрный воск', en: 'Folder 17\naged paper · black wax' },
+  { id: 'blue-certificate', ru: 'Синий сертификат\nновая бумага · верный штамп', en: 'Blue certificate\nnew paper · correct stamp' },
+  { id: 'wax-card-c', ru: 'Карточка C\nчёрный воск · микрометка C-17', en: 'Card C\nblack wax · C-17 micro-mark' },
+  { id: 'linen-folder', ru: 'Льняная папка\nстарая бумага · красный воск', en: 'Linen folder\naged paper · red wax' },
+] as const;
 
 export class CampaignScene extends Phaser.Scene {
   private readonly campaign = new CampaignStore();
@@ -55,6 +68,11 @@ export class CampaignScene extends Phaser.Scene {
     this.load.svg('closed-circle-room', 'assets/campaign/closed-circle-room.svg');
     this.load.svg('sealed-bid-card', 'assets/campaign/sealed-bid-card.svg');
     this.load.svg('circle-sponsor-token', 'assets/campaign/circle-sponsor-token.svg');
+    this.load.svg('evidence-restored-serial', 'assets/campaign/evidence-restored-serial.svg');
+    this.load.svg('campaign-records-basement', 'assets/campaign/campaign-records-basement.svg');
+    this.load.svg('dealer-proxy-sheet', 'assets/campaign/dealer-proxy-sheet.svg');
+    this.load.svg('counterfeit-table', 'assets/campaign/counterfeit-table.svg');
+    this.load.svg('final-route-map', 'assets/campaign/final-route-map.svg');
   }
 
   create(): void {
@@ -140,8 +158,13 @@ export class CampaignScene extends Phaser.Scene {
     this.label(610, 250, this.locale === 'ru' ? 'ТЕКУЩЕЕ ДЕЛО' : 'CURRENT CASE', 11, VISUAL.faint, 'bold');
 
     if (!mission) {
-      this.label(610, 304, this.locale === 'ru' ? 'Доступные главы завершены' : 'Available chapters complete', 27, '#f0c969', 'bold');
-      this.label(610, 352, this.locale === 'ru' ? 'Новые главы продолжат тот же сохранённый след.' : 'New chapters will continue from this same persistent trail.', 14, '#b9c0ca').setWordWrapWidth(540);
+      const completed = progress.completed;
+      this.label(610, 304, completed
+        ? (this.locale === 'ru' ? 'Кампания завершена' : 'Campaign complete')
+        : (this.locale === 'ru' ? 'Доступные главы завершены' : 'Available chapters complete'), 27, '#f0c969', 'bold');
+      this.label(610, 352, completed
+        ? (this.locale === 'ru' ? 'Чёрный реестр закрыт. Системный endgame остаётся доступен без сброса прогресса.' : 'The Black Ledger is closed. Systemic endgame remains available without resetting progress.')
+        : (this.locale === 'ru' ? 'Новые главы продолжат тот же сохранённый след.' : 'New chapters will continue from this same persistent trail.'), 14, '#b9c0ca').setWordWrapWidth(540);
       return;
     }
 
@@ -156,7 +179,7 @@ export class CampaignScene extends Phaser.Scene {
     addProgressBar(this, 610, 484, 556, completedCount / Math.max(1, chapterMissions.length), VISUAL.warm);
     this.label(610, 498, `${CAMPAIGN_CHAPTERS.find((c) => c.id === mission.chapterId)?.title[this.locale] ?? ''}: ${completedCount}/${chapterMissions.length}`, 10, VISUAL.faint, 'bold');
     this.label(610, 532, this.locale === 'ru' ? 'НАГРАДА' : 'REWARD', 9, VISUAL.faint, 'bold');
-    this.label(610, 552, `${this.money(mission.rewardCash)}  ·  +${mission.rewardRep} REP`, 14, '#f0c969', 'bold');
+    this.label(610, 552, mission.rewardCash || mission.rewardRep ? `${this.money(mission.rewardCash)}  ·  +${mission.rewardRep} REP` : (this.locale === 'ru' ? 'Награда выдаётся после финального аукциона' : 'Reward resolves after the final auction'), 14, '#f0c969', 'bold');
     if (this.feedback) this.label(610, 616, this.feedback, 11, '#e9b949', 'bold').setWordWrapWidth(380);
 
     if (!isActive) {
@@ -176,15 +199,17 @@ export class CampaignScene extends Phaser.Scene {
     const wonBaseline = progress.missionBaselineAuctionsWon[mission.id] ?? auctionsWon;
 
     if (mission.objective.type === 'play-auction') {
+      const target = mission.objective.target ?? 1;
       const gained = Math.max(0, auctionsPlayed - playedBaseline);
-      if (gained >= (mission.objective.target ?? 1)) this.completeButton(mission.id);
-      else this.auctionButton(`${this.locale === 'ru' ? 'После старта' : 'Since start'}: ${gained}/1`);
+      if (gained >= target) this.completeButton(mission.id);
+      else this.auctionButton(`${this.locale === 'ru' ? 'После старта' : 'Since start'}: ${gained}/${target}`);
       return;
     }
     if (mission.objective.type === 'win-auction') {
+      const target = mission.objective.target ?? 1;
       const gained = Math.max(0, auctionsWon - wonBaseline);
-      if (gained >= (mission.objective.target ?? 1)) this.completeButton(mission.id, this.locale === 'ru' ? 'Закрыть задание' : 'Close mission');
-      else this.auctionButton(`${this.locale === 'ru' ? 'Побед после старта' : 'Wins since start'}: ${gained}/1`);
+      if (gained >= target) this.completeButton(mission.id, this.locale === 'ru' ? 'Закрыть задание' : 'Close mission');
+      else this.auctionButton(`${this.locale === 'ru' ? 'Побед после старта' : 'Wins since start'}: ${gained}/${target}`);
       return;
     }
     if (mission.objective.type === 'keep-evidence') {
@@ -211,6 +236,10 @@ export class CampaignScene extends Phaser.Scene {
       this.renderForgeryMission(mission);
       return;
     }
+    if (mission.objective.type === 'restoration-trace') {
+      this.renderRestorationTraceMission(mission);
+      return;
+    }
     if (mission.objective.type === 'track-rival') {
       this.renderDealerLeakMission(mission);
       return;
@@ -223,6 +252,14 @@ export class CampaignScene extends Phaser.Scene {
       this.renderMiraNegotiation(mission);
       return;
     }
+    if (mission.objective.type === 'proxy-bid') {
+      this.renderProxyBidMission(mission);
+      return;
+    }
+    if (mission.objective.type === 'rival-deal') {
+      this.renderAntonDealMission(mission);
+      return;
+    }
     if (mission.objective.type === 'limited-preview') {
       this.renderClosedCirclePreview(mission);
       return;
@@ -231,7 +268,23 @@ export class CampaignScene extends Phaser.Scene {
       this.renderClosedCircleSealedBid(mission);
       return;
     }
-    if (mission.objective.type === 'relationship-gate') this.renderClosedCircleSponsor(mission);
+    if (mission.objective.type === 'relationship-gate') {
+      this.renderClosedCircleSponsor(mission);
+      return;
+    }
+    if (mission.objective.type === 'counterfeit-table') {
+      this.renderCounterfeitTable(mission);
+      return;
+    }
+    if (mission.objective.type === 'route-plan') {
+      this.renderFinaleRoute(mission);
+      return;
+    }
+    if (mission.objective.type === 'finale-prep') {
+      this.renderFinalePrep(mission);
+      return;
+    }
+    if (mission.objective.type === 'finale') this.renderFinaleMission();
   }
 
   private renderEvidenceLotChoice(mission: CampaignMission): void {
@@ -326,6 +379,30 @@ export class CampaignScene extends Phaser.Scene {
     button(this, 1030, 624, this.locale === 'ru' ? 'Это подделка' : 'It is forged', () => this.complete(mission.id), { width: 250, height: 54, background: 0x543127, accent: VISUAL.warm, fontSize: 10 });
   }
 
+  private renderRestorationTraceMission(mission: CampaignMission): void {
+    this.add.image(1090, 420, 'evidence-restored-serial').setDisplaySize(195, 118);
+    this.label(610, 570, this.locale === 'ru' ? 'Пыль закрывает номер. Сохранить патину важнее, чем сделать металл блестящим.' : 'Dust hides the serial. Preserving patina matters more than making the brass shine.', 10, VISUAL.faint).setWordWrapWidth(400);
+    const methods = [
+      { id: 'dry-brush' as const, ru: 'Сухая кисть', en: 'Dry brush' },
+      { id: 'solvent-wash' as const, ru: 'Растворитель', en: 'Solvent wash' },
+      { id: 'abrasive-polish' as const, ru: 'Абразивная полировка', en: 'Abrasive polish' },
+    ];
+    methods.forEach((method, index) => {
+      button(this, 710 + index * 202, 624, this.locale === 'ru' ? method.ru : method.en, () => {
+        const result = resolveRestorationTrace(method.id);
+        if (result.revealedSerial && result.preservedEvidence) {
+          this.campaign.chooseBranch(`restoration-trace:${method.id}`);
+          this.complete(mission.id);
+          return;
+        }
+        this.feedback = result.preservedEvidence
+          ? (this.locale === 'ru' ? 'Патина цела, но растворитель не проявил слабую гравировку. Попробуйте менее влажный метод.' : 'The patina survives, but the wash does not reveal the faint engraving. Try a drier method.')
+          : (this.locale === 'ru' ? 'Полировка сняла верхний слой вместе со следом. Это тренировочная попытка — выберите безопаснее.' : 'Polishing removes the surface along with the trace. This practice attempt resets — choose a safer method.');
+        this.render();
+      }, { width: 184, height: 52, background: method.id === 'dry-brush' ? 0x3a3021 : 0x29313b, accent: method.id === 'dry-brush' ? VISUAL.warm : 0x68717d, fontSize: 9 });
+    });
+  }
+
   private renderMiraNegotiation(mission: CampaignMission): void {
     const cash = this.campaign.snapshot.cash;
     this.add.image(1090, 420, 'private-invitation').setDisplaySize(195, 118);
@@ -381,6 +458,53 @@ export class CampaignScene extends Phaser.Scene {
       this.campaign.chooseBranch('dealer-ally-mira-victor-reaction', 'npc-0', { rivalry: 5 });
       this.complete(mission.id);
     }, { width: 260, height: 54, background: 0x302843, accent: VISUAL.purple, fontSize: 10 });
+  }
+
+  private renderProxyBidMission(mission: CampaignMission): void {
+    this.add.image(1090, 420, 'dealer-proxy-sheet').setDisplaySize(200, 126);
+    this.label(610, 570, this.locale === 'ru' ? 'Архивный конверт требует около 6 400 ₽. Приманка съедает лимит, но выглядит дороже.' : 'The archive envelope needs roughly 6,400 ₽. The decoy consumes the cap but looks more expensive.', 10, VISUAL.faint).setWordWrapWidth(420);
+    const allocations = [
+      { targetBid: 6700, decoyBid: 1700 },
+      { targetBid: 5200, decoyBid: 4200 },
+      { targetBid: 6900, decoyBid: 4300 },
+    ];
+    allocations.forEach((allocation, index) => {
+      const result = resolveProxyBidAllocation(allocation, 6400, 4300, mission.objective.budget ?? 9500);
+      const label = `${this.money(allocation.targetBid)} / ${this.money(allocation.decoyBid)}`;
+      button(this, 710 + index * 202, 624, label, () => {
+        if (result.winsTarget) {
+          this.campaign.chooseBranch(`proxy-bid:${allocation.targetBid}:${allocation.decoyBid}`);
+          this.complete(mission.id);
+          return;
+        }
+        this.feedback = !result.withinBudget
+          ? (this.locale === 'ru' ? 'Сумма двух конвертов превышает общий лимит 9 500 ₽.' : 'The two proxy slips exceed the shared 9,500 ₽ envelope.')
+          : (this.locale === 'ru' ? 'Архивный конверт недофинансирован. Приманка забрала слишком большую часть лимита.' : 'The archive slip is underfunded. The decoy consumed too much of the envelope.');
+        this.render();
+      }, { width: 184, height: 52, background: result.winsTarget ? 0x3a3021 : 0x29313b, accent: result.winsTarget ? VISUAL.warm : 0x68717d, fontSize: 9 });
+    });
+  }
+
+  private renderAntonDealMission(mission: CampaignMission): void {
+    const cash = this.campaign.snapshot.cash;
+    this.add.image(1090, 420, 'dealer-proxy-sheet').setDisplaySize(200, 126);
+    this.label(610, 570, this.locale === 'ru' ? 'Любой вариант даёт имя. Цена определяет, кем Антон станет в оставшейся кампании.' : 'Every option gets the alias. The price determines what Anton becomes for the rest of the campaign.', 10, VISUAL.faint).setWordWrapWidth(420);
+    button(this, 706, 624, this.locale === 'ru' ? '1 800 ₽ сейчас' : '1,800 ₽ now', () => {
+      if (!this.campaign.payBranchChoice('anton-paid-cash', 1800, 'npc-2', { trust: 5, rivalry: -4 })) {
+        this.feedback = this.locale === 'ru' ? 'Недостаточно денег для контрпредложения.' : 'Not enough cash for the counteroffer.';
+        this.render();
+        return;
+      }
+      this.complete(mission.id);
+    }, { width: 190, height: 54, disabled: cash < 1800, background: 0x3b3020, accent: VISUAL.warm, fontSize: 9 });
+    button(this, 910, 624, this.locale === 'ru' ? 'Будущая услуга' : 'Future favor', () => {
+      this.campaign.chooseBranch('anton-owed-favor', 'npc-2', { trust: 2, debt: 12 });
+      this.complete(mission.id);
+    }, { width: 190, height: 54, background: 0x302843, accent: VISUAL.purple, fontSize: 9 });
+    button(this, 1114, 624, this.locale === 'ru' ? 'Взять имя и уйти' : 'Take alias and walk', () => {
+      this.campaign.chooseBranch('anton-refused-payment', 'npc-2', { rivalry: 12 });
+      this.complete(mission.id);
+    }, { width: 190, height: 54, background: 0x302a2a, accent: 0xc35d54, fontSize: 9 });
   }
 
   private renderClosedCirclePreview(mission: CampaignMission): void {
@@ -467,6 +591,83 @@ export class CampaignScene extends Phaser.Scene {
       }
       this.complete(mission.id);
     }, { width: 260, height: 56, disabled: save.cash < cost, background: 0x4a3024, accent: VISUAL.warm, fontSize: 10 });
+  }
+
+  private renderCounterfeitTable(mission: CampaignMission): void {
+    this.add.image(1090, 416, 'counterfeit-table').setDisplaySize(205, 130);
+    const prefix = 'counterfeit-pick:';
+    const selected = this.campaign.progress.branchChoiceIds.filter((id) => id.startsWith(prefix)).map((id) => id.slice(prefix.length));
+    const required = mission.objective.targetIds ?? ['folder-17', 'wax-card-c'];
+    const result = evaluateCounterfeitSelection(selected, required, mission.objective.target ?? 2);
+    this.label(610, 568, `${this.locale === 'ru' ? 'Выбрано' : 'Selected'}: ${result.selectedIds.length}/${mission.objective.target ?? 2}`, 10, VISUAL.faint, 'bold');
+
+    if (result.complete) {
+      if (result.correct) {
+        this.completeButton(mission.id, this.locale === 'ru' ? 'Подтвердить подлинность' : 'Confirm genuine pair');
+        return;
+      }
+      this.feedback = this.locale === 'ru' ? 'Пара не сходится по материалам. Подделки смешивают настоящий штамп с неправильной бумагой или воском.' : 'The pair fails the material check. The fakes combine a real stamp with the wrong paper or wax.';
+      this.campaign.resetBranchChoices(prefix);
+      this.render();
+      return;
+    }
+
+    COUNTERFEIT_OPTIONS.forEach((option, index) => {
+      const picked = result.selectedIds.includes(option.id);
+      button(this, 685 + index * 145, 624, this.locale === 'ru' ? option.ru : option.en, () => {
+        if (picked || result.selectedIds.length >= (mission.objective.target ?? 2)) return;
+        this.campaign.chooseBranch(`${prefix}${option.id}`);
+        this.render();
+      }, { width: 136, height: 60, disabled: picked, background: picked ? 0x4d4026 : 0x29313b, accent: picked ? VISUAL.warm : 0x68717d, fontSize: 8 });
+    });
+  }
+
+  private renderFinaleRoute(mission: CampaignMission): void {
+    this.add.image(1090, 416, 'final-route-map').setDisplaySize(205, 130);
+    this.label(610, 568, this.locale === 'ru' ? 'Используйте только уже найденные улики. Ошибочный маршрут не списывает деньги.' : 'Use only evidence you already found. A wrong route does not charge cash.', 10, VISUAL.faint).setWordWrapWidth(420);
+    const routes: Array<{ id: FinaleRouteId; ru: string; en: string }> = [
+      { id: 'north-depot', ru: 'Северное депо', en: 'North depot' },
+      { id: 'river-archive', ru: 'Речной архив', en: 'River archive' },
+      { id: 'museum-annex', ru: 'Музейный флигель', en: 'Museum annex' },
+    ];
+    routes.forEach((route, index) => {
+      button(this, 710 + index * 202, 624, this.locale === 'ru' ? route.ru : route.en, () => {
+        const result = resolveFinaleRoute(route.id, this.campaign.progress.evidenceIds);
+        if (result.correct) {
+          this.campaign.chooseBranch(`finale-route:${route.id}`);
+          this.complete(mission.id);
+          return;
+        }
+        this.feedback = result.evidenceScore < 2
+          ? (this.locale === 'ru' ? 'Недостаточно подтверждённых связей на доске. Проверьте предыдущие улики.' : 'Not enough confirmed links on the board. Review the previous evidence.')
+          : (this.locale === 'ru' ? 'Этот маршрут не сходится одновременно с индексом и списком покупателей.' : 'This route does not fit both the index and buyer list.');
+        this.render();
+      }, { width: 184, height: 52, background: route.id === 'river-archive' ? 0x3a3021 : 0x29313b, accent: route.id === 'river-archive' ? VISUAL.warm : 0x68717d, fontSize: 9 });
+    });
+  }
+
+  private renderFinalePrep(mission: CampaignMission): void {
+    this.add.image(1090, 416, 'private-invitation').setDisplaySize(195, 118);
+    this.label(610, 568, this.locale === 'ru' ? 'Союзник не даёт бесплатных цен. Он меняет только отношение и качество информации в эпилоге.' : 'An ally never reveals free exact values. The choice only changes relationships and epilogue context.', 10, VISUAL.faint).setWordWrapWidth(420);
+    button(this, 706, 624, this.locale === 'ru' ? 'Виктор' : 'Victor', () => {
+      this.campaign.chooseBranch('finale-partner-victor', 'npc-0', { trust: 12, debt: 4 });
+      this.campaign.chooseBranch('finale-partner-victor-mira', 'npc-1', { rivalry: 3 });
+      this.complete(mission.id);
+    }, { width: 190, height: 54, background: 0x3a3021, accent: VISUAL.warm, fontSize: 10 });
+    button(this, 910, 624, this.locale === 'ru' ? 'Мира' : 'Mira', () => {
+      this.campaign.chooseBranch('finale-partner-mira', 'npc-1', { trust: 12, debt: 4 });
+      this.campaign.chooseBranch('finale-partner-mira-victor', 'npc-0', { rivalry: 3 });
+      this.complete(mission.id);
+    }, { width: 190, height: 54, background: 0x302843, accent: VISUAL.purple, fontSize: 10 });
+    button(this, 1114, 624, this.locale === 'ru' ? 'Идти одному' : 'Go alone', () => {
+      this.campaign.chooseBranch('finale-partner-solo');
+      this.complete(mission.id);
+    }, { width: 190, height: 54, background: 0x29313b, accent: 0x68717d, fontSize: 10 });
+  }
+
+  private renderFinaleMission(): void {
+    this.label(610, 572, this.locale === 'ru' ? 'Финал использует отдельный общий бюджет. После подтверждения выбора коллекция и обычная экономика не сбрасываются.' : 'The finale uses a separate shared envelope. Completing it does not reset collection or the normal economy.', 10, VISUAL.faint).setWordWrapWidth(430);
+    button(this, 1036, 612, this.locale === 'ru' ? 'Войти в финальный аукцион' : 'Enter final auction', () => this.scene.start('campaign-finale'), { width: 300, height: 58, background: VISUAL.warm, accent: 0xffd260, foreground: '#111318', fontSize: 11 });
   }
 
   private previewItemLabel(id: string): string {
