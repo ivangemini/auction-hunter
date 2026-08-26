@@ -129,14 +129,79 @@ export class CampaignFinaleScene extends Phaser.Scene {
   private renderEpilogue(epilogueId: string): void {
     this.children.removeAll(true);
     addAtmosphere(this, WIDTH, HEIGHT, VISUAL.warm, 1100);
-    this.add.image(640, 360, 'campaign-veyr-estate').setDisplaySize(1280, 720).setAlpha(0.48);
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x07090c, 0.66).setOrigin(0);
+    this.add.image(640, 360, 'campaign-veyr-estate').setDisplaySize(1280, 720).setAlpha(0.58);
+    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x07090c, 0.57).setOrigin(0);
     const copy = this.epilogueCopy(epilogueId);
-    this.add.text(640, 150, this.locale === 'ru' ? 'ДЕЛО ЗАКРЫТО' : 'CASE CLOSED', { fontFamily: 'Arial, sans-serif', fontSize: '15px', fontStyle: 'bold', color: '#d6a45f' }).setOrigin(0.5);
-    this.add.text(640, 205, copy.title, { fontFamily: 'Georgia, serif', fontSize: '36px', fontStyle: 'bold', color: '#f0c969', align: 'center' }).setOrigin(0.5);
-    this.add.text(640, 282, copy.body, { fontFamily: 'Arial, sans-serif', fontSize: '15px', color: '#c0c7d0', align: 'center', lineSpacing: 7, wordWrap: { width: 720 } }).setOrigin(0.5, 0);
-    this.add.text(640, 480, this.locale === 'ru' ? '+5 000 ₽  ·  +300 REP\nEndless Dealer Career открыт. Экономика, коллекция и P8-системы сохранены.' : '+5,000 ₽  ·  +300 REP\nEndless Dealer Career unlocked. Economy, collection and P8 systems remain intact.', { fontFamily: 'Arial, sans-serif', fontSize: '13px', fontStyle: 'bold', color: '#63d28d', align: 'center', lineSpacing: 5 }).setOrigin(0.5);
-    button(this, 640, 592, this.locale === 'ru' ? 'Продолжить карьеру' : 'Continue Dealer Career', () => this.scene.start('auction'), { width: 330, height: 58, background: VISUAL.warm, accent: 0xffd260, foreground: '#111318', fontSize: 12 });
+    this.add.text(640, 86, this.locale === 'ru' ? 'ДЕЛО ЗАКРЫТО' : 'CASE CLOSED', { fontFamily: 'Arial, sans-serif', fontSize: '14px', fontStyle: 'bold', color: '#d6a45f' }).setOrigin(0.5);
+    this.add.text(640, 132, copy.title, { fontFamily: 'Georgia, serif', fontSize: '36px', fontStyle: 'bold', color: '#f0c969', align: 'center' }).setOrigin(0.5);
+    this.add.text(640, 188, copy.body, { fontFamily: 'Arial, sans-serif', fontSize: '14px', color: '#c0c7d0', align: 'center', lineSpacing: 6, wordWrap: { width: 760 } }).setOrigin(0.5, 0);
+
+    this.add.text(640, 292, this.epilogueContext(), {
+      fontFamily: 'Arial, sans-serif', fontSize: '11px', fontStyle: 'bold', color: '#d6b678', align: 'center',
+    }).setOrigin(0.5);
+    this.renderEpilogueLots();
+
+    this.add.text(640, 524, this.locale === 'ru'
+      ? '+5 000 ₽  ·  +300 REP\nENDLESS DEALER CAREER ОТКРЫТ · коллекция, экономика и P8-системы сохранены'
+      : '+5,000 ₽  ·  +300 REP\nENDLESS DEALER CAREER UNLOCKED · collection, economy and P8 systems remain intact', {
+      fontFamily: 'Arial, sans-serif', fontSize: '12px', fontStyle: 'bold', color: '#63d28d', align: 'center', lineSpacing: 5,
+    }).setOrigin(0.5);
+    button(this, 640, 620, this.locale === 'ru' ? 'Продолжить карьеру' : 'Continue Dealer Career', () => this.scene.start('auction'), { width: 330, height: 58, background: VISUAL.warm, accent: 0xffd260, foreground: '#111318', fontSize: 12 });
+  }
+
+  private renderEpilogueLots(): void {
+    const acquiredIds = this.epilogueAcquiredIds();
+    const y = 326;
+    FINALE_LOTS.forEach((lot, index) => {
+      const x = 150 + index * 246;
+      const acquired = acquiredIds.has(lot.id);
+      const copy = LABELS[lot.id]!;
+      addSurface(this, x, y, 224, 158, {
+        fill: acquired ? 0x241f15 : 0x111419,
+        accent: acquired ? VISUAL.warm : 0x4d5661,
+        strokeAlpha: acquired ? 0.62 : 0.2,
+        glowAlpha: acquired ? 0.022 : 0.004,
+      });
+      this.add.image(x + 112, y + 49, lot.id)
+        .setDisplaySize(112, 74)
+        .setAlpha(acquired ? 1 : 0.24);
+      this.add.text(x + 12, y + 91, this.locale === 'ru' ? copy.ru : copy.en, {
+        fontFamily: 'Arial, sans-serif', fontSize: '10px', fontStyle: 'bold', color: acquired ? '#f7f3e8' : '#6f7780', align: 'center',
+      }).setOrigin(0, 0).setWordWrapWidth(200);
+      this.add.text(x + 112, y + 137, acquired
+        ? (this.locale === 'ru' ? 'ВОЗВРАЩЕНО В ДЕЛО' : 'RECOVERED')
+        : (this.locale === 'ru' ? 'УШЛО СОПЕРНИКАМ' : 'LOST TO RIVALS'), {
+        fontFamily: 'Arial, sans-serif', fontSize: '9px', fontStyle: 'bold', color: acquired ? '#e9b949' : '#69727d', align: 'center',
+      }).setOrigin(0.5);
+    });
+  }
+
+  private epilogueAcquiredIds(): Set<string> {
+    const prefix = 'finale-pick:';
+    return new Set(this.campaign.progress.branchChoiceIds
+      .filter((choice) => choice.startsWith(prefix))
+      .map((choice) => choice.slice(prefix.length)));
+  }
+
+  private epilogueContext(): string {
+    const choices = this.campaign.progress.branchChoiceIds;
+    const route = choices.find((choice) => choice.startsWith('finale-route:'))?.slice('finale-route:'.length) ?? null;
+    const routeLabel = route === 'river-archive'
+      ? (this.locale === 'ru' ? 'Речной архив' : 'River Archive')
+      : route === 'north-depot'
+        ? (this.locale === 'ru' ? 'Северное депо' : 'North Depot')
+        : route === 'museum-annex'
+          ? (this.locale === 'ru' ? 'Музейный флигель' : 'Museum Annex')
+          : (this.locale === 'ru' ? 'Маршрут не зафиксирован' : 'Route unresolved');
+    const partnerLabel = choices.includes('finale-partner-mira')
+      ? (this.locale === 'ru' ? 'Мира' : 'Mira')
+      : choices.includes('finale-partner-victor')
+        ? (this.locale === 'ru' ? 'Виктор' : 'Victor')
+        : (this.locale === 'ru' ? 'Без партнёра' : 'Solo');
+    const acquired = this.epilogueAcquiredIds().size;
+    return this.locale === 'ru'
+      ? `ФИНАЛЬНЫЙ ПРОТОКОЛ · маршрут: ${routeLabel} · партнёр: ${partnerLabel} · возвращено ${acquired}/4`
+      : `FINAL AUCTION RECORD · route: ${routeLabel} · partner: ${partnerLabel} · recovered ${acquired}/4`;
   }
 
   private epilogueCopy(id: string): { title: string; body: string } {
