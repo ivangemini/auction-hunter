@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import './styles.css';
 import { trackEvent } from './analytics';
+import { registerCampaignAftermathDiscovery } from './data/campaignAftermathDiscovery';
 import { registerCampaignBreadth } from './data/campaignBreadth';
+import { registerCampaignBreadthFive } from './data/campaignBreadthFive';
 import { registerCampaignBreadthFour } from './data/campaignBreadthFour';
 import { registerCampaignBreadthThree } from './data/campaignBreadthThree';
 import { registerCampaignBreadthTwo } from './data/campaignBreadthTwo';
@@ -39,9 +41,11 @@ async function bootstrap(): Promise<void> {
   registerCampaignBreadthTwo();
   registerCampaignBreadthThree();
   registerCampaignBreadthFour();
+  registerCampaignBreadthFive();
   registerCampaignFinaleBreadth();
   registerNadiaCampaignArc();
   registerCampaignDiscoveryChains();
+  registerCampaignAftermathDiscovery();
   installBrowserGuards();
   applyAccessibilityPreferences();
   await initYandexSdk();

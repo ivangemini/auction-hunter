@@ -3,9 +3,9 @@ import { ITEM_BY_ID } from './catalog';
 import { COLLECTION_SETS } from './collections';
 
 describe('collection breadth', () => {
-  it('keeps thirty-four stable unique collection goal ids', () => {
-    expect(COLLECTION_SETS).toHaveLength(34);
-    expect(new Set(COLLECTION_SETS.map((set) => set.id)).size).toBe(34);
+  it('keeps thirty-six stable unique collection goal ids', () => {
+    expect(COLLECTION_SETS).toHaveLength(36);
+    expect(new Set(COLLECTION_SETS.map((set) => set.id)).size).toBe(36);
   });
 
   it('keeps every collection goal bilingual, rewarding and backed by real items', () => {
@@ -31,7 +31,7 @@ describe('collection breadth', () => {
       'broadcast-age', 'prototype-cabinet', 'collector-desk', 'after-hours-exhibit',
       'field-workshop', 'projection-room', 'archive-desk', 'field-archive',
       'investigation-kit', 'veyr-expedition', 'communications-desk', 'records-workroom',
-      'border-records', 'field-transmission',
+      'border-records', 'field-transmission', 'clearance-control', 'signal-and-time',
     ]) {
       expect(COLLECTION_SETS.some((set) => set.id === id), id).toBe(true);
     }

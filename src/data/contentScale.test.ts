@@ -5,13 +5,13 @@ import { COLLECTION_SETS } from './collections';
 import { AUCTION_TIERS } from './tiers';
 
 describe('content scale', () => {
-  it('ships the expanded 66-item, 42-lot and 34-set catalog', () => {
-    expect(ITEMS).toHaveLength(66);
+  it('ships the expanded 72-item, 42-lot and 36-set catalog', () => {
+    expect(ITEMS).toHaveLength(72);
     expect(ALL_LOTS).toHaveLength(42);
-    expect(COLLECTION_SETS).toHaveLength(34);
-    expect(new Set(ITEMS.map((item) => item.id)).size).toBe(66);
+    expect(COLLECTION_SETS).toHaveLength(36);
+    expect(new Set(ITEMS.map((item) => item.id)).size).toBe(72);
     expect(new Set(ALL_LOTS.map((lot) => lot.id)).size).toBe(42);
-    expect(new Set(COLLECTION_SETS.map((set) => set.id)).size).toBe(34);
+    expect(new Set(COLLECTION_SETS.map((set) => set.id)).size).toBe(36);
   });
 
   it('gives every tier fourteen distinct lot variants', () => {
