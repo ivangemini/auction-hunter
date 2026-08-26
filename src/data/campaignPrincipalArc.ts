@@ -1,4 +1,4 @@
-import { CAMPAIGN_MISSIONS, type CampaignMission } from './campaign';
+import { CAMPAIGN_EVIDENCE, CAMPAIGN_MISSIONS, type CampaignMission } from './campaign';
 
 export const NADIA_ARCHIVE_MISSION: CampaignMission = {
   id: 'dealer-war-nadia-archive',
@@ -25,11 +25,19 @@ export const NADIA_ARCHIVE_MISSION: CampaignMission = {
   artId: 'provenance-folder',
 };
 
-/**
- * Additive graph install keeps the base story file stable while inserting Nadia
- * between the ally decision and the shared-envelope proxy auction.
- */
 export function registerNadiaCampaignArc(): void {
+  if (!CAMPAIGN_EVIDENCE.some((entry) => entry.id === 'nadia-carrier-card')) {
+    CAMPAIGN_EVIDENCE.push({
+      id: 'nadia-carrier-card',
+      title: { ru: 'Карточка речного перевозчика', en: 'River Carrier Card' },
+      description: {
+        ru: 'Архив Нади связывает код C-17 с перевозчиком, который обслуживал речные склады Вейра.',
+        en: "Nadia's archive links code C-17 to a carrier that served Veyr's river warehouses.",
+      },
+      artId: 'provenance-folder',
+    });
+  }
+
   if (!CAMPAIGN_MISSIONS.some((mission) => mission.id === NADIA_ARCHIVE_MISSION.id)) {
     CAMPAIGN_MISSIONS.push({ ...NADIA_ARCHIVE_MISSION });
   }
