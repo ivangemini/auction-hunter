@@ -100,6 +100,14 @@ jobs:
           path: release/screenshots/office-review/**/*.png
           if-no-files-found: error
           retention-days: 7
+      - run: node scripts/capture-showroom-review.mjs
+      - name: Upload P10 Showroom visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-showroom-review-ci
+          path: release/screenshots/showroom-review/**/*.png
+          if-no-files-found: error
+          retention-days: 7
       - run: node scripts/capture-campaign-review.mjs
       - run: node scripts/capture-campaign-assets-review.mjs
       - run: node scripts/capture-p9-campaign-assets-compact-review.mjs
