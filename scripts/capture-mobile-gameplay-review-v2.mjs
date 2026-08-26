@@ -270,13 +270,20 @@ async function captureLocale(browser, localeCode, locale) {
     assert((await imageDifferenceRatio(page, timing, restorationResult)) > 0.08, `${localeCode} restoration result did not visibly replace timing`);
 
     const cashBeforeSale = await readSaveCash(page);
+    const dispositionsBefore = await eventCount(page, 'item_dispositioned');
+    const revealsBeforeSale = await eventCount(page, 'item_revealed');
     await clickGame(page, 928, 572);
     const cashAfterSale = await waitForSaveCashAbove(page, cashBeforeSale);
-    await page.waitForTimeout(180);
-    const saleTransition = await capture(page, outputDir, '06-sell-feedback.png', `${localeCode} compact post-sale transition`);
-    const transitionDifference = await imageDifferenceRatio(page, restorationResult, saleTransition);
-    assert(transitionDifference > 0.18, `${localeCode} sale did not visibly advance to the next item (${transitionDifference.toFixed(4)})`);
-    console.log(`${localeCode} compact sale persisted ${cashBeforeSale} -> ${cashAfterSale}; next-item delta ${transitionDifference.toFixed(4)}`);
+    await waitForEventCount(page, 'item_dispositioned', dispositionsBefore + 1);
+    await page.waitForTimeout(240);
+
+    await activateUntilEvent(page, 640, 596, 'item_revealed', 8, 180);
+    await waitForEventCount(page, 'item_revealed', revealsBeforeSale + 1);
+    await page.waitForTimeout(320);
+    const nextReveal = await capture(page, outputDir, '06-next-item-reveal.png', `${localeCode} compact next-item reveal after sale`);
+    const nextRevealDifference = await imageDifferenceRatio(page, restorationResult, nextReveal);
+    assert(nextRevealDifference > 0.08, `${localeCode} next item did not visibly replace sold item (${nextRevealDifference.toFixed(4)})`);
+    console.log(`${localeCode} compact sale persisted ${cashBeforeSale} -> ${cashAfterSale}; next item emitted item_revealed and delta ${nextRevealDifference.toFixed(4)}`);
 
     await page.close();
   } finally {
@@ -319,7 +326,7 @@ for (const locale of ['ru', 'en']) {
     '03-restoration-mode.png',
     '04-restoration-timing.png',
     '05-restoration-result.png',
-    '06-sell-feedback.png',
+    '06-next-item-reveal.png',
   ]) console.log(`release/screenshots/mobile-gameplay-review/${locale}/${file}`);
 }
-console.log('P7 compact gameplay review OK: reveal, appraisal, restoration and persisted sell transition on RU/EN 844x390');
+console.log('P7 compact gameplay review OK: reveal, appraisal, restoration, persisted sale and next-item progression on RU/EN 844x390');
