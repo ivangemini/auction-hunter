@@ -11,20 +11,14 @@ const viteCli = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const SAVE_KEY = 'auction-hunter.save.v1';
-const NEW_ITEMS = [
-  'slide-projector',
-  'watchmaker-tools',
-  'field-compass',
-  'tin-airplane',
-  'mantel-clock',
-  'numbered-lithograph',
-  'archivist-loupe',
-  'microfilm-reader',
-  'wax-seal-box',
-  'auctioneers-ledger',
-  'brass-cipher-wheel',
-  'expedition-camera',
+const FIRST_WAVE_ITEMS = [
+  'slide-projector', 'watchmaker-tools', 'field-compass', 'tin-airplane', 'mantel-clock', 'numbered-lithograph',
+  'archivist-loupe', 'microfilm-reader', 'wax-seal-box', 'auctioneers-ledger', 'brass-cipher-wheel', 'expedition-camera',
 ];
+const SECOND_P9_ITEMS = [
+  'field-recorder', 'postal-scale', 'negative-album', 'brass-map-case', 'surveyor-transit', 'lacquer-document-case',
+];
+const NEW_ITEMS = [...FIRST_WAVE_ITEMS, ...SECOND_P9_ITEMS];
 
 const seedSave = {
   version: 1,
@@ -134,9 +128,11 @@ async function validateSources() {
   }
 }
 
-async function captureArtSheet(browser) {
+async function captureArtSheet(browser, ids, filename, title, meta) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
-  const cards = NEW_ITEMS.map((id, index) => `
+  const columns = ids.length <= 6 ? 3 : 4;
+  const rows = Math.ceil(ids.length / columns);
+  const cards = ids.map((id, index) => `
     <article class="card">
       <div class="rank">${String(index + 1).padStart(2, '0')}</div>
       <img src="${previewUrl}/assets/items/${id}.svg" alt="${id}">
@@ -148,15 +144,15 @@ async function captureArtSheet(browser) {
     main{width:1280px;height:720px;padding:26px 32px;background:radial-gradient(circle at 50% 18%,#1b2028 0,#0b0e13 62%)}
     header{height:58px;border-bottom:1px solid rgba(233,185,73,.24);display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
     h1{font-size:23px;margin:0}.meta{font-size:11px;color:#8f98a4;font-weight:700;letter-spacing:.08em}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:11px;height:588px}
+    .grid{display:grid;grid-template-columns:repeat(${columns},1fr);grid-template-rows:repeat(${rows},1fr);gap:11px;height:588px;max-width:${ids.length <= 6 ? '930px' : '1216px'};margin:${ids.length <= 6 ? '0 auto' : '0'}}
     .card{position:relative;border:1px solid rgba(233,185,73,.22);background:linear-gradient(145deg,rgba(24,29,36,.98),rgba(12,16,22,.98));overflow:hidden;box-shadow:0 7px 16px rgba(0,0,0,.32)}
     img{width:100%;height:calc(100% - 31px);object-fit:contain;padding:5px 17px 0}.rank{position:absolute;top:7px;left:8px;z-index:2;padding:4px 7px;border:1px solid rgba(233,185,73,.32);background:rgba(18,22,28,.86);color:#d8a94e;font-size:9px;font-weight:700}
     .name{position:absolute;bottom:0;left:0;right:0;height:31px;padding:8px 10px 0;background:rgba(5,8,12,.88);border-top:1px solid rgba(255,255,255,.06);font-size:10px;font-weight:700}
-  </style></head><body><main><header><h1>P5 + P9 · Expansion Item Art</h1><div class="meta">12 DIRECT IDS · 512×360 SVG · NO FALLBACKS</div></header><section class="grid">${cards}</section></main></body></html>`, { waitUntil: 'load' });
-  await page.waitForFunction((count) => [...document.images].length === count && [...document.images].every((image) => image.complete && image.naturalWidth > 0), NEW_ITEMS.length);
+  </style></head><body><main><header><h1>${title}</h1><div class="meta">${meta}</div></header><section class="grid">${cards}</section></main></body></html>`, { waitUntil: 'load' });
+  await page.waitForFunction((count) => [...document.images].length === count && [...document.images].every((image) => image.complete && image.naturalWidth > 0), ids.length);
   const screenshot = await page.screenshot({ type: 'png' });
-  validatePng(screenshot, 'expanded item art');
-  fs.writeFileSync(path.join(outputRoot, '01-item-art-breadth.png'), screenshot);
+  validatePng(screenshot, filename);
+  fs.writeFileSync(path.join(outputRoot, filename), screenshot);
   await page.close();
 }
 
@@ -185,27 +181,27 @@ async function captureCollectionLocale(browser, localeCode, locale) {
     await clickGame(page, 1000, 112);
     await page.waitForTimeout(650);
 
-    for (let pageIndex = 1; pageIndex < 6; pageIndex += 1) {
+    for (let pageIndex = 1; pageIndex < 7; pageIndex += 1) {
       await clickGame(page, 735, 674);
       await page.waitForTimeout(240);
     }
-    const pageSix = await page.screenshot({ type: 'png' });
+    const pageSeven = await page.screenshot({ type: 'png' });
     await clickGame(page, 735, 674);
     await page.waitForTimeout(280);
-    const pageSeven = await page.screenshot({ type: 'png' });
-    validatePng(pageSeven, `${localeCode} Collection Book page 7`);
-    const pageAdvance = await imageDifferenceRatio(page, pageSix, pageSeven);
-    assert(pageAdvance > 0.06, `${localeCode} did not visibly advance from Collection Book page 6 to page 7 (${pageAdvance.toFixed(3)})`);
+    const pageEight = await page.screenshot({ type: 'png' });
+    validatePng(pageEight, `${localeCode} Collection Book page 8`);
+    const pageAdvance = await imageDifferenceRatio(page, pageSeven, pageEight);
+    assert(pageAdvance > 0.06, `${localeCode} did not visibly advance from Collection Book page 7 to page 8 (${pageAdvance.toFixed(3)})`);
 
     await clickGame(page, 735, 674);
     await page.waitForTimeout(280);
     const finalRepeat = await page.screenshot({ type: 'png' });
-    const finalDifference = await imageDifferenceRatio(page, pageSeven, finalRepeat);
-    assert(finalDifference < 0.012, `${localeCode} Collection Book page 7 is not the terminal page (${finalDifference.toFixed(3)})`);
+    const finalDifference = await imageDifferenceRatio(page, pageEight, finalRepeat);
+    assert(finalDifference < 0.012, `${localeCode} Collection Book page 8 is not the terminal page (${finalDifference.toFixed(3)})`);
 
     const localeDir = path.join(outputRoot, localeCode);
     ensureDirectory(localeDir);
-    fs.writeFileSync(path.join(localeDir, '02-collection-page-7.png'), pageSeven);
+    fs.writeFileSync(path.join(localeDir, '03-collection-page-8.png'), pageEight);
     await page.close();
   } finally {
     await context.close();
@@ -228,7 +224,8 @@ try {
   await validateSources();
   const browser = await chromium.launch({ headless: true });
   try {
-    await captureArtSheet(browser);
+    await captureArtSheet(browser, FIRST_WAVE_ITEMS, '01-item-art-breadth.png', 'P5 + P9 · Expansion Item Art', '12 DIRECT IDS · 512×360 SVG · NO FALLBACKS');
+    await captureArtSheet(browser, SECOND_P9_ITEMS, '02-p9-second-item-wave.png', 'P9 · Investigation & Expedition Finds', '6 DIRECT IDS · SECOND CAMPAIGN BATCH');
     await captureCollectionLocale(browser, 'ru', 'ru-RU');
     await captureCollectionLocale(browser, 'en', 'en-US');
   } finally {
@@ -242,6 +239,7 @@ try {
 }
 
 console.log('release/screenshots/item-breadth-review/01-item-art-breadth.png');
-console.log('release/screenshots/item-breadth-review/ru/02-collection-page-7.png');
-console.log('release/screenshots/item-breadth-review/en/02-collection-page-7.png');
+console.log('release/screenshots/item-breadth-review/02-p9-second-item-wave.png');
+console.log('release/screenshots/item-breadth-review/ru/03-collection-page-8.png');
+console.log('release/screenshots/item-breadth-review/en/03-collection-page-8.png');
 console.log('P5 + P9 item/Collection Book visual review capture OK');
