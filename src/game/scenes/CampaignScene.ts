@@ -96,8 +96,7 @@ export class CampaignScene extends Phaser.Scene {
     } else {
       evidence.slice(0, 2).forEach((entry, index) => {
         const y = 318 + index * 162;
-        const texture = entry.artId;
-        this.add.image(158, y + 69, texture).setDisplaySize(146, 112);
+        this.add.image(158, y + 69, entry.artId).setDisplaySize(146, 112);
         this.label(250, y + 16, entry.title[this.locale], 15, '#f2e2bd', 'bold').setWordWrapWidth(278);
         this.label(250, y + 48, entry.description[this.locale], 11, '#aa9c82').setWordWrapWidth(274).setLineSpacing(3);
         this.add.line(250, y + 112, 0, 0, 230, 0, 0x8a2b2b, 0.45).setOrigin(0);
@@ -148,19 +147,27 @@ export class CampaignScene extends Phaser.Scene {
   }
 
   private renderMissionActions(mission: CampaignMission, auctionsPlayed: number, auctionsWon: number): void {
+    const progress = this.campaign.progress;
+    const playedBaseline = progress.missionBaselineAuctionsPlayed[mission.id] ?? auctionsPlayed;
+    const wonBaseline = progress.missionBaselineAuctionsWon[mission.id] ?? auctionsWon;
+
     if (mission.objective.type === 'play-auction') {
-      if (auctionsPlayed > 0) {
+      const gained = Math.max(0, auctionsPlayed - playedBaseline);
+      if (gained >= (mission.objective.target ?? 1)) {
         button(this, 1036, 588, this.locale === 'ru' ? 'Завершить задание' : 'Complete mission', () => this.complete(mission.id), { width: 260, height: 54, background: VISUAL.success });
       } else {
+        this.label(610, 586, this.locale === 'ru' ? `После старта: ${gained}/1 аукцион` : `Since mission start: ${gained}/1 auction`, 10, VISUAL.faint, 'bold');
         button(this, 1036, 588, this.locale === 'ru' ? 'Идти на торги' : 'Go to auction', () => this.scene.start('auction'), { width: 260, height: 54, background: VISUAL.rare });
       }
       return;
     }
 
     if (mission.objective.type === 'win-auction') {
-      if (auctionsWon > 0) {
+      const gained = Math.max(0, auctionsWon - wonBaseline);
+      if (gained >= (mission.objective.target ?? 1)) {
         button(this, 1036, 588, this.locale === 'ru' ? 'Отчитаться Виктору' : 'Report to Victor', () => this.complete(mission.id), { width: 260, height: 54, background: VISUAL.success });
       } else {
+        this.label(610, 586, this.locale === 'ru' ? `После старта: ${gained}/1 победа` : `Since mission start: ${gained}/1 win`, 10, VISUAL.faint, 'bold');
         button(this, 1036, 588, this.locale === 'ru' ? 'Выиграть лот' : 'Win a lot', () => this.scene.start('auction'), { width: 260, height: 54, background: VISUAL.rare });
       }
       return;
