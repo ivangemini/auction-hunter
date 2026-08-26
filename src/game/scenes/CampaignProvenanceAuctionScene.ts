@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import { trackEvent } from '../../analytics';
 import { campaignProvenanceVariantFor } from '../../data/campaignProvenanceVariants';
 import type { Locale, RevealedItem } from '../../domain/types';
