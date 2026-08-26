@@ -18,7 +18,10 @@ const FIRST_WAVE_ITEMS = [
 const SECOND_P9_ITEMS = [
   'field-recorder', 'postal-scale', 'negative-album', 'brass-map-case', 'surveyor-transit', 'lacquer-document-case',
 ];
-const NEW_ITEMS = [...FIRST_WAVE_ITEMS, ...SECOND_P9_ITEMS];
+const THIRD_P9_ITEMS = [
+  'telegraph-key', 'survey-notebook', 'stamp-press', 'plate-camera', 'coded-postcard-album', 'portable-duplicator',
+];
+const NEW_ITEMS = [...FIRST_WAVE_ITEMS, ...SECOND_P9_ITEMS, ...THIRD_P9_ITEMS];
 
 const seedSave = {
   version: 1,
@@ -201,7 +204,7 @@ async function captureCollectionLocale(browser, localeCode, locale) {
 
     const localeDir = path.join(outputRoot, localeCode);
     ensureDirectory(localeDir);
-    fs.writeFileSync(path.join(localeDir, '03-collection-page-8.png'), pageEight);
+    fs.writeFileSync(path.join(localeDir, '04-collection-page-8.png'), pageEight);
     await page.close();
   } finally {
     await context.close();
@@ -226,6 +229,7 @@ try {
   try {
     await captureArtSheet(browser, FIRST_WAVE_ITEMS, '01-item-art-breadth.png', 'P5 + P9 · Expansion Item Art', '12 DIRECT IDS · 512×360 SVG · NO FALLBACKS');
     await captureArtSheet(browser, SECOND_P9_ITEMS, '02-p9-second-item-wave.png', 'P9 · Investigation & Expedition Finds', '6 DIRECT IDS · SECOND CAMPAIGN BATCH');
+    await captureArtSheet(browser, THIRD_P9_ITEMS, '03-p9-third-item-wave.png', 'P9 · Records & Communications Finds', '6 DIRECT IDS · THIRD CAMPAIGN BATCH');
     await captureCollectionLocale(browser, 'ru', 'ru-RU');
     await captureCollectionLocale(browser, 'en', 'en-US');
   } finally {
@@ -240,6 +244,7 @@ try {
 
 console.log('release/screenshots/item-breadth-review/01-item-art-breadth.png');
 console.log('release/screenshots/item-breadth-review/02-p9-second-item-wave.png');
-console.log('release/screenshots/item-breadth-review/ru/03-collection-page-8.png');
-console.log('release/screenshots/item-breadth-review/en/03-collection-page-8.png');
+console.log('release/screenshots/item-breadth-review/03-p9-third-item-wave.png');
+console.log('release/screenshots/item-breadth-review/ru/04-collection-page-8.png');
+console.log('release/screenshots/item-breadth-review/en/04-collection-page-8.png');
 console.log('P5 + P9 item/Collection Book visual review capture OK');
