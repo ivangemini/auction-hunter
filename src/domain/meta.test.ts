@@ -47,6 +47,8 @@ const save: PlayerSave = {
     completedMissionIds: [],
     evidenceIds: [],
     branchChoiceIds: [],
+    missionBaselineAuctionsPlayed: {},
+    missionBaselineAuctionsWon: {},
     relationshipTrust: {},
     relationshipRivalry: {},
     relationshipDebt: {},
