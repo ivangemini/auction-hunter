@@ -16,6 +16,7 @@ jobs:
           node-version: '22'
       - run: npm ci
       - run: node scripts/validate-yandex-draft.mjs
+      - run: node scripts/validate-campaign-assets.mjs
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
