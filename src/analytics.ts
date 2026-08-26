@@ -31,6 +31,13 @@ export interface AnalyticsEventMap {
     rewardRep: number;
     rivalId?: string;
   };
+  campaign_provenance_variant_revealed: {
+    variantId: string;
+    itemId: string;
+    traitIds: ItemTraitId[];
+    appraisedValue: number;
+    bonusMultiplier: number;
+  };
   campaign_branch_chosen: { choiceId: string; rivalId?: string };
   campaign_relationship_auction_effect: {
     rivalId: string;
