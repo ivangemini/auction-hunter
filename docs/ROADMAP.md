@@ -72,7 +72,7 @@
 - [x] Keep all new lot clues truthful and all new items represented in at least one collection set.
 - [x] Raise automated content/replayability floors to the expanded catalog.
 - [x] Run economy simulation and browser/release CI against the expanded pack plus Buyer Market/per-copy traits.
-- [ ] During campaign production, expand toward roughly 72 items / 42 lots / 24+ sets; new content should primarily support authored campaign beats, special auctions and discoveries rather than raw breadth.
+- [ ] During campaign production, expand toward roughly 72 items / 42 lots / 24+ sets; current runtime breadth is 54 items / 42 lots / 30 sets.
 
 ## P6 — retention and trading depth
 - [x] Stable collectible traits/provenance tags for selected item identities.
@@ -117,26 +117,26 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [x] Establish the central mystery: fragments of the vanished collector Aleksandr Veyr's Black Ledger collection are surfacing through estate clearances and private auctions.
 - [x] Define the five-act arc: First Flip -> Estate Trail -> Dealer War -> Closed Circle -> The Lost Collection.
 - [x] Reuse existing REP/tier unlocks while campaign missions create additional authored gates and one-off opportunities.
-- [x] Add typed campaign analytics for mission start/completion, branch choices, relationship effects and campaign completion; abandonment/failure telemetry can be expanded after real playtests.
+- [x] Add typed campaign analytics for mission start/completion, branch choices, relationship effects, optional mastery and campaign completion.
 - [x] Add deterministic campaign integrity tests for prerequisites, authored evidence/rivals, bilingual copy and chapter-specific contracts.
 
 ### P9.2 — Narrative Office / investigation hub
 - [ ] Expand the existing Business Office itself into the campaign headquarters without replacing upgrades/contracts/statistics; the dedicated campaign hub currently provides the investigation layer.
 - [x] Add an Investigation Wall showing the Black Ledger trail, discovered evidence, active mission and chapter progress.
-- [ ] Add Inbox/Phone contacts for authored rival/mentor/collector messages and invitations.
+- [x] Add Inbox/Phone contacts for authored rival/collector messages and invitations; eight messages currently unlock across the campaign and use existing campaign persistence.
 - [x] Add campaign mission briefing cards with objective, known risk and visible reward.
-- [x] Keep campaign hub navigation compact-landscape safe and add deterministic RU/EN visual captures, including the final auction.
+- [x] Keep campaign hub navigation compact-landscape safe and add deterministic RU/EN visual captures for Hub, Inbox, Bonus Goals and Finale.
 
 ### P9.3 — Campaign mission gameplay
 - [x] Add objectives beyond simply winning one lot: evidence selection, linked-budget acquisition, forgery detection, restoration trace, rival tracking/deals, proxy bidding, limited inspection, sealed bid, counterfeit table, route planning and relationship gates.
 - [x] Add multi-lot mission sessions where budget carries across consecutive decisions and buying everything is intentionally impossible, including the four-lot finale.
 - [x] Add authored inspection choices before story auctions without exposing exact hidden value for free.
 - [x] Add off-auction negotiation encounters using cash/favor/relationship stakes.
-- [ ] Add optional mission objectives that alter rewards/relationships rather than blocking the campaign.
+- [x] Add optional mission objectives that alter rewards/relationships rather than blocking the campaign; five mastery objectives are evaluated once at mission completion and have a dedicated player-facing screen.
 - [x] Reuse normal auction progression for several campaign gates; Chapter V now requires three normal auctions plus two wins immediately before the final partner/finale sequence.
 
 ### P9.4 — Character arcs and consequential choices
-- [ ] Promote 4–5 existing dealers/characters into fully authored campaign principals; Victor, Mira and Anton currently carry the main mechanical arcs.
+- [ ] Promote 4–5 existing dealers/characters into fully authored campaign principals. Victor, Mira and Anton carry the main mission arcs; Nadia now has a repeated Inbox arc and an optional favor that changes her real auction relationship pressure, but needs at least one dedicated mission beat before this is fully closed.
 - [x] Extend relationships from learned bidding behavior into bounded campaign states: trust, rivalry and debt/favor.
 - [x] Add meaningful branch choices whose later consequences affect sponsorship, auction pressure, information and epilogue resolution.
 - [x] Keep exact NPC bid ceilings hidden regardless of relationship level.
@@ -144,15 +144,17 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 
 ### P9.5 — Story auctions and locations
 - [x] Build authored one-off campaign rulesets including linked-budget estate sale, counterfeit table, limited private preview, sealed bid and final multi-lot auction.
-- [ ] Reach at least 6 campaign-specific environment/hero compositions with semantic IDs and authored lighting/props; the current campaign asset family is substantial but environment breadth still needs another pass.
+- [x] Reach at least 6 campaign-specific environment/hero compositions with semantic IDs and authored lighting/props: estate study, records basement, dealer backroom, Closed Circle room, river archive and Veyr estate/finale.
 - [x] Generate/author new item art and environmental textures continuously with campaign content; campaign/P9 catalog additions use direct semantic assets rather than runtime aliases.
 - [x] Add visual evidence props including Black Ledger fragments, wax seal, invitation, provenance folder, maps, sponsor token, proxy sheets and final hero objects.
 - [x] Preserve truthful visual clues: story art and UI do not reveal exact hidden values or unrevealed identities for free.
 
 ### P9.6 — Campaign content breadth
 - [x] Add the first P9 story-driven catalog batch: six normal-auction identities with direct 512×360 art, real lot routes and two additive collection sets.
+- [x] Add a second six-item investigation/expedition batch with direct art, two routes per identity and two additional collection sets. Runtime catalog is now 54 items / 42 lots / 30 sets.
 - [ ] Expand total item catalog further toward ~72 identities, with direct art and at least one meaningful gameplay/story use per new identity.
-- [ ] Expand lot templates further toward ~42 and collection sets toward 24+ as later campaign breadth requires them.
+- [x] Lot-template target of ~42 has been reached while retaining fourteen distinct variants per tier.
+- [x] Collection-set target of 24+ has been exceeded without mutating old set IDs/rewards.
 - [ ] Add 10+ authored story-critical provenance variants whose significance can be discovered through appraisal/evidence rather than rarity color alone.
 - [ ] Add chapter-specific Discovery cases that cross-reference campaign evidence without making normal Discovery Board progress mandatory for the main story.
 
@@ -163,7 +165,7 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [x] Add persistent epilogue state and completion summary without deleting/resetting the player's economy; deeper campaign statistics remain a later polish item.
 
 ### P9 acceptance
-- [ ] Validate a complete fresh-save campaign playthrough end-to-end in browser/device QA; the authored graph now has a beginning, escalation, fifth-act prelude, climax and ending.
+- [ ] Validate a complete fresh-save campaign playthrough end-to-end in browser/device QA; the authored graph now has a beginning, escalation, expanded fifth-act prelude, climax and ending.
 - [ ] Validate the target 6–10 hour first-playthrough duration with timed human/telemetry playtests; automated content gates cannot prove real duration.
 - [x] Every authored chapter currently introduces at least one materially different gameplay situation rather than only new text/prices.
 - [x] Campaign choices have later mechanical consequences through relationships, pressure/sponsorship and epilogue resolution.
