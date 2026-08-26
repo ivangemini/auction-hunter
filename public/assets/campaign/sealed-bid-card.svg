@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 330">
+  <defs><linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e7d9b8"/><stop offset="1" stop-color="#bba77f"/></linearGradient></defs>
+  <rect width="520" height="330" rx="16" fill="#0c0d0f"/>
+  <rect x="28" y="24" width="464" height="282" rx="10" fill="url(#paper)" stroke="#6d4d2e" stroke-width="3"/>
+  <rect x="54" y="52" width="412" height="36" fill="#221b17" opacity=".92"/>
+  <text x="260" y="76" text-anchor="middle" font-family="Arial" font-weight="700" font-size="18" letter-spacing="3" fill="#e8c77e">SEALED BID · LOT C-17</text>
+  <text x="72" y="128" font-family="Arial" font-size="13" fill="#4a3c2d">ONE OFFER. NO REVISIONS.</text>
+  <line x1="72" y1="158" x2="448" y2="158" stroke="#67523d" stroke-width="2"/>
+  <text x="72" y="197" font-family="Arial" font-size="14" fill="#4a3c2d">BID</text>
+  <rect x="126" y="174" width="230" height="48" fill="#f2e8ce" stroke="#806849" stroke-width="2"/>
+  <text x="374" y="205" font-family="Arial" font-size="22" font-weight="700" fill="#4a3c2d">₽</text>
+  <circle cx="406" cy="253" r="26" fill="#241712"/><circle cx="406" cy="253" r="18" fill="none" stroke="#b58d55" stroke-width="2"/>
+  <path d="M397 253l7 7 13-16" fill="none" stroke="#b58d55" stroke-width="3"/>
+  <text x="72" y="273" font-family="Arial" font-size="11" fill="#67533d">CIRCLE C · PRIVATE SALE</text>
+</svg>
