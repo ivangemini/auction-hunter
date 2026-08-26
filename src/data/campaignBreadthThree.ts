@@ -63,10 +63,10 @@ export const CAMPAIGN_BREADTH_THREE_SETS: readonly CollectionSetDefinition[] = [
 export const CAMPAIGN_BREADTH_THREE_ROUTES: Readonly<Record<string, readonly string[]>> = {
   'telegraph-key': ['repair-shop-4', 'music-estate-24'],
   'survey-notebook': ['scholar-estate-26', 'traveler-estate-12'],
-  'stamp-press': ['maker-locker-41', 'writer-estate-33'],
+  'stamp-press': ['maker-locker-41', 'repair-shop-4'],
   'plate-camera': ['photo-lab-locker-27', 'photographer-studio-34'],
   'coded-postcard-album': ['writer-estate-33', 'collector-parlor-15'],
-  'portable-duplicator': ['maker-locker-41', 'scholar-estate-26'],
+  'portable-duplicator': ['maker-locker-41', 'repair-shop-4'],
 };
 
 export function registerCampaignBreadthThree(): void {
