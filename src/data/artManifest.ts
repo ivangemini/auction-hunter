@@ -9,6 +9,7 @@ export const ITEM_ART_IDS = [
   'archivist-loupe', 'microfilm-reader', 'wax-seal-box', 'auctioneers-ledger', 'brass-cipher-wheel', 'expedition-camera',
   'field-recorder', 'postal-scale', 'negative-album', 'brass-map-case', 'surveyor-transit', 'lacquer-document-case',
   'telegraph-key', 'survey-notebook', 'stamp-press', 'plate-camera', 'coded-postcard-album', 'portable-duplicator',
+  'archive-card-index', 'brass-letter-opener', 'folding-field-lamp', 'customs-stamp-book', 'wire-photo-transmitter', 'locksmith-gauge-set',
 ] as const;
 
 export const LOT_ART_IDS = [

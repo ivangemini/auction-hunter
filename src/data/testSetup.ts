@@ -1,4 +1,5 @@
 import { registerCampaignBreadth } from './campaignBreadth';
+import { registerCampaignBreadthFour } from './campaignBreadthFour';
 import { registerCampaignBreadthThree } from './campaignBreadthThree';
 import { registerCampaignBreadthTwo } from './campaignBreadthTwo';
 import { registerCampaignDiscoveryChains } from './campaignDiscoveryChains';
@@ -9,5 +10,6 @@ registerItemBreadth();
 registerCampaignBreadth();
 registerCampaignBreadthTwo();
 registerCampaignBreadthThree();
+registerCampaignBreadthFour();
 registerNadiaCampaignArc();
 registerCampaignDiscoveryChains();
