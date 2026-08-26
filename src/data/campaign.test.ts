@@ -7,19 +7,32 @@ function localized(value: { ru: string; en: string }) {
 }
 
 describe('P9 campaign content', () => {
-  it('defines the complete five-act campaign spine', () => {
+  it('defines the complete five-act campaign spine with 25 authored missions', () => {
     expect(CAMPAIGN_CHAPTERS).toHaveLength(5);
     expect(CAMPAIGN_CHAPTERS.map((chapter) => chapter.order)).toEqual([1, 2, 3, 4, 5]);
     expect(CAMPAIGN_CHAPTERS.every((chapter) => localized(chapter.title) && localized(chapter.subtitle))).toBe(true);
+    expect(CAMPAIGN_MISSIONS).toHaveLength(25);
+    expect(CAMPAIGN_CHAPTERS.map((chapter) => CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === chapter.id).length)).toEqual([4, 6, 6, 6, 3]);
   });
 
-  it('ships four authored missions in both Chapter I and the Estate Trail foundation', () => {
-    for (const chapterId of ['first-flip', 'estate-trail'] as const) {
-      const chapter = CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === chapterId);
-      expect(chapter).toHaveLength(4);
-      expect(chapter.map((mission) => mission.order)).toEqual([1, 2, 3, 4]);
-      expect(chapter.every((mission) => localized(mission.title) && localized(mission.briefing) && localized(mission.objective.description))).toBe(true);
-    }
+  it('keeps Chapter I compact while Estate Trail expands into a six-mission gameplay chapter', () => {
+    const first = CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'first-flip');
+    expect(first).toHaveLength(4);
+    expect(first.map((mission) => mission.order)).toEqual([1, 2, 3, 4]);
+
+    const estate = CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'estate-trail');
+    expect(estate).toHaveLength(6);
+    expect(estate.map((mission) => mission.order)).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(estate.map((mission) => mission.objective.type)).toEqual([
+      'select-evidence-lot',
+      'linked-budget',
+      'appraise-evidence',
+      'restoration-trace',
+      'play-auction',
+      'negotiate',
+    ]);
+    expect(estate[4]?.objective.target).toBe(2);
+    expect(estate.every((mission) => localized(mission.title) && localized(mission.briefing) && localized(mission.objective.description))).toBe(true);
   });
 
   it('has no dead mission prerequisites', () => {
@@ -33,23 +46,29 @@ describe('P9 campaign content', () => {
     const evidenceIds = new Set(CAMPAIGN_EVIDENCE.map((evidence) => evidence.id));
     const rivalIds = new Set(BIDDER_PROFILES.map((rival) => rival.id));
     const rewardedEvidence = CAMPAIGN_MISSIONS.flatMap((mission) => mission.evidenceRewardIds ?? []);
-    expect(rewardedEvidence.length).toBeGreaterThanOrEqual(6);
+    expect(rewardedEvidence.length).toBeGreaterThanOrEqual(15);
     for (const evidenceId of rewardedEvidence) expect(evidenceIds.has(evidenceId as never)).toBe(true);
     for (const mission of CAMPAIGN_MISSIONS) {
       if (mission.featuredRivalId) expect(rivalIds.has(mission.featuredRivalId)).toBe(true);
     }
   });
 
-  it('changes gameplay vocabulary across the first two chapters instead of becoming dialogue-only', () => {
-    const firstTypes = new Set(CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'first-flip').map((mission) => mission.objective.type));
-    expect(firstTypes.has('win-auction')).toBe(true);
-    expect(firstTypes.has('keep-evidence')).toBe(true);
-    expect(firstTypes.has('select-evidence-lot')).toBe(true);
+  it('changes gameplay vocabulary rather than becoming a dialogue-only campaign', () => {
+    const types = new Set(CAMPAIGN_MISSIONS.map((mission) => mission.objective.type));
+    for (const required of [
+      'win-auction',
+      'linked-budget',
+      'restoration-trace',
+      'proxy-bid',
+      'rival-deal',
+      'limited-preview',
+      'sealed-bid',
+      'counterfeit-table',
+      'route-plan',
+      'finale-prep',
+      'finale',
+    ] as const) expect(types.has(required), required).toBe(true);
 
-    const estateTypes = new Set(CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'estate-trail').map((mission) => mission.objective.type));
-    expect(estateTypes.has('linked-budget')).toBe(true);
-    expect(estateTypes.has('appraise-evidence')).toBe(true);
-    expect(estateTypes.has('negotiate')).toBe(true);
     const linked = CAMPAIGN_MISSIONS.find((mission) => mission.id === 'estate-linked-lots');
     expect(linked?.objective.budget).toBe(6200);
     expect(linked?.objective.targetIds).toHaveLength(2);
