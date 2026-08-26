@@ -1,3 +1,4 @@
+import { campaignProvenanceBonusMultiplier } from '../data/campaignProvenanceVariants';
 import { itemTraitValueMultiplier, rollItemTraits } from '../data/itemTraits';
 import { estimateItemValue } from './restoration';
 import type { ItemCategory, ItemDefinition, LocalizedText, LotClue, LotTemplate, RevealedItem } from './types';
@@ -119,13 +120,18 @@ export function createLotItems(
   return baseSamples.map(({ definition, condition, marketFactor }) => {
     const traitIds = rollItemTraits(definition, random);
     const traitMultiplier = itemTraitValueMultiplier(traitIds);
+    const provenanceMultiplier = campaignProvenanceBonusMultiplier(definition.id, traitIds);
 
     return {
       definition,
       condition,
       restored: false,
       traitIds,
-      appraisedValue: estimateItemValue(definition.baseValue, condition, marketFactor * traitMultiplier),
+      appraisedValue: estimateItemValue(
+        definition.baseValue,
+        condition,
+        marketFactor * traitMultiplier * provenanceMultiplier,
+      ),
     };
   });
 }
@@ -226,9 +232,13 @@ export function rivalSignatureActive(rivalId: string, lotId: string, maxBid: num
   return (hash >>> 0) % SIGNATURE_ACTIVATION_BUCKETS === 0;
 }
 
-export function opponentBidCeiling(opponent: AuctionOpponent, lot: LotTemplate): number {
-  if (opponent.behavior !== 'cautious') return opponent.maxBid;
-  return Math.max(lot.reservePrice, opponent.maxBid - lot.bidIncrement);
+export function eligibleOpponents(
+  opponents: readonly AuctionOpponent[],
+  currentBid: number,
+  lot: LotTemplate,
+): AuctionOpponent[] {
+  const candidateBid = nextBid(currentBid, lot);
+  return opponents.filter((opponent) => opponent.maxBid >= candidateBid);
 }
 
 export function opponentResponseBid(
@@ -236,16 +246,11 @@ export function opponentResponseBid(
   currentBid: number,
   lot: LotTemplate,
 ): number | null {
-  const requiredBid = nextBid(currentBid, lot);
-  const ceiling = opponentBidCeiling(opponent, lot);
-  if (ceiling < requiredBid) return null;
-
-  if (opponent.behavior === 'pressure') {
-    const pressureBid = currentBid + lot.bidIncrement * 2;
-    if (pressureBid <= ceiling) return pressureBid;
-  }
-
-  return requiredBid;
+  const singleStep = nextBid(currentBid, lot);
+  if (singleStep > opponent.maxBid) return null;
+  const doubleStep = currentBid + lot.bidIncrement * 2;
+  if (opponent.behavior === 'pressure' && doubleStep <= opponent.maxBid) return doubleStep;
+  return singleStep;
 }
 
 export function opponentSignatureResponseBid(
@@ -255,45 +260,32 @@ export function opponentSignatureResponseBid(
   alreadyUsed: boolean,
 ): number | null {
   if (alreadyUsed || !opponent.signatureActive || !opponent.signatureBehavior) return null;
-  const ceiling = opponentBidCeiling(opponent, lot);
-  const oneStep = currentBid + lot.bidIncrement;
-  if (oneStep > ceiling) return null;
+  const singleStep = nextBid(currentBid, lot);
+  if (singleStep > opponent.maxBid) return null;
 
   if (opponent.signatureBehavior === 'opening-jump') {
-    if (currentBid > lot.reservePrice + lot.bidIncrement * 2) return null;
+    if (currentBid > lot.reservePrice + lot.bidIncrement) return null;
     const jump = currentBid + lot.bidIncrement * 2;
-    return jump <= ceiling ? jump : null;
-  }
-
-  if (opponent.signatureBehavior === 'last-stand') {
-    const ratio = ceiling > 0 ? currentBid / ceiling : 1;
-    if (ratio < 0.68) return null;
-    const jump = currentBid + lot.bidIncrement * 2;
-    return jump <= ceiling ? jump : null;
+    return jump <= opponent.maxBid ? jump : null;
   }
 
   if (opponent.signatureBehavior === 'counterpunch') {
-    if (currentBid < lot.reservePrice + lot.bidIncrement * 2) return null;
-    const jump = currentBid + lot.bidIncrement * 3;
-    return jump <= ceiling ? jump : null;
+    const jump = currentBid + lot.bidIncrement * 2;
+    return jump <= opponent.maxBid ? jump : null;
   }
 
-  return null;
+  const remaining = opponent.maxBid - currentBid;
+  if (remaining > lot.bidIncrement * 2) return null;
+  return singleStep;
 }
 
-export function eligibleOpponents(
-  opponents: readonly AuctionOpponent[],
-  currentBid: number,
-  lot: LotTemplate,
-): AuctionOpponent[] {
-  return opponents.filter((opponent) => opponentResponseBid(opponent, currentBid, lot) !== null);
-}
+export function bidderTell(opponent: AuctionOpponent, currentBid: number, lot: LotTemplate): BidderTell {
+  const next = nextBid(currentBid, lot);
+  if (next > opponent.maxBid) return 'out';
 
-export function opponentTell(opponent: AuctionOpponent, currentBid: number, lot: LotTemplate): BidderTell {
-  const ceiling = opponentBidCeiling(opponent, lot);
-  if (opponentResponseBid(opponent, currentBid, lot) === null) return 'out';
-  const ratio = ceiling > 0 ? currentBid / ceiling : 1;
-  if (ratio < 0.6) return 'calm';
-  if (ratio < 0.82) return 'watching';
-  return 'hesitating';
+  const remaining = Math.max(0, opponent.maxBid - currentBid);
+  const normalized = remaining / Math.max(lot.bidIncrement, opponent.maxBid);
+  if (normalized <= 0.08) return 'hesitating';
+  if (normalized <= 0.22) return 'watching';
+  return 'calm';
 }
