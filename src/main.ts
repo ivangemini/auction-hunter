@@ -1,16 +1,7 @@
 import Phaser from 'phaser';
 import './styles.css';
 import { trackEvent } from './analytics';
-import { registerCampaignAftermathDiscovery } from './data/campaignAftermathDiscovery';
-import { registerCampaignBreadth } from './data/campaignBreadth';
-import { registerCampaignBreadthFive } from './data/campaignBreadthFive';
-import { registerCampaignBreadthFour } from './data/campaignBreadthFour';
-import { registerCampaignBreadthThree } from './data/campaignBreadthThree';
-import { registerCampaignBreadthTwo } from './data/campaignBreadthTwo';
-import { registerCampaignDiscoveryChains } from './data/campaignDiscoveryChains';
-import { registerCampaignFinaleBreadth } from './data/campaignFinaleBreadth';
-import { registerNadiaCampaignArc } from './data/campaignPrincipalArc';
-import { registerItemBreadth } from './data/itemBreadth';
+import { registerAllContent } from './data/registerContent';
 import { gameConfig } from './game/config';
 import { installAuctionHistoryTracking } from './game/historyTracking';
 import { installGameLifecycle } from './game/lifecycle';
@@ -36,16 +27,7 @@ function localizeOrientationGuard(locale: Locale): void {
 }
 
 async function bootstrap(): Promise<void> {
-  registerItemBreadth();
-  registerCampaignBreadth();
-  registerCampaignBreadthTwo();
-  registerCampaignBreadthThree();
-  registerCampaignBreadthFour();
-  registerCampaignBreadthFive();
-  registerCampaignFinaleBreadth();
-  registerNadiaCampaignArc();
-  registerCampaignDiscoveryChains();
-  registerCampaignAftermathDiscovery();
+  registerAllContent();
   installBrowserGuards();
   applyAccessibilityPreferences();
   await initYandexSdk();
