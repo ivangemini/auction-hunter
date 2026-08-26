@@ -121,7 +121,7 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [x] Add deterministic campaign integrity tests for prerequisites, authored evidence/rivals, bilingual copy and chapter-specific contracts.
 
 ### P9.2 — Narrative Office / investigation hub
-- [ ] Expand the existing Business Office itself into the campaign headquarters without replacing upgrades/contracts/statistics; the dedicated campaign hub currently provides the investigation layer.
+- [x] Expand the existing Business Office itself into the campaign headquarters without replacing upgrades/contracts/statistics. The same `office` scene now carries a persistent Black Ledger HQ command surface with active mission/chapter progress plus direct Case/Inbox entry while preserving all six business tabs.
 - [x] Add an Investigation Wall showing the Black Ledger trail, discovered evidence, active mission and chapter progress.
 - [x] Add Inbox/Phone contacts for authored rival/collector messages and invitations; eight messages currently unlock across the campaign and use existing campaign persistence.
 - [x] Add campaign mission briefing cards with objective, known risk and visible reward.
