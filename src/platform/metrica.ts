@@ -11,6 +11,7 @@ export const METRICA_GOAL_EVENTS = new Set<AnalyticsEventName>([
   'onboarding_completed',
   'campaign_mission_started',
   'campaign_mission_completed',
+  'campaign_completed',
   'campaign_optional_objective_completed',
   'lot_option_selected',
   'auction_started',

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { registerAnalyticsSink, type AnalyticsEnvelope } from '../analytics';
 import { createDefaultSave, SAVE_STORAGE_KEY } from './save';
 import { CampaignStore } from './campaignStore';
 
@@ -90,17 +91,25 @@ describe('CampaignStore', () => {
     expect(store.progress.branchChoiceIds).toEqual(['show-victor-black-seal']);
   });
 
-  it('only resolves the campaign from the active finale mission and marks Chapter V complete', () => {
+  it('only resolves the campaign from the active finale mission, marks Chapter V complete and emits completion telemetry once', () => {
     const save = createDefaultSave();
     save.cash = 7000;
     save.reputationXp = 900;
+    save.auctionsPlayed = 41;
+    save.auctionsWon = 19;
     save.campaign.started = true;
     save.campaign.completedMissionIds = ['closed-circle-ledger-room', 'lost-collection-route', 'lost-collection-prep'];
     save.campaign.activeMissionId = 'lost-collection-finale';
     storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
     const store = new CampaignStore();
+    const events: AnalyticsEnvelope[] = [];
+    const unregister = registerAnalyticsSink((event) => events.push(event));
 
-    expect(store.finishCampaign('shared-truth', ['veyr-master-ledger', 'veyr-cipher-cabinet'])).toBe(true);
+    const resolved = store.finishCampaign('shared-truth', ['veyr-master-ledger', 'veyr-cipher-cabinet']);
+    const duplicate = store.finishCampaign('dealer-king', ['veyr-portrait-case', 'veyr-chronometer']);
+    unregister();
+
+    expect(resolved).toBe(true);
     const after = store.snapshot;
     expect(after.campaign.completed).toBe(true);
     expect(after.campaign.epilogueId).toBe('shared-truth');
@@ -109,7 +118,16 @@ describe('CampaignStore', () => {
     expect(after.campaign.branchChoiceIds).toContain('finale-buy:veyr-master-ledger');
     expect(after.cash).toBe(12000);
     expect(after.reputationXp).toBe(1200);
-    expect(store.finishCampaign('dealer-king', ['veyr-portrait-case', 'veyr-chronometer'])).toBe(false);
+    expect(duplicate).toBe(false);
+
+    const completionEvents = events.filter((event) => event.eventName === 'campaign_completed') as AnalyticsEnvelope<'campaign_completed'>[];
+    expect(completionEvents).toHaveLength(1);
+    expect(completionEvents[0]?.payload).toMatchObject({
+      epilogueId: 'shared-truth',
+      finaleLotsRecovered: 2,
+      auctionsPlayed: 41,
+      auctionsWon: 19,
+    });
   });
 
   it('rejects direct finale resolution when Chapter V preparation is not active', () => {

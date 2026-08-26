@@ -13,6 +13,7 @@ import {
   startCampaignMission,
 } from '../domain/campaign';
 import type { CampaignEpilogueId } from '../domain/campaignFinale';
+import { buildCampaignCompletionSummary } from '../domain/campaignSummary';
 import type { CampaignProgressState, PlayerSave } from '../domain/types';
 import { scheduleCloudSave } from '../platform/cloudSave';
 import { loadLocalSave, writeLocalSave } from './save';
@@ -150,6 +151,7 @@ export class CampaignStore {
     save.cash += 5000;
     save.reputationXp += 300;
     save.highestCash = Math.max(save.highestCash, save.cash);
+    const summary = buildCampaignCompletionSummary(save.campaign);
     this.persist(save);
     trackEvent('campaign_mission_completed', {
       chapterId: finaleMission.chapterId,
@@ -157,6 +159,15 @@ export class CampaignStore {
       rewardCash: 0,
       rewardRep: 0,
       evidenceIds: [],
+    });
+    trackEvent('campaign_completed', {
+      epilogueId,
+      missionsCompleted: summary.missionsCompleted,
+      evidenceRecovered: summary.evidenceRecovered,
+      masteryCompleted: summary.masteryCompleted,
+      finaleLotsRecovered: summary.finaleLotsRecovered,
+      auctionsPlayed: save.auctionsPlayed,
+      auctionsWon: save.auctionsWon,
     });
     trackEvent('campaign_branch_chosen', { choiceId: `campaign-completed:${epilogueId}` });
     return true;

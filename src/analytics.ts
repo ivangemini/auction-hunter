@@ -4,6 +4,7 @@ import type { RestorationMode } from './domain/restoration';
 import type { AuctionTierId } from './data/tiers';
 import type { RivalSignatureBehavior } from './domain/auction';
 import type { CampaignChapterId } from './data/campaign';
+import type { CampaignEpilogueId } from './domain/campaignFinale';
 
 export const ANALYTICS_SCHEMA_VERSION = 1 as const;
 export const ANALYTICS_DOM_EVENT = 'auction-hunter:analytics';
@@ -23,6 +24,15 @@ export interface AnalyticsEventMap {
     rewardCash: number;
     rewardRep: number;
     evidenceIds: string[];
+  };
+  campaign_completed: {
+    epilogueId: CampaignEpilogueId;
+    missionsCompleted: number;
+    evidenceRecovered: number;
+    masteryCompleted: number;
+    finaleLotsRecovered: number;
+    auctionsPlayed: number;
+    auctionsWon: number;
   };
   campaign_optional_objective_completed: {
     objectiveId: string;
