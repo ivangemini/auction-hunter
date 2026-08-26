@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 360">
+  <defs>
+    <radialGradient id="metal" cx="35%" cy="30%" r="70%"><stop stop-color="#d8b56f"/><stop offset=".45" stop-color="#9a6f36"/><stop offset="1" stop-color="#3d2918"/></radialGradient>
+  </defs>
+  <rect width="360" height="360" fill="#0b0d0f"/>
+  <circle cx="180" cy="180" r="126" fill="#17120d" stroke="#4b3826" stroke-width="8"/>
+  <circle cx="180" cy="180" r="108" fill="url(#metal)" stroke="#e2c68d" stroke-opacity=".55" stroke-width="3"/>
+  <circle cx="180" cy="180" r="86" fill="none" stroke="#402b18" stroke-width="4" stroke-dasharray="8 10" opacity=".7"/>
+  <text x="180" y="218" text-anchor="middle" font-family="Georgia,serif" font-size="116" font-weight="700" fill="#2d1d11">C</text>
+  <text x="180" y="275" text-anchor="middle" font-family="Arial" font-size="15" letter-spacing="5" fill="#2d1d11">SPONSOR</text>
+  <path d="M103 113c40-35 117-47 162-10" fill="none" stroke="#f3dfaf" stroke-opacity=".38" stroke-width="6" stroke-linecap="round"/>
+</svg>
