@@ -6,11 +6,15 @@ import { chromium } from '@playwright/test';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const reviewRoot = path.join(root, 'release', 'screenshots', 'collection-market-review');
+const debugRoot = path.join(root, 'release', 'screenshots', 'debug');
 const previewUrl = 'http://127.0.0.1:4178';
 const viteCli = path.join(root, 'node_modules', 'vite', 'bin', 'vite.js');
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 const SAVE_KEY = 'auction-hunter.save.v1';
+const EXPECTED_COLLECTION_PAGES = 9;
+const PAGE_ADVANCE_MIN_RATIO = 0.004;
+const TERMINAL_MAX_RATIO = 0.003;
 
 const REVIEW_COLLECTION = [
   'toolbox', 'toy-robot', 'film-camera', 'pocket-watch', 'porcelain-figurine', 'arcade-handheld',
@@ -147,6 +151,12 @@ async function imageDifferenceRatio(page, before, after) {
   }, { beforeBase64: before.toString('base64'), afterBase64: after.toString('base64') });
 }
 
+function writeTransitionDebug(localeCode, label, before, after) {
+  ensureDirectory(debugRoot);
+  fs.writeFileSync(path.join(debugRoot, `collection-market-${localeCode}-${label}-before.png`), before);
+  fs.writeFileSync(path.join(debugRoot, `collection-market-${localeCode}-${label}-after.png`), after);
+}
+
 async function captureLocale(browser, localeCode, locale) {
   const outputDir = path.join(reviewRoot, localeCode);
   ensureDirectory(outputDir);
@@ -170,15 +180,33 @@ async function captureLocale(browser, localeCode, locale) {
     await clickGame(page, 80, 120);
     await page.waitForTimeout(320);
 
-    // 26 sets at four cards per page must expose a real seventh page.
-    for (let pageIndex = 1; pageIndex < 7; pageIndex += 1) {
+    // 36 sets at four cards per page must expose nine real Collection Book pages.
+    let current = await page.screenshot({ type: 'png' });
+    for (let pageNumber = 2; pageNumber <= EXPECTED_COLLECTION_PAGES; pageNumber += 1) {
       await clickGame(page, 735, 674);
-      await page.waitForTimeout(240);
+      await page.waitForTimeout(420);
+      const next = await page.screenshot({ type: 'png' });
+      validatePng(next, `${localeCode} Collection Book page ${pageNumber}`);
+      const pageAdvance = await imageDifferenceRatio(page, current, next);
+      if (pageAdvance <= PAGE_ADVANCE_MIN_RATIO) {
+        writeTransitionDebug(localeCode, `page-${pageNumber}`, current, next);
+        throw new Error(`${localeCode} Collection Book did not visibly advance to page ${pageNumber} (${pageAdvance.toFixed(3)})`);
+      }
+      current = next;
     }
-    const collectionLastPage = await page.screenshot({ type: 'png' });
+
+    await clickGame(page, 735, 674);
+    await page.waitForTimeout(420);
+    const terminalRepeat = await page.screenshot({ type: 'png' });
+    const terminalDifference = await imageDifferenceRatio(page, current, terminalRepeat);
+    if (terminalDifference >= TERMINAL_MAX_RATIO) {
+      writeTransitionDebug(localeCode, 'terminal', current, terminalRepeat);
+      throw new Error(`${localeCode} Collection Book page ${EXPECTED_COLLECTION_PAGES} is not terminal (${terminalDifference.toFixed(3)})`);
+    }
+
+    const collectionLastPage = current;
     validatePng(collectionLastPage, `${localeCode} Collection Book final page`);
     fs.writeFileSync(path.join(outputDir, '03-collection-last-page.png'), collectionLastPage);
-    assert((await imageDifferenceRatio(page, collection, collectionLastPage)) > 0.08, `${localeCode} Collection Book pager did not visibly reach the final page`);
 
     await clickGame(page, 646, 70);
     await page.waitForTimeout(720);
@@ -235,4 +263,4 @@ for (const locale of ['ru', 'en']) {
     console.log(path.relative(root, path.join(reviewRoot, locale, file)).split(path.sep).join('/'));
   }
 }
-console.log('P7 Collection/copy-traits/final-page/Discovery/Buyer Market visual review capture OK');
+console.log(`P7 Collection/copy-traits/page-${EXPECTED_COLLECTION_PAGES}/Discovery/Buyer Market visual review capture OK`);
