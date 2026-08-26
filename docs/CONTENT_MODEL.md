@@ -42,9 +42,11 @@ Generated lot/item instances reference stable definitions and carry runtime outc
 Display copy is content, not identity. IDs must not depend on English/Russian names.
 
 ## Current scale
-The current breadth pass contains 36 item identities, 24 lot templates and 12 collection sets. All 36 catalog items have direct dedicated SVG art identities. The lot catalog uses nine authored environment illustrations across the three auction tiers; multiple lot templates may intentionally share an environment while retaining distinct names, clues, pools and economy tuning.
+The runtime catalog now contains 72 item identities, 42 normal-auction lot templates and 36 collection sets. All 72 catalog items have direct dedicated SVG art identities and every item belongs to at least one collection goal.
 
-Each tier now owns eight normal-auction lot templates. This increases the number of possible three-option market combinations while preserving the existing tier progression and save schema.
+The 42 normal-auction templates are split evenly across the three reputation tiers: fourteen Garage, fourteen Estate and fourteen Collector variants. They reuse nine authored semantic environment illustrations while retaining distinct localized names, truthful clues, item pools and economy tuning.
+
+The original breadth packs establish the core collectible catalog; P9 adds campaign-linked investigation, archive, communications, expedition, clearance and dispatch objects without renaming old IDs or changing the save schema. Each P9 breadth identity is routed through at least two truthful normal-auction lots, and the final six identities also participate in optional post-campaign Black Ledger Discovery cases.
 
 ## Scale safeguards
 Automated tests check:
@@ -55,4 +57,7 @@ Automated tests check:
 - target counts for items/lots/tier variants;
 - collection coverage for every catalog item;
 - direct item-art coverage and declared lot environments;
+- P9 breadth-route truthfulness and idempotent registration;
 - RU/EN localization parity through the i18n gate.
+
+The production breadth visual-review gate additionally requests every additive SVG directly, enforces the `512×360` viewBox/no-embedded-text contract, captures each P9 art wave, and traverses all Collection Book pages in RU and EN so catalog growth cannot silently outpace review coverage.

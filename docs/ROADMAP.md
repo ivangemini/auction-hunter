@@ -72,7 +72,7 @@
 - [x] Keep all new lot clues truthful and all new items represented in at least one collection set.
 - [x] Raise automated content/replayability floors to the expanded catalog.
 - [x] Run economy simulation and browser/release CI against the expanded pack plus Buyer Market/per-copy traits.
-- [ ] During campaign production, expand toward roughly 72 items / 42 lots / 24+ sets; current runtime breadth is 54 items / 42 lots / 30 sets.
+- [x] During campaign production, expand to 72 items / 42 lots / 36 sets while preserving stable IDs, truthful clues, direct art and save compatibility.
 
 ## P6 — retention and trading depth
 - [x] Stable collectible traits/provenance tags for selected item identities.
@@ -151,12 +151,15 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 
 ### P9.6 — Campaign content breadth
 - [x] Add the first P9 story-driven catalog batch: six normal-auction identities with direct 512×360 art, real lot routes and two additive collection sets.
-- [x] Add a second six-item investigation/expedition batch with direct art, two routes per identity and two additional collection sets. Runtime catalog is now 54 items / 42 lots / 30 sets.
-- [ ] Expand total item catalog further toward ~72 identities, with direct art and at least one meaningful gameplay/story use per new identity.
+- [x] Add a second six-item investigation/expedition batch with direct art, two routes per identity and two additional collection sets.
+- [x] Add a third six-item records/communications batch and a fourth six-item border/archive batch, each with direct art, two truthful normal-auction routes per identity and additive collection goals.
+- [x] Add the final six-item clearance/dispatch batch, reaching 72 item identities / 42 lots / 36 sets; all six identities have direct art, collection coverage and at least two truthful normal-auction routes.
+- [x] Expand total item catalog to the ~72-identity target with direct art and at least one meaningful gameplay/story use per new identity.
 - [x] Lot-template target of ~42 has been reached while retaining fourteen distinct variants per tier.
 - [x] Collection-set target of 24+ has been exceeded without mutating old set IDs/rewards.
 - [x] Add 10+ authored story-critical provenance variants whose significance can be discovered through appraisal/evidence rather than rarity color alone; twelve item-specific Black Ledger variants now use real concrete-copy traits, bounded value bonuses and post-appraisal reveal telemetry.
-- [x] Add chapter-specific Discovery cases that cross-reference campaign evidence without making normal Discovery Board progress mandatory for the main story; five optional Black Ledger cases now cover the five campaign acts.
+- [x] Add chapter-specific Discovery cases that cross-reference campaign evidence without making normal Discovery Board progress mandatory for the main story; five optional Black Ledger cases cover the five campaign acts.
+- [x] Add two optional post-campaign Black Ledger aftermath cases that use all six final breadth identities through ordinary auctions without gating campaign completion.
 
 ### P9.7 — Finale and post-game
 - [x] Build a multi-stage final auction around the recovered Black Ledger trail; the player cannot acquire every target and must prioritize evidence versus profit.
@@ -169,7 +172,7 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [ ] Validate the target 6–10 hour first-playthrough duration with timed human/telemetry playtests; automated content gates cannot prove real duration.
 - [x] Every authored chapter currently introduces at least one materially different gameplay situation rather than only new text/prices.
 - [x] Campaign choices have later mechanical consequences through relationships, pressure/sponsorship and epilogue resolution.
-- [ ] Complete visual acceptance for all campaign states/items/environments at desktop + 844×390 RU/EN as the remaining art breadth lands.
-- [ ] Run final compatibility acceptance across old saves, cloud save, monetization boundaries and P8 economy gates after P9 content breadth stabilizes.
+- [ ] Complete visual acceptance for all campaign states/items/environments at desktop + 844×390 RU/EN; content breadth is now at target, while final screenshot inspection and real-device review remain.
+- [ ] Run final compatibility acceptance across old saves, cloud save, monetization boundaries and P8 economy gates now that P9 content breadth is stable.
 
 See `V1_ROADMAP.md` for the release baseline, `SYSTEMIC_REPLAYABILITY.md` for P8, and `CAMPAIGN.md` for the P9 story/gameplay contract.
