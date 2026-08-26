@@ -53,6 +53,33 @@ const earlyCampaignSave = {
   },
 };
 
+const nadiaCampaignSave = {
+  ...baseSave,
+  cash: 12800,
+  reputationXp: 560,
+  auctionsWon: 10,
+  auctionsPlayed: 17,
+  highestCash: 12800,
+  campaign: {
+    started: true,
+    activeMissionId: 'dealer-war-nadia-archive',
+    completedMissionIds: [
+      'first-day-floor', 'victor-test', 'black-seal', 'missing-inventory',
+      'estate-paper-trail', 'estate-linked-lots', 'estate-false-paper', 'estate-restoration-trace', 'estate-night-clearances', 'estate-mira-offer',
+      'dealer-war-leak', 'dealer-war-pressure', 'dealer-war-ally',
+    ],
+    evidenceIds: ['veyr-black-seal', 'private-auction-lead', 'dealer-leak-pattern'],
+    branchChoiceIds: ['dealer-ally-mira'],
+    missionBaselineAuctionsPlayed: { 'dealer-war-nadia-archive': 17 },
+    missionBaselineAuctionsWon: { 'dealer-war-nadia-archive': 10 },
+    relationshipTrust: { 'npc-0': 8, 'npc-1': 18, 'npc-6': 6 },
+    relationshipRivalry: { 'npc-2': 8 },
+    relationshipDebt: { 'npc-1': 4 },
+    completed: false,
+    epilogueId: null,
+  },
+};
+
 const lateCampaignSave = {
   ...baseSave,
   cash: 22400,
@@ -66,16 +93,16 @@ const lateCampaignSave = {
     completedMissionIds: [
       'first-day-floor', 'victor-test', 'black-seal', 'missing-inventory',
       'estate-paper-trail', 'estate-linked-lots', 'estate-false-paper', 'estate-restoration-trace', 'estate-night-clearances', 'estate-mira-offer',
-      'dealer-war-leak', 'dealer-war-pressure', 'dealer-war-ally', 'dealer-war-proxy', 'dealer-war-counteroffer', 'dealer-war-address',
+      'dealer-war-leak', 'dealer-war-pressure', 'dealer-war-ally', 'dealer-war-nadia-archive', 'dealer-war-proxy', 'dealer-war-counteroffer', 'dealer-war-address',
       'closed-circle-preview', 'closed-circle-sealed-bid', 'closed-circle-debt',
     ],
     evidenceIds: ['veyr-black-seal', 'private-auction-lead', 'closed-circle-address', 'circle-preview-code', 'veyr-buyer-list'],
-    branchChoiceIds: ['dealer-ally-mira', 'optional:closed-circle-precision-bid'],
+    branchChoiceIds: ['dealer-ally-mira', 'nadia-shared-lead', 'optional:closed-circle-precision-bid'],
     missionBaselineAuctionsPlayed: { 'closed-circle-counterfeit': 24 },
     missionBaselineAuctionsWon: { 'closed-circle-counterfeit': 14 },
-    relationshipTrust: { 'npc-0': 8, 'npc-1': 22, 'npc-6': 12 },
+    relationshipTrust: { 'npc-0': 8, 'npc-1': 22, 'npc-6': 18 },
     relationshipRivalry: { 'npc-2': 18 },
-    relationshipDebt: { 'npc-1': 4, 'npc-6': 10 },
+    relationshipDebt: { 'npc-1': 4, 'npc-6': 7 },
     completed: false,
     epilogueId: null,
   },
@@ -85,6 +112,8 @@ const finaleCampaignSave = {
   ...baseSave,
   cash: 28600,
   reputationXp: 1120,
+  auctionsWon: 18,
+  auctionsPlayed: 30,
   highestCash: 28600,
   campaign: {
     started: true,
@@ -92,21 +121,56 @@ const finaleCampaignSave = {
     completedMissionIds: [
       'first-day-floor', 'victor-test', 'black-seal', 'missing-inventory',
       'estate-paper-trail', 'estate-linked-lots', 'estate-false-paper', 'estate-restoration-trace', 'estate-night-clearances', 'estate-mira-offer',
-      'dealer-war-leak', 'dealer-war-pressure', 'dealer-war-ally', 'dealer-war-proxy', 'dealer-war-counteroffer', 'dealer-war-address',
+      'dealer-war-leak', 'dealer-war-pressure', 'dealer-war-ally', 'dealer-war-nadia-archive', 'dealer-war-proxy', 'dealer-war-counteroffer', 'dealer-war-address',
       'closed-circle-preview', 'closed-circle-sealed-bid', 'closed-circle-debt', 'closed-circle-counterfeit', 'closed-circle-silent-room', 'closed-circle-ledger-room',
       'lost-collection-route', 'lost-collection-market-read', 'lost-collection-pressure-run', 'lost-collection-prep',
     ],
     evidenceIds: [
       'veyr-black-seal', 'veyr-buyer-list', 'circle-sponsor-token', 'lost-collection-index', 'veyr-river-route',
     ],
-    branchChoiceIds: ['dealer-ally-mira', 'finale-route:river-archive', 'finale-partner-mira', 'optional:finale-market-read-winning'],
+    branchChoiceIds: ['dealer-ally-mira', 'nadia-shared-lead', 'finale-route:river-archive', 'finale-partner-mira', 'optional:finale-market-read-winning'],
     missionBaselineAuctionsPlayed: { 'lost-collection-finale': 30 },
     missionBaselineAuctionsWon: { 'lost-collection-finale': 18 },
-    relationshipTrust: { 'npc-0': 8, 'npc-1': 30, 'npc-6': 12 },
+    relationshipTrust: { 'npc-0': 8, 'npc-1': 30, 'npc-6': 18 },
     relationshipRivalry: { 'npc-2': 22 },
-    relationshipDebt: { 'npc-1': 4, 'npc-6': 10 },
+    relationshipDebt: { 'npc-1': 4, 'npc-6': 7 },
     completed: false,
     epilogueId: null,
+  },
+};
+
+const completedCampaignSave = {
+  ...baseSave,
+  cash: 33600,
+  reputationXp: 1420,
+  auctionsWon: 19,
+  auctionsPlayed: 31,
+  lifetimeSales: 78600,
+  highestCash: 33600,
+  campaign: {
+    started: true,
+    activeMissionId: null,
+    completedMissionIds: [
+      'first-day-floor', 'victor-test', 'black-seal', 'missing-inventory',
+      'estate-paper-trail', 'estate-linked-lots', 'estate-false-paper', 'estate-restoration-trace', 'estate-night-clearances', 'estate-mira-offer',
+      'dealer-war-leak', 'dealer-war-pressure', 'dealer-war-ally', 'dealer-war-nadia-archive', 'dealer-war-proxy', 'dealer-war-counteroffer', 'dealer-war-address',
+      'closed-circle-preview', 'closed-circle-sealed-bid', 'closed-circle-debt', 'closed-circle-counterfeit', 'closed-circle-silent-room', 'closed-circle-ledger-room',
+      'lost-collection-route', 'lost-collection-market-read', 'lost-collection-pressure-run', 'lost-collection-prep', 'lost-collection-finale',
+    ],
+    evidenceIds: [
+      'veyr-black-seal', 'veyr-buyer-list', 'circle-sponsor-token', 'lost-collection-index', 'veyr-river-route',
+    ],
+    branchChoiceIds: [
+      'dealer-ally-mira', 'nadia-shared-lead', 'finale-route:river-archive', 'finale-partner-mira',
+      'finale-pick:veyr-master-ledger', 'finale-pick:veyr-cipher-cabinet',
+    ],
+    missionBaselineAuctionsPlayed: {},
+    missionBaselineAuctionsWon: {},
+    relationshipTrust: { 'npc-0': 8, 'npc-1': 30, 'npc-6': 18 },
+    relationshipRivalry: { 'npc-2': 22 },
+    relationshipDebt: { 'npc-1': 4, 'npc-6': 7 },
+    completed: true,
+    epilogueId: 'shared-truth',
   },
 };
 
@@ -173,13 +237,21 @@ async function openCampaign(page) {
 }
 
 async function captureHub(browser, localeCode, locale, viewport, file) {
+  await captureSeededHub(browser, localeCode, locale, viewport, file, earlyCampaignSave);
+}
+
+async function captureNadia(browser, localeCode, locale, viewport, file) {
+  await captureSeededHub(browser, localeCode, locale, viewport, file, nadiaCampaignSave);
+}
+
+async function captureSeededHub(browser, localeCode, locale, viewport, file, save) {
   const context = await browser.newContext({ viewport, locale, deviceScaleFactor: 1 });
   const page = await context.newPage();
   try {
-    await installSeed(page, localeCode, earlyCampaignSave);
+    await installSeed(page, localeCode, save);
     await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
     await openCampaign(page);
-    await saveShot(page, localeCode, file);
+    await saveShot(page, localeCode, file, viewport);
   } finally {
     await context.close();
   }
@@ -194,7 +266,7 @@ async function captureSecondary(browser, localeCode, locale, viewport, file, tar
     await openCampaign(page);
     await clickGame(page, target === 'inbox' ? 644 : 790, 50);
     await page.waitForTimeout(650);
-    await saveShot(page, localeCode, file);
+    await saveShot(page, localeCode, file, viewport);
   } finally {
     await context.close();
   }
@@ -209,17 +281,35 @@ async function captureFinale(browser, localeCode, locale, viewport, file) {
     await openCampaign(page);
     await clickGame(page, 1036, 612);
     await page.waitForTimeout(700);
-    await saveShot(page, localeCode, file);
+    await saveShot(page, localeCode, file, viewport);
   } finally {
     await context.close();
   }
 }
 
-async function saveShot(page, localeCode, file) {
+async function capturePersistentEpilogue(browser, localeCode, locale, viewport, file) {
+  const context = await browser.newContext({ viewport, locale, deviceScaleFactor: 1 });
+  const page = await context.newPage();
+  try {
+    await installSeed(page, localeCode, completedCampaignSave);
+    await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
+    await openCampaign(page);
+    await clickGame(page, 1036, 588);
+    await page.waitForTimeout(700);
+    await saveShot(page, localeCode, file, viewport);
+  } finally {
+    await context.close();
+  }
+}
+
+async function saveShot(page, localeCode, file, viewport) {
   const outputDir = path.join(reviewRoot, localeCode);
   ensureDirectory(outputDir);
   const screenshot = await page.screenshot({ type: 'png' });
   assert(screenshot.length > 15_000, `${file} looks corrupt or empty`);
+  assert(screenshot.subarray(12, 16).toString('ascii') === 'IHDR', `${file} is not a PNG`);
+  assert(screenshot.readUInt32BE(16) === viewport.width, `${file} width must be ${viewport.width}`);
+  assert(screenshot.readUInt32BE(20) === viewport.height, `${file} height must be ${viewport.height}`);
   fs.writeFileSync(path.join(outputDir, file), screenshot);
 }
 
@@ -248,6 +338,10 @@ try {
       await captureSecondary(browser, localeCode, locale, { width: 844, height: 390 }, '06-compact-bonus-goals.png', 'bonus');
       await captureFinale(browser, localeCode, locale, { width: 1280, height: 720 }, '07-desktop-lost-collection.png');
       await captureFinale(browser, localeCode, locale, { width: 844, height: 390 }, '08-compact-lost-collection.png');
+      await captureNadia(browser, localeCode, locale, { width: 1280, height: 720 }, '09-desktop-nadia-choice.png');
+      await captureNadia(browser, localeCode, locale, { width: 844, height: 390 }, '10-compact-nadia-choice.png');
+      await capturePersistentEpilogue(browser, localeCode, locale, { width: 1280, height: 720 }, '11-desktop-persistent-epilogue.png');
+      await capturePersistentEpilogue(browser, localeCode, locale, { width: 844, height: 390 }, '12-compact-persistent-epilogue.png');
     }
   } finally {
     await browser.close();
@@ -259,4 +353,4 @@ try {
   await stopPreview(preview);
 }
 
-console.log('P9 Campaign RU/EN hub + inbox + bonus goals + Lost Collection desktop/844x390 visual review capture OK');
+console.log('P9 Campaign RU/EN hub + inbox + bonus goals + finale + Nadia choice + persistent epilogue desktop/844x390 visual review capture OK');
