@@ -94,6 +94,8 @@ export interface CampaignProgressState {
   completedMissionIds: string[];
   evidenceIds: string[];
   branchChoiceIds: string[];
+  missionBaselineAuctionsPlayed: Record<string, number>;
+  missionBaselineAuctionsWon: Record<string, number>;
   relationshipTrust: Record<string, number>;
   relationshipRivalry: Record<string, number>;
   relationshipDebt: Record<string, number>;
