@@ -136,7 +136,7 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [x] Reuse normal auction progression for several campaign gates; Chapter V now requires three normal auctions plus two wins immediately before the final partner/finale sequence.
 
 ### P9.4 — Character arcs and consequential choices
-- [ ] Promote 4–5 existing dealers/characters into fully authored campaign principals. Victor, Mira and Anton carry the main mission arcs; Nadia now has a repeated Inbox arc and an optional favor that changes her real auction relationship pressure, but needs at least one dedicated mission beat before this is fully closed.
+- [x] Promote 4–5 existing dealers/characters into fully authored campaign principals. Victor, Mira and Anton carry the core mechanical arcs; Nadia now has a repeated Inbox arc plus a dedicated Dealer War negotiation whose trust/rivalry outcome changes her real auction pressure.
 - [x] Extend relationships from learned bidding behavior into bounded campaign states: trust, rivalry and debt/favor.
 - [x] Add meaningful branch choices whose later consequences affect sponsorship, auction pressure, information and epilogue resolution.
 - [x] Keep exact NPC bid ceilings hidden regardless of relationship level.
@@ -155,8 +155,8 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [ ] Expand total item catalog further toward ~72 identities, with direct art and at least one meaningful gameplay/story use per new identity.
 - [x] Lot-template target of ~42 has been reached while retaining fourteen distinct variants per tier.
 - [x] Collection-set target of 24+ has been exceeded without mutating old set IDs/rewards.
-- [ ] Add 10+ authored story-critical provenance variants whose significance can be discovered through appraisal/evidence rather than rarity color alone.
-- [ ] Add chapter-specific Discovery cases that cross-reference campaign evidence without making normal Discovery Board progress mandatory for the main story.
+- [x] Add 10+ authored story-critical provenance variants whose significance can be discovered through appraisal/evidence rather than rarity color alone; twelve item-specific Black Ledger variants now use real concrete-copy traits, bounded value bonuses and post-appraisal reveal telemetry.
+- [x] Add chapter-specific Discovery cases that cross-reference campaign evidence without making normal Discovery Board progress mandatory for the main story; five optional Black Ledger cases now cover the five campaign acts.
 
 ### P9.7 — Finale and post-game
 - [x] Build a multi-stage final auction around the recovered Black Ledger trail; the player cannot acquire every target and must prioritize evidence versus profit.
