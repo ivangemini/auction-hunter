@@ -81,18 +81,21 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
 
     runtime.renderLotSelection = () => {
       renderLotSelection();
+      // Keep campaign access in the same secondary-action row as Collection/Daily.
+      // It must never overlap the tier tabs at y=151 because those remain a core
+      // selection interaction and are exercised by browser/Yandex contract tests.
       button(
         runtime,
-        1030,
-        161,
+        740,
+        218,
         runtime.locale === 'ru' ? 'Дело: Чёрный реестр' : 'Case: Black Ledger',
         () => runtime.scene.start('campaign'),
         {
-          width: 222,
+          width: 180,
           height: 38,
           background: 0x3a2c1d,
           accent: 0xe9b949,
-          fontSize: 10,
+          fontSize: 9,
           hitSlop: 4,
         },
       );
