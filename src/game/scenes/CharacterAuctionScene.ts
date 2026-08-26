@@ -103,39 +103,65 @@ export class CharacterAuctionScene extends PolishedAuctionSceneV2 {
 }
 
 function renderAuctionCharacters(scene: CharacterRuntime): void {
-  renderAuctioneerHeader(scene);
+  renderAuctioneerStageHost(scene);
 
   scene.opponents.forEach((opponent, index) => {
     const id = opponentCharacterId(opponent.id);
     if (!id) return;
     const y = 270 + index * 132;
     const active = opponent.id === scene.currentLeader;
-    const portrait = addCharacterPortrait(scene, id, 916, y, 58, 74, active ? 0xe9b949 : 0x61a8ff);
+    const portrait = addCharacterPortrait(scene, id, 916, y, 82, 104, active ? 0xf6b72c : 0x37a9ff).setDepth(14);
     if (active && !prefersReducedMotion()) {
       scene.tweens.add({
         targets: portrait,
-        scaleX: { from: 0.96, to: 1 },
-        scaleY: { from: 0.96, to: 1 },
-        duration: 180,
+        scaleX: { from: 0.93, to: 1 },
+        scaleY: { from: 0.93, to: 1 },
+        duration: 220,
         ease: 'Back.Out',
       });
     }
   });
 }
 
+function renderAuctioneerStageHost(scene: CharacterRuntime): void {
+  const glow = scene.add.ellipse(668, 270, 250, 255, 0xf6b72c, 0.1).setDepth(10);
+  scene.add.ellipse(668, 352, 190, 40, 0x000000, 0.3).setDepth(10);
+  const portrait = addCharacterPortrait(scene, 'auctioneer', 668, 270, 176, 220, 0xf6b72c).setDepth(12);
+  const bubbleShadow = scene.add.rectangle(548, 173, 236, 70, 0x000000, 0.28).setOrigin(0).setDepth(13);
+  const bubble = scene.add.rectangle(542, 167, 236, 70, 0xfff2cf, 0.98).setOrigin(0).setStrokeStyle(2, 0xf6b72c, 0.75).setDepth(14);
+  scene.add.triangle(650, 237, 0, 0, 28, 0, 28, 22, 0xfff2cf, 1).setDepth(14);
+  scene.add.text(558, 180, scene.locale === 'ru' ? 'Кто даст больше?' : 'Who bids higher?', {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '18px',
+    fontStyle: 'bold',
+    color: '#17324a',
+  }).setDepth(15);
+  scene.add.text(558, 205, scene.locale === 'ru' ? 'Следи за соперниками.' : 'Watch the rivals.', {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '11px',
+    color: '#4c6378',
+  }).setDepth(15);
+  if (!prefersReducedMotion()) {
+    portrait.setY(282).setAlpha(0.72);
+    scene.tweens.add({ targets: portrait, y: 270, alpha: 1, duration: 260, ease: 'Back.Out' });
+    scene.tweens.add({ targets: glow, alpha: { from: 0.045, to: 0.12 }, duration: 520, yoyo: true, ease: 'Sine.Out' });
+    scene.tweens.add({ targets: [bubble, bubbleShadow], x: '+=6', duration: 180, yoyo: true, ease: 'Cubic.Out' });
+  }
+}
+
 function renderAuctioneerHeader(scene: CharacterRuntime): void {
   // The auctioneer is a stage host. Keep the resting state strong and reserve motion for entry/emphasis.
-  const spotlight = scene.add.ellipse(704, 72, 176, 162, 0xe9b949, 0.055).setDepth(2);
+  const spotlight = scene.add.ellipse(704, 72, 176, 162, 0xf6b72c, 0.055).setDepth(2);
   const shadow = scene.add.rectangle(710, 77, 126, 122, 0x000000, 0.42).setDepth(3);
-  const plate = scene.add.rectangle(704, 72, 124, 120, 0x0b1016, 0.96).setStrokeStyle(2, 0xe9b949, 0.5).setDepth(4);
-  scene.add.rectangle(704, 124, 112, 24, 0x251c0f, 0.96).setStrokeStyle(1, 0xe9b949, 0.42).setDepth(6);
+  const plate = scene.add.rectangle(704, 72, 124, 120, 0x0b1016, 0.96).setStrokeStyle(2, 0xf6b72c, 0.5).setDepth(4);
+  scene.add.rectangle(704, 124, 112, 24, 0x251c0f, 0.96).setStrokeStyle(1, 0xf6b72c, 0.42).setDepth(6);
   scene.add.text(704, 124, scene.locale === 'ru' ? 'ВЕДУЩИЙ' : 'AUCTIONEER', {
     fontFamily: 'Arial, sans-serif',
     fontSize: '9px',
     fontStyle: 'bold',
     color: '#f0c969',
   }).setOrigin(0.5).setDepth(7);
-  const portrait = addCharacterPortrait(scene, 'auctioneer', 704, 65, 102, 124, 0xe9b949).setDepth(5);
+  const portrait = addCharacterPortrait(scene, 'auctioneer', 704, 65, 102, 124, 0xf6b72c).setDepth(5);
   if (!prefersReducedMotion()) {
     portrait.setAlpha(0.7).setScale(0.96);
     scene.tweens.add({ targets: portrait, alpha: 1, scaleX: 1, scaleY: 1, duration: 240, ease: 'Back.Out' });
@@ -155,16 +181,16 @@ function renderLotSelectionCoach(scene: CharacterRuntime): void {
     scene.locale === 'ru'
       ? 'Шаг 1 · Читай сигналы: они связаны с реальными категориями находок. Сравни цену и риск, затем выбери лот.'
       : 'Step 1 · Read the clues: they map to real find categories. Compare price and risk, then choose a lot.',
-    0x63d28d,
+    0x47d36f,
   );
   const g = scene.add.graphics();
-  g.lineStyle(3, 0x63d28d, 0.72);
+  g.lineStyle(3, 0x47d36f, 0.72);
   g.beginPath();
   g.moveTo(300, 298);
   g.lineTo(250, 382);
   g.lineTo(230, 610);
   g.strokePath();
-  g.fillStyle(0x63d28d, 0.9);
+  g.fillStyle(0x47d36f, 0.9);
   g.fillTriangle(222, 603, 238, 606, 229, 620);
 }
 
@@ -179,7 +205,7 @@ function renderBiddingCoach(scene: CharacterRuntime): void {
     scene.locale === 'ru'
       ? 'Шаг 2 · Смотри на текущую ставку и реакции соперников. Если цена уже плохая — пас тоже правильное решение.'
       : 'Step 2 · Watch the current bid and rival reactions. If the price turns bad, passing is also a good decision.',
-    0x61a8ff,
+    0x37a9ff,
     48,
     60,
   );
@@ -196,19 +222,22 @@ function renderWinCoach(scene: CharacterRuntime): void {
     scene.locale === 'ru'
       ? 'Победа. Теперь открой лот — прибыль станет понятна только после оценки находок.'
       : 'You won. Open the lot now — profit only becomes clear after you appraise the finds.',
-    0xe9b949,
+    0xf6b72c,
     64,
     80,
   );
 }
 
 function renderRevealCoach(scene: CharacterRuntime): void {
+  if (scene.revealStage === 'revealed' || scene.revealStage === 'appraised') {
+    renderAppraiserHost(scene);
+  }
   if (!isTutorialSessionActive()) return;
   const item = scene.items[scene.revealIndex];
   if (!item) return;
 
   let copy: string;
-  let accent = 0xb576ff;
+  let accent = 0x9959ff;
   if (scene.revealStage === 'closed') {
     copy = scene.locale === 'ru'
       ? 'Шаг 3 · Открывай находки по одной. Редкость видна сразу, но цена ещё скрыта.'
@@ -217,17 +246,46 @@ function renderRevealCoach(scene: CharacterRuntime): void {
     copy = scene.locale === 'ru'
       ? 'Оцени предмет: состояние и признаки могут сильно изменить его реальную цену.'
       : 'Appraise it: condition and traits can change its real value dramatically.';
-    accent = 0x61a8ff;
+    accent = 0x37a9ff;
   } else if (scene.revealStage === 'appraised') {
     copy = scene.locale === 'ru'
       ? 'Решение за тобой: оставить для набора, продать сейчас или потратить единственную реставрацию лота.'
       : 'Your call: keep it for a set, sell now, or spend the lot’s single restoration attempt.';
-    accent = 0x63d28d;
+    accent = 0x47d36f;
   } else {
     return;
   }
 
   tutorialBubble(scene, 130, 575, 316, 573, copy, accent, 62, 78);
+}
+
+
+function renderAppraiserHost(scene: CharacterRuntime): void {
+  const accent = scene.revealStage === 'appraised' ? 0x47d36f : 0x37a9ff;
+  const halo = scene.add.ellipse(724, 260, 150, 184, accent, 0.075).setDepth(15);
+  const portrait = addCharacterPortrait(scene, 'mentor', 724, 268, 112, 142, accent).setDepth(17);
+  scene.add.rectangle(638, 164, 214, 72, 0xfff2cf, 0.98).setOrigin(0).setStrokeStyle(2, accent, 0.62).setDepth(18);
+  scene.add.triangle(716, 236, 0, 0, 26, 0, 20, 22, 0xfff2cf, 1).setDepth(18);
+  scene.add.text(652, 177, scene.revealStage === 'appraised'
+    ? (scene.locale === 'ru' ? 'Вот это находка!' : 'That is a find!')
+    : (scene.locale === 'ru' ? 'Проверим ценность.' : 'Let’s check the value.'), {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '16px',
+    fontStyle: 'bold',
+    color: '#17324a',
+  }).setDepth(19);
+  scene.add.text(652, 201, scene.revealStage === 'appraised'
+    ? (scene.locale === 'ru' ? 'Решай: оставить или продать.' : 'Keep it or make the deal.')
+    : (scene.locale === 'ru' ? 'Состояние решает цену.' : 'Condition changes the price.'), {
+    fontFamily: 'Arial, sans-serif',
+    fontSize: '10px',
+    color: '#52697e',
+  }).setDepth(19);
+  if (!prefersReducedMotion()) {
+    portrait.setScale(0.95).setAlpha(0.76);
+    scene.tweens.add({ targets: portrait, scaleX: 1, scaleY: 1, alpha: 1, duration: 240, ease: 'Back.Out' });
+    scene.tweens.add({ targets: halo, alpha: { from: 0.035, to: 0.09 }, duration: 420, yoyo: true, ease: 'Sine.Out' });
+  }
 }
 
 function captureDiscoverySnapshot(scene: CharacterRuntime): DiscoverySnapshot {
@@ -262,7 +320,7 @@ function showDiscoveryModal(
   completed: boolean,
 ): void {
   playFeedbackCue(scene, completed ? 'reward' : 'ui');
-  const accent = completed ? 0x63d28d : 0xe9b949;
+  const accent = completed ? 0x47d36f : 0xf6b72c;
   const overlay = scene.add.rectangle(640, 360, 1280, 720, 0x05070a, 0.68)
     .setDepth(900)
     .setInteractive({ useHandCursor: false });
