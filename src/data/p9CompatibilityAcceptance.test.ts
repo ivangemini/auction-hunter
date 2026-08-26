@@ -51,7 +51,7 @@ describe('P9 final compatibility acceptance', () => {
     expect(legacy.auctionsPlayed).toBe(41);
     expect(legacy.lifetimeSales).toBe(92300);
     expect(legacy.collection).toEqual(['film-camera', 'pocket-watch', 'manual-typewriter']);
-    expect(legacy.collectionItems.map((copy) => copy.itemId)).toEqual(legacy.collection);
+    expect(legacy.collectionItems?.map((copy) => copy.itemId)).toEqual(legacy.collection);
     expect(legacy.claimedSetRewards).toEqual(['portable-era']);
     expect(legacy.campaign.started).toBe(false);
     expect(legacy.campaign.completedMissionIds).toEqual([]);
@@ -91,7 +91,7 @@ describe('P9 final compatibility acceptance', () => {
 
     expect(modern.version).toBe(1);
     expect(modern.collection).toEqual(finalIds);
-    expect(modern.collectionItems.map((copy) => copy.itemId)).toEqual(finalIds);
+    expect(modern.collectionItems?.map((copy) => copy.itemId)).toEqual(finalIds);
     expect(modern.claimedSetRewards).toEqual(['clearance-control', 'signal-and-time']);
     expect(modern.discoveryChainProgress['ledger-clearance-control']).toBe(2);
     expect(modern.completedDiscoveryChains).toContain('ledger-sealed-dispatch');
