@@ -17,6 +17,8 @@ export interface CampaignObjective {
   type: CampaignObjectiveType;
   target?: number;
   optional?: boolean;
+  budget?: number;
+  targetIds?: string[];
   description: LocalizedText;
 }
 
@@ -42,6 +44,14 @@ export interface CampaignChapter {
   subtitle: LocalizedText;
   targetMinutes: [number, number];
 }
+
+export const CAMPAIGN_CHAPTER_ORDER: Record<CampaignChapterId, number> = {
+  'first-flip': 1,
+  'estate-trail': 2,
+  'dealer-war': 3,
+  'closed-circle': 4,
+  'lost-collection': 5,
+};
 
 export const CAMPAIGN_CHAPTERS: CampaignChapter[] = [
   {
@@ -105,6 +115,37 @@ export const CAMPAIGN_MISSIONS: CampaignMission[] = [
     objective: { type: 'select-evidence-lot', target: 1, description: { ru: 'Выберите правильный лот по документальным зацепкам.', en: 'Select the correct lot using documentary clues.' } },
     prerequisiteMissionIds: ['black-seal'], rewardCash: 650, rewardRep: 40, evidenceRewardIds: ['veyr-inventory-number'], artId: 'campaign-estate-study',
   },
+  {
+    id: 'estate-paper-trail', chapterId: 'estate-trail', order: 1,
+    title: { ru: 'Бумажный след', en: 'Paper Trail' },
+    briefing: { ru: 'Номер 47-Б связывает две коробки из разных распродаж. Архивная бирка важнее внешне дорогого содержимого.', en: 'Inventory 47-B connects two boxes from separate clearances. The archive mark matters more than the expensive-looking contents.' },
+    objective: { type: 'select-evidence-lot', target: 1, description: { ru: 'Найдите второй лот, связанный с номером 47-Б.', en: 'Find the second lot connected to inventory 47-B.' } },
+    prerequisiteMissionIds: ['missing-inventory'], rewardCash: 800, rewardRep: 45, evidenceRewardIds: ['veyr-estate-photo'], artId: 'campaign-estate-study',
+  },
+  {
+    id: 'estate-linked-lots', chapterId: 'estate-trail', order: 2,
+    title: { ru: 'Две коробки, один бюджет', en: 'Two Boxes, One Budget' },
+    briefing: { ru: 'Две связанные части описи уйдут подряд. Красивый первый лот может оставить вас без денег на второй.', en: 'Two linked inventory lots sell back-to-back. An attractive first lot can leave you unable to afford the second.' },
+    objective: {
+      type: 'linked-budget', target: 2, budget: 6200, targetIds: ['estate-ledger-box', 'estate-photo-box'],
+      description: { ru: 'Получите обе связанные находки, потратив не более 6 200 ₽ суммарно.', en: 'Acquire both linked finds while spending no more than 6,200 ₽ total.' },
+    },
+    prerequisiteMissionIds: ['estate-paper-trail'], rewardCash: 1100, rewardRep: 60, evidenceRewardIds: ['veyr-ledger-margin'],
+  },
+  {
+    id: 'estate-false-paper', chapterId: 'estate-trail', order: 3,
+    title: { ru: 'Слишком хорошая история', en: 'A Story Too Clean' },
+    briefing: { ru: 'Один provenance-файл выглядит безупречно. Именно это и настораживает: чернила и печать не совпадают с первой уликой.', en: 'One provenance file looks immaculate. That is exactly the problem: its ink and seal disagree with the first evidence.' },
+    objective: { type: 'appraise-evidence', target: 1, description: { ru: 'Проверьте provenance и определите подделку до дорогой ошибки.', en: 'Inspect the provenance and identify the fake before an expensive mistake.' } },
+    prerequisiteMissionIds: ['estate-linked-lots'], rewardCash: 900, rewardRep: 70, evidenceRewardIds: ['veyr-forgery-pattern'], artId: 'provenance-folder',
+  },
+  {
+    id: 'estate-mira-offer', chapterId: 'estate-trail', order: 4,
+    title: { ru: 'Цена информации', en: 'The Price of Information' },
+    briefing: { ru: 'Мира знает, кто купил следующую часть реестра, но просит оплату сейчас — деньгами или предметом из вашей коллекции.', en: 'Mira knows who bought the next ledger fragment, but wants payment now — cash or an item from your collection.' },
+    objective: { type: 'negotiate', target: 1, description: { ru: 'Решите, чем заплатить Мире — или откажитесь от её короткого пути.', en: 'Choose how to pay Mira — or refuse her shortcut.' } },
+    prerequisiteMissionIds: ['estate-false-paper'], rewardCash: 700, rewardRep: 80, evidenceRewardIds: ['private-auction-lead'], featuredRivalId: 'npc-1', artId: 'private-invitation',
+  },
 ];
 
 export const CAMPAIGN_EVIDENCE = [
@@ -119,5 +160,29 @@ export const CAMPAIGN_EVIDENCE = [
     title: { ru: 'Номер 47-Б', en: 'Inventory 47-B' },
     description: { ru: 'Номер описи отсутствует в открытом каталоге поместья.', en: 'An inventory number missing from the estate’s public catalogue.' },
     artId: 'evidence-ledger-fragment',
+  },
+  {
+    id: 'veyr-estate-photo',
+    title: { ru: 'Фотография кабинета', en: 'Estate Study Photograph' },
+    description: { ru: 'На старой фотографии две архивные коробки стоят рядом, хотя позже их продали отдельно.', en: 'An old photograph shows two archive boxes together although they were later sold separately.' },
+    artId: 'campaign-estate-study',
+  },
+  {
+    id: 'veyr-ledger-margin',
+    title: { ru: 'Пометка на полях', en: 'Ledger Margin Note' },
+    description: { ru: 'Короткая рукописная пометка связывает номера описи с частным покупателем.', en: 'A short handwritten margin note links the inventory numbers to a private buyer.' },
+    artId: 'evidence-ledger-fragment',
+  },
+  {
+    id: 'veyr-forgery-pattern',
+    title: { ru: 'Шаблон подделки', en: 'Forgery Pattern' },
+    description: { ru: 'Поддельные документы повторяют настоящий знак, но используют неправильную бумагу и штамп.', en: 'The forged papers copy the real mark but use the wrong paper stock and stamp.' },
+    artId: 'provenance-folder',
+  },
+  {
+    id: 'private-auction-lead',
+    title: { ru: 'Частное приглашение', en: 'Private Auction Lead' },
+    description: { ru: 'След ведёт к закрытой сети дилеров. На приглашении нет адреса — только время и контакт.', en: 'The trail reaches a closed dealer network. The invitation has no address, only a time and contact.' },
+    artId: 'private-invitation',
   },
 ] as const;
