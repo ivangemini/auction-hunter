@@ -3,6 +3,7 @@ import { ITEM_TRAITS, isItemTraitId, itemTraitsFor } from '../data/itemTraits';
 import type {
   AuctionHistoryEntry,
   BusinessUpgradeState,
+  CampaignProgressState,
   CollectionItem,
   ItemTraitId,
   PlayerSave,
@@ -16,6 +17,19 @@ const DEFAULT_UPGRADES: BusinessUpgradeState = {
   warehouse: 0,
   contractsDesk: 0,
   showroom: 0,
+};
+
+const DEFAULT_CAMPAIGN: CampaignProgressState = {
+  started: false,
+  activeMissionId: null,
+  completedMissionIds: [],
+  evidenceIds: [],
+  branchChoiceIds: [],
+  relationshipTrust: {},
+  relationshipRivalry: {},
+  relationshipDebt: {},
+  completed: false,
+  epilogueId: null,
 };
 
 const DEFAULT_SAVE: PlayerSave = {
@@ -51,6 +65,7 @@ const DEFAULT_SAVE: PlayerSave = {
   discoveryChainProgress: {},
   discoveryChainLastAuction: {},
   completedDiscoveryChains: [],
+  campaign: DEFAULT_CAMPAIGN,
 };
 
 export function createDefaultSave(): PlayerSave {
@@ -76,6 +91,19 @@ export function createDefaultSave(): PlayerSave {
     discoveryChainProgress: {},
     discoveryChainLastAuction: {},
     completedDiscoveryChains: [],
+    campaign: createDefaultCampaignProgress(),
+  };
+}
+
+export function createDefaultCampaignProgress(): CampaignProgressState {
+  return {
+    ...DEFAULT_CAMPAIGN,
+    completedMissionIds: [],
+    evidenceIds: [],
+    branchChoiceIds: [],
+    relationshipTrust: {},
+    relationshipRivalry: {},
+    relationshipDebt: {},
   };
 }
 
@@ -117,6 +145,7 @@ export function normalizeSave(value: unknown): PlayerSave {
     discoveryChainProgress: cleanIntegerRecord(value.discoveryChainProgress),
     discoveryChainLastAuction: cleanIntegerRecord(value.discoveryChainLastAuction),
     completedDiscoveryChains: cleanStringArray(value.completedDiscoveryChains),
+    campaign: cleanCampaignProgress(value.campaign),
   };
 }
 
@@ -141,6 +170,22 @@ export function writeLocalSave(save: PlayerSave, touchTimestamp = true): PlayerS
     console.error('[Save] Failed to persist local progress.', error);
   }
   return next;
+}
+
+function cleanCampaignProgress(value: unknown): CampaignProgressState {
+  if (!isRecord(value)) return createDefaultCampaignProgress();
+  return {
+    started: value.started === true,
+    activeMissionId: cleanNullableString(value.activeMissionId),
+    completedMissionIds: [...new Set(cleanStringArray(value.completedMissionIds))],
+    evidenceIds: [...new Set(cleanStringArray(value.evidenceIds))],
+    branchChoiceIds: [...new Set(cleanStringArray(value.branchChoiceIds))],
+    relationshipTrust: cleanSignedIntegerRecord(value.relationshipTrust),
+    relationshipRivalry: cleanSignedIntegerRecord(value.relationshipRivalry),
+    relationshipDebt: cleanSignedIntegerRecord(value.relationshipDebt),
+    completed: value.completed === true,
+    epilogueId: cleanNullableString(value.epilogueId),
+  };
 }
 
 function normalizeDiscoveryHistory(
@@ -282,6 +327,15 @@ function cleanIntegerRecord(value: unknown): Record<string, number> {
     Object.entries(value)
       .filter(([, amount]) => typeof amount === 'number' && Number.isFinite(amount))
       .map(([key, amount]) => [key, Math.max(0, Math.floor(amount as number))]),
+  );
+}
+
+function cleanSignedIntegerRecord(value: unknown): Record<string, number> {
+  if (!isRecord(value)) return {};
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([, amount]) => typeof amount === 'number' && Number.isFinite(amount))
+      .map(([key, amount]) => [key, Math.max(-100, Math.min(100, Math.trunc(amount as number)))]),
   );
 }
 
