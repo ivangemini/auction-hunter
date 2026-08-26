@@ -1,6 +1,13 @@
 import Phaser from 'phaser';
 import { CAMPAIGN_CHAPTERS, CAMPAIGN_EVIDENCE, CAMPAIGN_MISSIONS, type CampaignMission } from '../../data/campaign';
-import { campaignMissionById } from '../../domain/campaign';
+import { campaignMissionAvailable, campaignMissionById } from '../../domain/campaign';
+import {
+  buyLinkedBudgetOffer,
+  createLinkedBudgetState,
+  linkedBudgetMissionComplete,
+  linkedBudgetRemaining,
+  type LinkedBudgetOffer,
+} from '../../domain/campaignLinkedBudget';
 import type { Locale } from '../../domain/types';
 import { getPlatformLocale } from '../../platform/yandex';
 import { CampaignStore } from '../campaignStore';
@@ -9,6 +16,11 @@ import { addAtmosphere, addChip, addProgressBar, addSurface, VISUAL } from '../v
 
 const WIDTH = 1280;
 const HEIGHT = 720;
+const CHAPTER_TWO_OFFERS: readonly LinkedBudgetOffer[] = [
+  { id: 'decorative-decoy', price: 2600, target: false },
+  { id: 'estate-ledger-box', price: 3100, target: true },
+  { id: 'estate-photo-box', price: 2800, target: true },
+];
 
 export class CampaignScene extends Phaser.Scene {
   private readonly campaign = new CampaignStore();
@@ -23,6 +35,8 @@ export class CampaignScene extends Phaser.Scene {
     this.load.svg('campaign-estate-study', 'assets/campaign/campaign-estate-study.svg');
     this.load.svg('evidence-black-seal', 'assets/campaign/evidence-black-seal.svg');
     this.load.svg('evidence-ledger-fragment', 'assets/campaign/evidence-ledger-fragment.svg');
+    this.load.svg('private-invitation', 'assets/campaign/private-invitation.svg');
+    this.load.svg('provenance-folder', 'assets/campaign/provenance-folder.svg');
   }
 
   create(): void {
@@ -35,7 +49,6 @@ export class CampaignScene extends Phaser.Scene {
     addAtmosphere(this, WIDTH, HEIGHT, VISUAL.warm, 980);
     this.add.image(952, 360, 'campaign-estate-study').setDisplaySize(620, 520).setAlpha(0.34);
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x090b0e, 0.42).setOrigin(0);
-
     this.renderHeader();
     this.renderChapterRail();
     this.renderInvestigationWall();
@@ -45,40 +58,36 @@ export class CampaignScene extends Phaser.Scene {
   private renderHeader(): void {
     const save = this.campaign.snapshot;
     this.label(52, 30, this.locale === 'ru' ? 'ДЕЛО: ЧЁРНЫЙ РЕЕСТР' : 'CASE: THE BLACK LEDGER', 28, '#f0c969', 'bold');
-    this.label(
-      52,
-      68,
-      this.locale === 'ru'
-        ? 'След исчезнувшего коллекционера Вейра проходит через обычные распродажи, частные сделки и закрытые аукционы.'
-        : "The trail of vanished collector Veyr runs through ordinary clearances, private deals and invitation auctions.",
-      13,
-      '#aeb5c0',
-    ).setWordWrapWidth(730);
-
+    this.label(52, 68, this.locale === 'ru'
+      ? 'След исчезнувшего коллекционера Вейра проходит через распродажи, сделки и закрытые аукционы.'
+      : "The trail of vanished collector Veyr runs through clearances, deals and invitation auctions.", 13, '#aeb5c0').setWordWrapWidth(730);
     addChip(this, 870, 45, `${Math.floor(save.reputationXp)} REP`, VISUAL.rare, { width: 116, height: 30, filled: true, fontSize: 11 });
     addChip(this, 1000, 45, this.money(save.cash), VISUAL.success, { width: 132, height: 30, filled: true, fontSize: 11 });
     button(this, 1175, 50, this.locale === 'ru' ? 'Аукцион' : 'Auction', () => this.scene.start('auction'), {
-      width: 150,
-      height: 44,
-      background: VISUAL.rare,
-      accent: 0x8fc3ff,
-      fontSize: 12,
+      width: 150, height: 44, background: VISUAL.rare, accent: 0x8fc3ff, fontSize: 12,
     });
   }
 
   private renderChapterRail(): void {
-    const completed = this.campaign.progress.completedMissionIds.length;
-    const chapterOneDone = CAMPAIGN_MISSIONS.filter((m) => m.chapterId === 'first-flip').every((m) => this.campaign.progress.completedMissionIds.includes(m.id));
+    const progress = this.campaign.progress;
     const y = 126;
     CAMPAIGN_CHAPTERS.forEach((chapter, index) => {
+      const chapterMissions = CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === chapter.id);
+      const completed = chapterMissions.filter((mission) => progress.completedMissionIds.includes(mission.id)).length;
+      const first = chapterMissions[0];
+      const authored = chapterMissions.length > 0;
+      const unlocked = authored && Boolean(first && (
+        progress.completedMissionIds.includes(first.id)
+        || campaignMissionAvailable(first, progress)
+        || progress.activeMissionId === first.id
+      ));
+      const active = unlocked && completed < chapterMissions.length;
+      const accent = active ? VISUAL.warm : completed > 0 && completed === chapterMissions.length ? VISUAL.success : 0x4d5661;
       const x = 54 + index * 238;
-      const active = index === 0 && !chapterOneDone;
-      const locked = index > 0;
-      const accent = active ? VISUAL.warm : locked ? 0x4d5661 : VISUAL.success;
       addSurface(this, x, y, 214, 82, { fill: VISUAL.panelDeep, accent, strokeAlpha: active ? 0.38 : 0.16, glowAlpha: active ? 0.02 : 0.006 });
       this.label(x + 14, y + 12, `0${chapter.order}`, 10, this.hex(accent), 'bold');
       this.label(x + 14, y + 29, chapter.title[this.locale].replace(/^.*—\s*/, ''), 13, '#f7f3e8', 'bold').setWordWrapWidth(178);
-      this.label(x + 14, y + 57, locked ? (this.locale === 'ru' ? 'Закрыто' : 'Locked') : `${completed}/4`, 9, locked ? '#707985' : '#b9c0ca', 'bold');
+      this.label(x + 14, y + 57, unlocked ? `${completed}/${chapterMissions.length}` : (this.locale === 'ru' ? 'Закрыто' : 'Locked'), 9, unlocked ? '#b9c0ca' : '#707985', 'bold');
     });
   }
 
@@ -92,46 +101,44 @@ export class CampaignScene extends Phaser.Scene {
     if (evidence.length === 0) {
       this.add.rectangle(306, 446, 420, 242, 0x0e0d0b, 0.72).setStrokeStyle(1, 0x60452c, 0.35);
       this.label(142, 390, this.locale === 'ru' ? 'Пока только пустые нитки.' : 'Only loose threads so far.', 17, '#b4a184', 'bold');
-      this.label(142, 428, this.locale === 'ru' ? 'Первая настоящая улика появится в третьем задании главы.' : 'The first hard piece of evidence appears in Chapter I mission three.', 12, '#7d7568').setWordWrapWidth(320);
-    } else {
-      evidence.slice(0, 2).forEach((entry, index) => {
-        const y = 318 + index * 162;
-        this.add.image(158, y + 69, entry.artId).setDisplaySize(146, 112);
-        this.label(250, y + 16, entry.title[this.locale], 15, '#f2e2bd', 'bold').setWordWrapWidth(278);
-        this.label(250, y + 48, entry.description[this.locale], 11, '#aa9c82').setWordWrapWidth(274).setLineSpacing(3);
-        this.add.line(250, y + 112, 0, 0, 230, 0, 0x8a2b2b, 0.45).setOrigin(0);
-      });
+      this.label(142, 428, this.locale === 'ru' ? 'Первая настоящая улика появится в третьем задании.' : 'The first hard evidence appears in mission three.', 12, '#7d7568').setWordWrapWidth(320);
+      return;
     }
+
+    evidence.slice(-2).forEach((entry, index) => {
+      const y = 318 + index * 162;
+      this.add.image(158, y + 69, entry.artId).setDisplaySize(146, 112);
+      this.label(250, y + 16, entry.title[this.locale], 15, '#f2e2bd', 'bold').setWordWrapWidth(278);
+      this.label(250, y + 48, entry.description[this.locale], 11, '#aa9c82').setWordWrapWidth(274).setLineSpacing(3);
+      this.add.line(250, y + 112, 0, 0, 230, 0, 0x8a2b2b, 0.45).setOrigin(0);
+    });
   }
 
   private renderMissionPanel(): void {
     const save = this.campaign.snapshot;
     const progress = save.campaign;
     const mission = campaignMissionById(CAMPAIGN_MISSIONS, progress.activeMissionId) ?? this.campaign.nextMission();
-
     addSurface(this, 586, 232, 642, 432, { fill: VISUAL.panelDeep, accent: VISUAL.warm, strokeAlpha: 0.28, glowAlpha: 0.014 });
     this.label(610, 250, this.locale === 'ru' ? 'ТЕКУЩЕЕ ДЕЛО' : 'CURRENT CASE', 11, VISUAL.faint, 'bold');
 
     if (!mission) {
-      this.label(610, 304, this.locale === 'ru' ? 'Глава I завершена' : 'Chapter I complete', 28, '#f0c969', 'bold');
-      this.label(610, 352, this.locale === 'ru' ? 'След ведёт дальше — к архивам поместья.' : 'The trail now leads deeper into the estate archives.', 14, '#b9c0ca').setWordWrapWidth(540);
-      button(this, 906, 590, this.locale === 'ru' ? 'На аукцион' : 'Back to auction', () => this.scene.start('auction'), { width: 260, height: 52, background: VISUAL.rare });
+      this.label(610, 304, this.locale === 'ru' ? 'Доступные главы завершены' : 'Available chapters complete', 27, '#f0c969', 'bold');
+      this.label(610, 352, this.locale === 'ru' ? 'Новые главы продолжат тот же сохранённый след.' : 'New chapters will continue from this same persistent trail.', 14, '#b9c0ca').setWordWrapWidth(540);
       return;
     }
 
+    const chapterMissions = CAMPAIGN_MISSIONS.filter((m) => m.chapterId === mission.chapterId);
+    const completedCount = chapterMissions.filter((m) => progress.completedMissionIds.includes(m.id)).length;
     const isActive = progress.activeMissionId === mission.id;
-    const completedCount = CAMPAIGN_MISSIONS.filter((m) => m.chapterId === 'first-flip' && progress.completedMissionIds.includes(m.id)).length;
     this.label(610, 286, mission.title[this.locale], 25, '#f7f3e8', 'bold').setWordWrapWidth(500);
-    addChip(this, 1102, 300, `${mission.order}/4`, VISUAL.warm, { width: 84, height: 28, filled: true, fontSize: 10 });
+    addChip(this, 1102, 300, `${mission.order}/${chapterMissions.length}`, VISUAL.warm, { width: 84, height: 28, filled: true, fontSize: 10 });
     this.label(610, 332, mission.briefing[this.locale], 13, '#aeb5c0').setWordWrapWidth(560).setLineSpacing(4);
-
     this.label(610, 412, this.locale === 'ru' ? 'ЦЕЛЬ' : 'OBJECTIVE', 10, '#d6a45f', 'bold');
     this.label(610, 434, mission.objective.description[this.locale], 15, '#f0e2c4', 'bold').setWordWrapWidth(550);
-    addProgressBar(this, 610, 484, 556, completedCount / 4, VISUAL.warm);
-    this.label(610, 498, this.locale === 'ru' ? `Глава I: ${completedCount}/4` : `Chapter I: ${completedCount}/4`, 10, VISUAL.faint, 'bold');
+    addProgressBar(this, 610, 484, 556, completedCount / Math.max(1, chapterMissions.length), VISUAL.warm);
+    this.label(610, 498, `${CAMPAIGN_CHAPTERS.find((c) => c.id === mission.chapterId)?.title[this.locale] ?? ''}: ${completedCount}/${chapterMissions.length}`, 10, VISUAL.faint, 'bold');
     this.label(610, 532, this.locale === 'ru' ? 'НАГРАДА' : 'REWARD', 9, VISUAL.faint, 'bold');
     this.label(610, 552, `${this.money(mission.rewardCash)}  ·  +${mission.rewardRep} REP`, 14, '#f0c969', 'bold');
-
     if (this.feedback) this.label(610, 616, this.feedback, 11, '#e9b949', 'bold').setWordWrapWidth(380);
 
     if (!isActive) {
@@ -142,7 +149,6 @@ export class CampaignScene extends Phaser.Scene {
       }, { width: 260, height: 54, background: VISUAL.warm, accent: 0xffd260, foreground: '#111318' });
       return;
     }
-
     this.renderMissionActions(mission, save.auctionsPlayed, save.auctionsWon);
   }
 
@@ -153,26 +159,16 @@ export class CampaignScene extends Phaser.Scene {
 
     if (mission.objective.type === 'play-auction') {
       const gained = Math.max(0, auctionsPlayed - playedBaseline);
-      if (gained >= (mission.objective.target ?? 1)) {
-        button(this, 1036, 588, this.locale === 'ru' ? 'Завершить задание' : 'Complete mission', () => this.complete(mission.id), { width: 260, height: 54, background: VISUAL.success });
-      } else {
-        this.label(610, 586, this.locale === 'ru' ? `После старта: ${gained}/1 аукцион` : `Since mission start: ${gained}/1 auction`, 10, VISUAL.faint, 'bold');
-        button(this, 1036, 588, this.locale === 'ru' ? 'Идти на торги' : 'Go to auction', () => this.scene.start('auction'), { width: 260, height: 54, background: VISUAL.rare });
-      }
+      if (gained >= (mission.objective.target ?? 1)) this.completeButton(mission.id);
+      else this.auctionButton(`${this.locale === 'ru' ? 'После старта' : 'Since start'}: ${gained}/1`);
       return;
     }
-
     if (mission.objective.type === 'win-auction') {
       const gained = Math.max(0, auctionsWon - wonBaseline);
-      if (gained >= (mission.objective.target ?? 1)) {
-        button(this, 1036, 588, this.locale === 'ru' ? 'Отчитаться Виктору' : 'Report to Victor', () => this.complete(mission.id), { width: 260, height: 54, background: VISUAL.success });
-      } else {
-        this.label(610, 586, this.locale === 'ru' ? `После старта: ${gained}/1 победа` : `Since mission start: ${gained}/1 win`, 10, VISUAL.faint, 'bold');
-        button(this, 1036, 588, this.locale === 'ru' ? 'Выиграть лот' : 'Win a lot', () => this.scene.start('auction'), { width: 260, height: 54, background: VISUAL.rare });
-      }
+      if (gained >= (mission.objective.target ?? 1)) this.completeButton(mission.id, this.locale === 'ru' ? 'Отчитаться Виктору' : 'Report to Victor');
+      else this.auctionButton(`${this.locale === 'ru' ? 'Побед после старта' : 'Wins since start'}: ${gained}/1`);
       return;
     }
-
     if (mission.objective.type === 'keep-evidence') {
       this.add.image(1090, 418, 'evidence-black-seal').setDisplaySize(190, 125);
       button(this, 760, 600, this.locale === 'ru' ? 'Показать Виктору' : 'Show Victor', () => {
@@ -185,26 +181,110 @@ export class CampaignScene extends Phaser.Scene {
       }, { width: 230, height: 50, background: 0x29313b, accent: VISUAL.purple, fontSize: 11 });
       return;
     }
-
     if (mission.objective.type === 'select-evidence-lot') {
-      const options = [
+      this.renderEvidenceLotChoice(mission);
+      return;
+    }
+    if (mission.objective.type === 'linked-budget') {
+      this.renderLinkedBudgetMission(mission);
+      return;
+    }
+    if (mission.objective.type === 'appraise-evidence') {
+      this.renderForgeryMission(mission);
+      return;
+    }
+    if (mission.objective.type === 'negotiate') this.renderMiraNegotiation(mission);
+  }
+
+  private renderEvidenceLotChoice(mission: CampaignMission): void {
+    const estate = mission.id === 'estate-paper-trail';
+    const options = estate
+      ? [
+        { id: '31-C', good: false, hint: this.locale === 'ru' ? 'Сервиз · новая этикетка' : 'China · recent label' },
+        { id: '47-B/2', good: true, hint: this.locale === 'ru' ? 'Фотоархив · та же нумерация' : 'Photo archive · matching number' },
+        { id: '66-A', good: false, hint: this.locale === 'ru' ? 'Часы · без архивной связи' : 'Watches · no archive link' },
+      ]
+      : [
         { id: '12-A', good: false, hint: this.locale === 'ru' ? 'Фарфор · без архивной отметки' : 'Porcelain · no archive mark' },
         { id: '47-B', good: true, hint: this.locale === 'ru' ? 'Бумаги · чёрная печать' : 'Papers · black seal' },
         { id: '83-C', good: false, hint: this.locale === 'ru' ? 'Инструменты · складская бирка' : 'Tools · warehouse tag' },
       ];
-      options.forEach((option, index) => {
-        const x = 650 + index * 182;
-        button(this, x + 78, 602, `${option.id}\n${option.hint}`, () => {
-          if (option.good) {
-            this.feedback = this.locale === 'ru' ? 'Совпадение найдено: 47-Б.' : 'Match found: 47-B.';
-            this.complete(mission.id);
-          } else {
-            this.feedback = this.locale === 'ru' ? 'Не сходится с уликой. Попробуйте другой лот.' : 'It does not match the evidence. Try another lot.';
-            this.render();
-          }
-        }, { width: 164, height: 64, background: option.good ? 0x3a3021 : 0x252b32, accent: option.good ? VISUAL.warm : 0x68717d, fontSize: 9 });
-      });
+    options.forEach((option, index) => {
+      const x = 650 + index * 182;
+      button(this, x + 78, 602, `${option.id}\n${option.hint}`, () => {
+        if (option.good) this.complete(mission.id);
+        else {
+          this.feedback = this.locale === 'ru' ? 'Улика не сходится. Цена ошибки — потерянное время, не скрытый штраф.' : 'The clue does not match. The cost is time, not a hidden penalty.';
+          this.render();
+        }
+      }, { width: 164, height: 64, background: option.good ? 0x3a3021 : 0x252b32, accent: option.good ? VISUAL.warm : 0x68717d, fontSize: 9 });
+    });
+  }
+
+  private renderLinkedBudgetMission(mission: CampaignMission): void {
+    const budget = mission.objective.budget ?? 6200;
+    let state = createLinkedBudgetState(budget);
+    const choices = new Set(this.campaign.progress.branchChoiceIds);
+    for (const offer of CHAPTER_TWO_OFFERS) {
+      if (!choices.has(`linked-buy:${offer.id}`)) continue;
+      const decision = buyLinkedBudgetOffer(state, offer);
+      if (decision.ok) state = decision.state;
     }
+    const required = mission.objective.targetIds ?? [];
+    if (linkedBudgetMissionComplete(state, required)) {
+      this.label(610, 582, `${this.locale === 'ru' ? 'Потрачено' : 'Spent'}: ${this.money(state.spent)} / ${this.money(budget)}`, 11, '#63d28d', 'bold');
+      this.completeButton(mission.id);
+      return;
+    }
+    this.label(610, 578, `${this.locale === 'ru' ? 'Остаток бюджета' : 'Budget left'}: ${this.money(linkedBudgetRemaining(state))}`, 11, '#e9b949', 'bold');
+    const labels: Record<string, string> = this.locale === 'ru'
+      ? { 'decorative-decoy': 'Витринный набор\n2 600 ₽', 'estate-ledger-box': 'Архивная коробка\n3 100 ₽', 'estate-photo-box': 'Фото-коробка\n2 800 ₽' }
+      : { 'decorative-decoy': 'Display set\n2,600 ₽', 'estate-ledger-box': 'Archive box\n3,100 ₽', 'estate-photo-box': 'Photo box\n2,800 ₽' };
+    CHAPTER_TWO_OFFERS.forEach((offer, index) => {
+      const bought = choices.has(`linked-buy:${offer.id}`);
+      const affordable = state.spent + offer.price <= budget;
+      button(this, 690 + index * 182, 624, bought ? (this.locale === 'ru' ? 'Куплено' : 'Bought') : labels[offer.id]!, () => {
+        if (bought || !affordable) return;
+        this.campaign.chooseBranch(`linked-buy:${offer.id}`);
+        this.render();
+      }, { width: 166, height: 60, disabled: bought || !affordable, background: offer.target ? 0x3a3021 : 0x342932, accent: offer.target ? VISUAL.warm : VISUAL.purple, fontSize: 9 });
+    });
+  }
+
+  private renderForgeryMission(mission: CampaignMission): void {
+    this.add.image(1090, 420, 'provenance-folder').setDisplaySize(195, 118);
+    this.label(610, 576, this.locale === 'ru' ? 'Сравните бумагу, печать и чернила с найденной уликой.' : 'Compare paper stock, seal and ink against the recovered evidence.', 10, VISUAL.faint).setWordWrapWidth(400);
+    button(this, 758, 624, this.locale === 'ru' ? 'Документ настоящий' : 'Document is genuine', () => {
+      this.feedback = this.locale === 'ru' ? 'Не сходится: бумага слишком новая, а штамп повторяет форму, но не материал.' : 'Mismatch: the paper is too new and the stamp copies the shape, not the material.';
+      this.render();
+    }, { width: 250, height: 54, background: 0x29313b, accent: 0x68717d, fontSize: 10 });
+    button(this, 1030, 624, this.locale === 'ru' ? 'Это подделка' : 'It is forged', () => this.complete(mission.id), { width: 250, height: 54, background: 0x543127, accent: VISUAL.warm, fontSize: 10 });
+  }
+
+  private renderMiraNegotiation(mission: CampaignMission): void {
+    this.add.image(1090, 420, 'private-invitation').setDisplaySize(195, 118);
+    this.label(610, 574, this.locale === 'ru' ? 'Выбор сохранится и позже изменит помощь или давление Миры.' : "This choice persists and will later alter Mira's help or pressure.", 10, VISUAL.faint).setWordWrapWidth(390);
+    button(this, 706, 624, this.locale === 'ru' ? 'Заплатить 1 200 ₽' : 'Pay 1,200 ₽', () => {
+      this.campaign.chooseBranch('mira-paid-cash', 'npc-1', { trust: 6, debt: -4 });
+      this.complete(mission.id);
+    }, { width: 190, height: 54, background: 0x3b3020, accent: VISUAL.warm, fontSize: 9 });
+    button(this, 910, 624, this.locale === 'ru' ? 'Пообещать услугу' : 'Owe a favor', () => {
+      this.campaign.chooseBranch('mira-owed-favor', 'npc-1', { trust: 3, debt: 12 });
+      this.complete(mission.id);
+    }, { width: 190, height: 54, background: 0x302843, accent: VISUAL.purple, fontSize: 9 });
+    button(this, 1114, 624, this.locale === 'ru' ? 'Отказаться' : 'Refuse', () => {
+      this.campaign.chooseBranch('mira-refused', 'npc-1', { rivalry: 7 });
+      this.complete(mission.id);
+    }, { width: 190, height: 54, background: 0x302a2a, accent: 0xc35d54, fontSize: 9 });
+  }
+
+  private auctionButton(status: string): void {
+    this.label(610, 586, status, 10, VISUAL.faint, 'bold');
+    button(this, 1036, 588, this.locale === 'ru' ? 'Идти на торги' : 'Go to auction', () => this.scene.start('auction'), { width: 260, height: 54, background: VISUAL.rare });
+  }
+
+  private completeButton(missionId: string, label?: string): void {
+    button(this, 1036, 588, label ?? (this.locale === 'ru' ? 'Завершить задание' : 'Complete mission'), () => this.complete(missionId), { width: 260, height: 54, background: VISUAL.success });
   }
 
   private complete(missionId: string): void {
