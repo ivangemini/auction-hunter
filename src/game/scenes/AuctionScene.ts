@@ -1026,19 +1026,21 @@ export class AuctionScene extends Phaser.Scene {
     color: number,
     rarity: Rarity,
   ): void {
+    const finalScaleX = itemImage.scaleX;
+    const finalScaleY = itemImage.scaleY;
     if (prefersReducedMotion()) {
-      itemImage.setAlpha(1).setScale(1);
+      itemImage.setAlpha(1).setScale(finalScaleX, finalScaleY);
       halo.setAlpha(0.08).setScale(1);
       return;
     }
 
-    itemImage.setAlpha(0.25).setScale(0.9).setY(310);
+    itemImage.setAlpha(0.25).setScale(finalScaleX * 0.9, finalScaleY * 0.9).setY(310);
     halo.setAlpha(0).setScale(0.88);
     this.tweens.add({
       targets: itemImage,
       alpha: 1,
-      scaleX: 1,
-      scaleY: 1,
+      scaleX: finalScaleX,
+      scaleY: finalScaleY,
       y: 296,
       duration: MOTION.revealMs,
       ease: 'Cubic.Out',
