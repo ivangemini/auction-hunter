@@ -40,6 +40,8 @@ describe('save normalization', () => {
       completedMissionIds: [],
       evidenceIds: [],
       branchChoiceIds: [],
+      missionBaselineAuctionsPlayed: {},
+      missionBaselineAuctionsWon: {},
       relationshipTrust: {},
       relationshipRivalry: {},
       relationshipDebt: {},
@@ -58,6 +60,8 @@ describe('save normalization', () => {
         completedMissionIds: ['first-day-floor', 'first-day-floor', 42],
         evidenceIds: ['veyr-black-seal', 'veyr-black-seal'],
         branchChoiceIds: ['mira-deal'],
+        missionBaselineAuctionsPlayed: { 'first-day-floor': 3.9, broken: 'x' },
+        missionBaselineAuctionsWon: { 'victor-test': 2.2 },
         relationshipTrust: { victor: 5.9, mira: 140, broken: 'x' },
         relationshipRivalry: { anton: -8.7 },
         relationshipDebt: { mira: 2 },
@@ -70,6 +74,8 @@ describe('save normalization', () => {
     expect(save.campaign.activeMissionId).toBe('black-seal');
     expect(save.campaign.completedMissionIds).toEqual(['first-day-floor']);
     expect(save.campaign.evidenceIds).toEqual(['veyr-black-seal']);
+    expect(save.campaign.missionBaselineAuctionsPlayed).toEqual({ 'first-day-floor': 3 });
+    expect(save.campaign.missionBaselineAuctionsWon).toEqual({ 'victor-test': 2 });
     expect(save.campaign.relationshipTrust).toEqual({ victor: 5, mira: 100 });
     expect(save.campaign.relationshipRivalry).toEqual({ anton: -8 });
     expect(save.campaign.epilogueId).toBeNull();
