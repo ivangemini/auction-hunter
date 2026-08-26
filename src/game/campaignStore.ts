@@ -31,6 +31,8 @@ export class CampaignStore {
     if (!mission) return false;
     const next = startCampaignMission(save.campaign, mission);
     if (next.activeMissionId !== missionId) return false;
+    next.missionBaselineAuctionsPlayed[missionId] = save.auctionsPlayed;
+    next.missionBaselineAuctionsWon[missionId] = save.auctionsWon;
     save.campaign = next;
     this.persist(save);
     trackEvent('campaign_mission_started', { chapterId: mission.chapterId, missionId: mission.id });
