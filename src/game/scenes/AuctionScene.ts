@@ -33,11 +33,13 @@ import { getPlatformLocale, markGameReady, setGameplayActive } from '../../platf
 import { preloadArt, resolveItemTexture, resolveLotTexture } from '../art';
 import { playFeedbackCue } from '../feedback';
 import { prepareLotMarket, type LotChoice } from '../lotMarket';
+import { MOTION, prefersReducedMotion } from '../motion';
 import { renderRestorationModePicker, renderRestorationTimingGame } from '../restorationUi';
 import { GameStore } from '../store';
 import { button } from '../ui';
 
 type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
+type RevealDecision = 'sell' | 'keep';
 
 const WIDTH = 1280;
 const HEIGHT = 720;
@@ -71,8 +73,10 @@ export class AuctionScene extends Phaser.Scene {
   private currentBid = 0;
   private currentLeader = '';
   private awaitingNpc = false;
+  private lastAnimatedBid = -1;
   private revealIndex = 0;
   private revealStage: RevealStage = 'closed';
+  private revealDecisionPending = false;
   private roundCost = 0;
   private roundSales = 0;
   private roundKept = 0;
@@ -155,8 +159,10 @@ export class AuctionScene extends Phaser.Scene {
     this.currentBid = this.lot.reservePrice;
     this.currentLeader = this.opponents[0]?.id ?? '';
     this.awaitingNpc = false;
+    this.lastAnimatedBid = -1;
     this.revealIndex = 0;
     this.revealStage = 'closed';
+    this.revealDecisionPending = false;
     this.roundCost = 0;
     this.roundSales = 0;
     this.roundKept = 0;
@@ -445,7 +451,11 @@ export class AuctionScene extends Phaser.Scene {
     this.renderLotArtwork(645, 342, 300, 150);
     this.add.rectangle(495, 267, 1, 326, 0xffffff, 0.08).setOrigin(0);
     this.label(105, 285, t(this.locale, 'currentBid'), 17, '#8b93a1');
-    this.label(105, 321, this.money(this.currentBid), 52, '#f7f8fa', 'bold');
+    const bidValue = this.label(105, 321, this.money(this.currentBid), 52, '#f7f8fa', 'bold');
+    if (this.lastAnimatedBid !== this.currentBid) {
+      this.animateBidValue(bidValue, this.currentLeader === 'player');
+      this.lastAnimatedBid = this.currentBid;
+    }
 
     const leaderName = this.currentLeader === 'player'
       ? t(this.locale, 'you')
@@ -483,9 +493,10 @@ export class AuctionScene extends Phaser.Scene {
       const tell = opponentTell(opponent, this.currentBid, this.lot);
       const trait = opponent.trait?.[this.locale];
       const detail = trait ? `${trait} · ${BIDDER_TELL_TEXT[tell][this.locale]}` : BIDDER_TELL_TEXT[tell][this.locale];
-      this.label(900, y, opponent.name[this.locale], 19, active ? '#f7f8fa' : tell === 'out' ? '#666e79' : '#aeb5c0', active ? 'bold' : 'normal');
+      const bidderName = this.label(900, y, opponent.name[this.locale], 19, active ? '#f7f8fa' : tell === 'out' ? '#666e79' : '#aeb5c0', active ? 'bold' : 'normal');
       this.label(900, y + 28, detail, 12, TELL_COLORS[tell]).setWordWrapWidth(225);
-      this.label(1145, y + 2, active ? '●' : tell === 'out' ? '×' : '○', 17, active ? '#e9b949' : '#555c68');
+      const indicator = this.label(1145, y + 2, active ? '●' : tell === 'out' ? '×' : '○', 17, active ? '#e9b949' : '#555c68');
+      if (active) this.animateBidderReaction(bidderName, indicator);
     });
   }
 
@@ -593,7 +604,7 @@ export class AuctionScene extends Phaser.Scene {
     this.renderHeader();
     this.panel(240, 155, 800, 450);
     this.renderLotArtwork(640, 285, 330, 165);
-    this.centerLabel(640, 190, t(this.locale, 'won'), 42, '#e9b949', 'bold');
+    const winTitle = this.centerLabel(640, 190, t(this.locale, 'won'), 42, '#e9b949', 'bold');
     this.centerLabel(640, 395, this.lot.name[this.locale], 26, '#f7f8fa', 'bold');
     this.centerLabel(640, 430, `${t(this.locale, 'paid')}: ${this.money(this.roundCost)}`, 20, '#aeb5c0');
     this.centerLabel(640, 466, t(this.locale, 'reputationGain', { xp: this.roundReputationGain }), 18, '#61a8ff', 'bold');
@@ -601,8 +612,10 @@ export class AuctionScene extends Phaser.Scene {
     button(this, 640, 560, t(this.locale, 'openLot'), () => {
       this.revealIndex = 0;
       this.revealStage = 'closed';
+      this.revealDecisionPending = false;
       this.renderReveal();
     }, { width: 280, height: 58 });
+    this.animateWin(winTitle);
   }
 
   private renderReveal(): void {
@@ -639,9 +652,10 @@ export class AuctionScene extends Phaser.Scene {
     }
 
     const color = RARITY_COLORS[item.definition.rarity];
+    const revealHalo = this.add.rectangle(640, 304, 406, 250, color, 0.025).setStrokeStyle(3, color, 0.18);
     this.add.rectangle(640, 304, 390, 238, color, 0.07).setStrokeStyle(2, color, 0.5);
-    const itemImage = this.add.image(640, 310, resolveItemTexture(this, item.definition.id)).setDisplaySize(315, 220).setAlpha(0.35);
-    this.tweens.add({ targets: itemImage, y: 296, alpha: 1, duration: 180, ease: 'Cubic.Out' });
+    const itemImage = this.add.image(640, 296, resolveItemTexture(this, item.definition.id)).setDisplaySize(315, 220);
+    this.animateReveal(itemImage, revealHalo, color, item.definition.rarity);
     this.centerLabel(640, 414, item.definition.name[this.locale], 24, '#f7f8fa', 'bold');
     this.centerLabel(640, 446, this.rarityLabel(item.definition.rarity), 16, this.hexColor(color), 'bold');
 
@@ -681,7 +695,8 @@ export class AuctionScene extends Phaser.Scene {
     this.label(835, 505, `${this.conditionLabel(item.condition)} · ${Math.round(item.condition * 100)}%`, 13, this.hexColor(this.conditionColor(item.condition)), 'bold').setOrigin(1, 0);
     this.conditionBar(420, 528, 415, item.condition);
     this.label(420, 540, t(this.locale, 'estimatedValue'), 13, '#8b93a1');
-    this.label(835, 534, this.money(item.appraisedValue), 25, '#63d28d', 'bold').setOrigin(1, 0);
+    const valueLabel = this.label(835, 534, this.money(item.appraisedValue), 25, '#63d28d', 'bold').setOrigin(1, 0);
+    this.animateAppraisalValue(valueLabel, item.appraisedValue);
 
     if (item.restored) {
       const grade = item.restorationGrade ? this.restorationGradeLabel(item.restorationGrade) : '';
@@ -706,7 +721,7 @@ export class AuctionScene extends Phaser.Scene {
 
   private startRestoration(): void {
     const item = this.items[this.revealIndex];
-    if (!item || item.restored || this.restorationUsed) return;
+    if (!item || item.restored || this.restorationUsed || this.revealDecisionPending) return;
 
     this.revealStage = 'restoring';
     renderRestorationModePicker({
@@ -772,26 +787,58 @@ export class AuctionScene extends Phaser.Scene {
 
   private sellCurrentItem(): void {
     const item = this.items[this.revealIndex];
-    if (!item) return;
+    if (!item || this.revealDecisionPending) return;
+    this.revealDecisionPending = true;
     this.store.sellItem(item.appraisedValue, item.definition.id);
     this.roundSales += item.appraisedValue;
     playFeedbackCue(this, 'sell');
-    this.advanceReveal();
+    this.acknowledgeRevealDecision('sell');
   }
 
   private keepCurrentItem(): void {
     const item = this.items[this.revealIndex];
-    if (!item) return;
+    if (!item || this.revealDecisionPending) return;
+    this.revealDecisionPending = true;
     this.store.keepItem(item);
     this.roundKept += 1;
     this.roundKeptValue += item.appraisedValue;
     playFeedbackCue(this, 'keep');
-    this.advanceReveal();
+    this.acknowledgeRevealDecision('keep');
+  }
+
+  private acknowledgeRevealDecision(decision: RevealDecision): void {
+    if (prefersReducedMotion()) {
+      this.advanceReveal();
+      return;
+    }
+
+    const accent = decision === 'sell' ? 0x63d28d : 0x61a8ff;
+    const chip = this.add.container(640, 586).setDepth(20);
+    const back = this.add.rectangle(0, 0, 220, 42, 0x101216, 0.96).setStrokeStyle(2, accent, 0.82);
+    const label = this.add.text(0, 0, `${t(this.locale, decision)} ✓`, {
+      fontFamily: 'Arial, sans-serif',
+      fontSize: '15px',
+      fontStyle: 'bold',
+      color: this.hexColor(accent),
+    }).setOrigin(0.5);
+    chip.add([back, label]);
+    chip.setScale(0.94).setAlpha(0);
+    this.tweens.add({
+      targets: chip,
+      alpha: 1,
+      scaleX: 1,
+      scaleY: 1,
+      y: 578,
+      duration: MOTION.selectMs,
+      ease: 'Back.Out',
+    });
+    this.time.delayedCall(MOTION.settleMs, () => this.advanceReveal());
   }
 
   private advanceReveal(): void {
     this.revealIndex += 1;
     this.revealStage = 'closed';
+    this.revealDecisionPending = false;
     this.renderReveal();
   }
 
@@ -914,6 +961,146 @@ export class AuctionScene extends Phaser.Scene {
         outcome: result.status,
       });
       finish();
+    });
+  }
+
+  private animateBidValue(text: Phaser.GameObjects.Text, playerLeading: boolean): void {
+    if (prefersReducedMotion()) return;
+    text.setScale(0.92);
+    text.setColor(playerLeading ? '#8af0ad' : '#ffe084');
+    this.tweens.add({
+      targets: text,
+      scaleX: 1,
+      scaleY: 1,
+      duration: MOTION.bidPulseMs,
+      ease: 'Back.Out',
+      onComplete: () => text.setColor('#f7f8fa'),
+    });
+  }
+
+  private animateBidderReaction(name: Phaser.GameObjects.Text, indicator: Phaser.GameObjects.Text): void {
+    if (prefersReducedMotion()) return;
+    name.setX(908);
+    indicator.setScale(0.72);
+    this.tweens.add({
+      targets: name,
+      x: 900,
+      duration: MOTION.rivalReactMs,
+      ease: 'Cubic.Out',
+    });
+    this.tweens.add({
+      targets: indicator,
+      scaleX: 1,
+      scaleY: 1,
+      duration: MOTION.rivalReactMs,
+      ease: 'Back.Out',
+    });
+  }
+
+  private animateWin(title: Phaser.GameObjects.Text): void {
+    if (prefersReducedMotion()) return;
+    title.setScale(0.82).setAlpha(0.55);
+    const sweep = this.add.rectangle(640, 302, 720, 250, 0xe9b949, 0).setDepth(0);
+    this.tweens.add({
+      targets: title,
+      scaleX: 1,
+      scaleY: 1,
+      alpha: 1,
+      duration: MOTION.celebrateMs,
+      ease: 'Back.Out',
+    });
+    this.tweens.add({
+      targets: sweep,
+      alpha: { from: 0, to: 0.055 },
+      scaleX: { from: 0.72, to: 1.08 },
+      duration: MOTION.celebrateMs,
+      yoyo: true,
+      ease: 'Sine.Out',
+      onComplete: () => sweep.destroy(),
+    });
+  }
+
+  private animateReveal(
+    itemImage: Phaser.GameObjects.Image,
+    halo: Phaser.GameObjects.Rectangle,
+    color: number,
+    rarity: Rarity,
+  ): void {
+    if (prefersReducedMotion()) {
+      itemImage.setAlpha(1).setScale(1);
+      halo.setAlpha(0.08).setScale(1);
+      return;
+    }
+
+    itemImage.setAlpha(0.25).setScale(0.9).setY(310);
+    halo.setAlpha(0).setScale(0.88);
+    this.tweens.add({
+      targets: itemImage,
+      alpha: 1,
+      scaleX: 1,
+      scaleY: 1,
+      y: 296,
+      duration: MOTION.revealMs,
+      ease: 'Cubic.Out',
+    });
+    this.tweens.add({
+      targets: halo,
+      alpha: 0.1,
+      scaleX: 1.04,
+      scaleY: 1.04,
+      duration: MOTION.revealSettleMs,
+      ease: 'Sine.Out',
+      yoyo: true,
+    });
+    this.emitRevealSparks(color, rarity);
+  }
+
+  private emitRevealSparks(color: number, rarity: Rarity): void {
+    if (prefersReducedMotion()) return;
+    const count = rarity === 'legendary' ? 10 : rarity === 'epic' ? 8 : rarity === 'rare' ? 6 : rarity === 'uncommon' ? 4 : 0;
+    for (let index = 0; index < count; index += 1) {
+      const angle = (Math.PI * 2 * index) / Math.max(1, count);
+      const radius = 135 + (index % 3) * 18;
+      const startX = 640 + Math.cos(angle) * radius;
+      const startY = 304 + Math.sin(angle) * radius * 0.62;
+      const spark = this.add.circle(startX, startY, 2 + (index % 2), color, 0.72);
+      this.tweens.add({
+        targets: spark,
+        x: startX + Math.cos(angle) * 18,
+        y: startY + Math.sin(angle) * 12 - 8,
+        alpha: 0,
+        scaleX: 0.45,
+        scaleY: 0.45,
+        duration: MOTION.celebrateMs,
+        delay: index * 24,
+        ease: 'Cubic.Out',
+        onComplete: () => spark.destroy(),
+      });
+    }
+  }
+
+  private animateAppraisalValue(text: Phaser.GameObjects.Text, finalValue: number): void {
+    if (prefersReducedMotion()) {
+      text.setText(this.money(finalValue));
+      return;
+    }
+
+    const counter = { value: Math.max(0, Math.round(finalValue * 0.58)) };
+    text.setText(this.money(counter.value)).setScale(0.94);
+    this.tweens.add({
+      targets: counter,
+      value: finalValue,
+      duration: MOTION.valueCountMs,
+      ease: 'Cubic.Out',
+      onUpdate: () => text.setText(this.money(Math.round(counter.value))),
+      onComplete: () => text.setText(this.money(finalValue)),
+    });
+    this.tweens.add({
+      targets: text,
+      scaleX: 1,
+      scaleY: 1,
+      duration: MOTION.valueCountMs,
+      ease: 'Back.Out',
     });
   }
 
