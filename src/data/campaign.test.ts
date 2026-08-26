@@ -7,12 +7,12 @@ function localized(value: { ru: string; en: string }) {
 }
 
 describe('P9 campaign content', () => {
-  it('defines the complete five-act campaign spine with 25 authored missions', () => {
+  it('defines the complete five-act campaign spine with 26 authored missions', () => {
     expect(CAMPAIGN_CHAPTERS).toHaveLength(5);
     expect(CAMPAIGN_CHAPTERS.map((chapter) => chapter.order)).toEqual([1, 2, 3, 4, 5]);
     expect(CAMPAIGN_CHAPTERS.every((chapter) => localized(chapter.title) && localized(chapter.subtitle))).toBe(true);
-    expect(CAMPAIGN_MISSIONS).toHaveLength(25);
-    expect(CAMPAIGN_CHAPTERS.map((chapter) => CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === chapter.id).length)).toEqual([4, 6, 6, 6, 3]);
+    expect(CAMPAIGN_MISSIONS).toHaveLength(26);
+    expect(CAMPAIGN_CHAPTERS.map((chapter) => CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === chapter.id).length)).toEqual([4, 6, 7, 6, 3]);
   });
 
   it('keeps Chapter I compact while Estate Trail expands into a six-mission gameplay chapter', () => {
