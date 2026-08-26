@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { BIDDER_PROFILES } from './balance';
 import { CAMPAIGN_CHAPTERS, CAMPAIGN_EVIDENCE, CAMPAIGN_MISSIONS } from './campaign';
 
 function localized(value: { ru: string; en: string }) {
@@ -12,11 +13,13 @@ describe('P9 campaign content', () => {
     expect(CAMPAIGN_CHAPTERS.every((chapter) => localized(chapter.title) && localized(chapter.subtitle))).toBe(true);
   });
 
-  it('ships a four-mission Chapter I vertical slice', () => {
-    const firstChapter = CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'first-flip');
-    expect(firstChapter).toHaveLength(4);
-    expect(firstChapter.map((mission) => mission.order)).toEqual([1, 2, 3, 4]);
-    expect(firstChapter.every((mission) => localized(mission.title) && localized(mission.briefing) && localized(mission.objective.description))).toBe(true);
+  it('ships four authored missions in both Chapter I and the Estate Trail foundation', () => {
+    for (const chapterId of ['first-flip', 'estate-trail'] as const) {
+      const chapter = CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === chapterId);
+      expect(chapter).toHaveLength(4);
+      expect(chapter.map((mission) => mission.order)).toEqual([1, 2, 3, 4]);
+      expect(chapter.every((mission) => localized(mission.title) && localized(mission.briefing) && localized(mission.objective.description))).toBe(true);
+    }
   });
 
   it('has no dead mission prerequisites', () => {
@@ -26,17 +29,29 @@ describe('P9 campaign content', () => {
     }
   });
 
-  it('references authored evidence that actually exists', () => {
+  it('references authored evidence and real persistent rivals', () => {
     const evidenceIds = new Set(CAMPAIGN_EVIDENCE.map((evidence) => evidence.id));
+    const rivalIds = new Set(BIDDER_PROFILES.map((rival) => rival.id));
     const rewardedEvidence = CAMPAIGN_MISSIONS.flatMap((mission) => mission.evidenceRewardIds ?? []);
-    expect(rewardedEvidence.length).toBeGreaterThan(0);
+    expect(rewardedEvidence.length).toBeGreaterThanOrEqual(6);
     for (const evidenceId of rewardedEvidence) expect(evidenceIds.has(evidenceId as never)).toBe(true);
+    for (const mission of CAMPAIGN_MISSIONS) {
+      if (mission.featuredRivalId) expect(rivalIds.has(mission.featuredRivalId)).toBe(true);
+    }
   });
 
-  it('makes Chapter I change gameplay instead of being dialogue-only', () => {
-    const objectiveTypes = new Set(CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'first-flip').map((mission) => mission.objective.type));
-    expect(objectiveTypes.has('win-auction')).toBe(true);
-    expect(objectiveTypes.has('keep-evidence')).toBe(true);
-    expect(objectiveTypes.has('select-evidence-lot')).toBe(true);
+  it('changes gameplay vocabulary across the first two chapters instead of becoming dialogue-only', () => {
+    const firstTypes = new Set(CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'first-flip').map((mission) => mission.objective.type));
+    expect(firstTypes.has('win-auction')).toBe(true);
+    expect(firstTypes.has('keep-evidence')).toBe(true);
+    expect(firstTypes.has('select-evidence-lot')).toBe(true);
+
+    const estateTypes = new Set(CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'estate-trail').map((mission) => mission.objective.type));
+    expect(estateTypes.has('linked-budget')).toBe(true);
+    expect(estateTypes.has('appraise-evidence')).toBe(true);
+    expect(estateTypes.has('negotiate')).toBe(true);
+    const linked = CAMPAIGN_MISSIONS.find((mission) => mission.id === 'estate-linked-lots');
+    expect(linked?.objective.budget).toBe(6200);
+    expect(linked?.objective.targetIds).toHaveLength(2);
   });
 });
