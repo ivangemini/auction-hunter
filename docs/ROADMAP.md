@@ -89,12 +89,12 @@
 - [x] Collection-set perks unlock lasting category expertise after reward claim; expertise is derived from existing `claimedSetRewards`, stacks with Warehouse quick-sale rates and remains capped below Buyer Market premiums.
 - [x] Legendary multi-auction discovery chains with a player-facing Discovery Board.
 
-## P7 — visual identity and game-feel overhaul
+## P7 — visual identity and game-feel overhaul — COMPLETE
 - [x] Repository-level visual/game-design skill and screenshot review checklist.
 - [x] Explicit commercial art direction, shared visual tokens and redesigned core screens.
 - [x] Visible character identity in the core loop and authored portraits for the first character set.
 - [x] Authored P7 fidelity floor for the original catalog and all nine semantic lot environments.
-- [ ] Add restrained game-feel polish across important actions: press/selection response, number tweens, reveal highlights, particles/reactions and staged transitions with reduced-motion support.
+- [x] Add restrained game-feel polish across important actions: shared tactile press/selection feedback, bid/value pulses, staged reveals, bounded particles/reactions, restoration card staging and reduced-motion-safe paths; `validate-game-feel.mjs` protects the source contract in CI.
 - [x] Desktop + compact 844×390 RU/EN production screenshot gates for major screen families.
 
 ## P8 — systemic replayability and long-horizon depth — COMPLETE
@@ -117,7 +117,7 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [x] Establish the central mystery: fragments of the vanished collector Aleksandr Veyr's Black Ledger collection are surfacing through estate clearances and private auctions.
 - [x] Define the five-act arc: First Flip -> Estate Trail -> Dealer War -> Closed Circle -> The Lost Collection.
 - [x] Reuse existing REP/tier unlocks while campaign missions create additional authored gates and one-off opportunities.
-- [x] Add typed campaign analytics for mission start/completion, branch choices, relationship effects, optional mastery and campaign completion.
+- [x] Add typed campaign analytics for mission start/completion, branch choices, relationship effects, optional mastery and campaign completion; mission start/completion/mastery are also stable Metrica goals for production funnel and pacing analysis.
 - [x] Add deterministic campaign integrity tests for prerequisites, authored evidence/rivals, bilingual copy and chapter-specific contracts.
 
 ### P9.2 — Narrative Office / investigation hub
@@ -125,7 +125,7 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [x] Add an Investigation Wall showing the Black Ledger trail, discovered evidence, active mission and chapter progress.
 - [x] Add Inbox/Phone contacts for authored rival/collector messages and invitations; eight messages currently unlock across the campaign and use existing campaign persistence.
 - [x] Add campaign mission briefing cards with objective, known risk and visible reward.
-- [x] Keep campaign hub navigation compact-landscape safe and add deterministic RU/EN visual captures for Hub, Inbox, Bonus Goals and Finale.
+- [x] Keep campaign hub navigation compact-landscape safe and add deterministic RU/EN visual captures for Hub, Inbox, Bonus Goals, Nadia's consequential choice, Finale and persistent Epilogue.
 
 ### P9.3 — Campaign mission gameplay
 - [x] Add objectives beyond simply winning one lot: evidence selection, linked-budget acquisition, forgery detection, restoration trace, rival tracking/deals, proxy bidding, limited inspection, sealed bid, counterfeit table, route planning and relationship gates.
@@ -165,14 +165,14 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [x] Build a multi-stage final auction around the recovered Black Ledger trail; the player cannot acquire every target and must prioritize evidence versus profit.
 - [x] Resolve the central mystery through player actions, acquired finale lots and relationship state rather than a standalone exposition screen.
 - [x] Unlock Endless Dealer Career after campaign completion while retaining collection, office and all P8 systems without reset.
-- [x] Add persistent epilogue state and completion summary without deleting/resetting the player's economy; deeper campaign statistics remain a later polish item.
+- [x] Add persistent epilogue state plus a reopenable post-campaign Case Record derived from existing save data: completed missions, recovered evidence, mastery, finale lots and strongest ally/rival are summarized without resetting or migrating the player's economy.
 
 ### P9 acceptance
-- [ ] Validate a complete fresh-save campaign playthrough end-to-end in browser/device QA; the authored graph now has a beginning, escalation, expanded fifth-act prelude, climax and ending.
-- [ ] Validate the target 6–10 hour first-playthrough duration with timed human/telemetry playtests; automated content gates cannot prove real duration.
+- [ ] Validate a complete fresh-save campaign playthrough end-to-end in browser/device QA. Automated coverage now includes the full graph walk plus a 28-state Playwright production-path render matrix; a no-shortcuts real-device playthrough from the first mission through finale is still required.
+- [ ] Validate the target 6–10 hour first-playthrough duration with timed human/telemetry playtests. The authored 415–625 minute budget is regression-gated and mission start/completion/mastery are Metrica goals; real active-play evidence is still required under `P9_TELEMETRY.md`.
 - [x] Every authored chapter currently introduces at least one materially different gameplay situation rather than only new text/prices.
 - [x] Campaign choices have later mechanical consequences through relationships, pressure/sponsorship and epilogue resolution.
-- [ ] Complete visual acceptance for all campaign states/items/environments at desktop + 844×390 RU/EN; content breadth is now at target, while final screenshot inspection and real-device review remain.
-- [ ] Run final compatibility acceptance across old saves, cloud save, monetization boundaries and P8 economy gates now that P9 content breadth is stable.
+- [ ] Complete visual acceptance for all campaign states/items/environments at desktop + 844×390 RU/EN. Automated state-transition, evidence-render, item-art and campaign-asset gates are in CI; final human screenshot inspection and real-device review remain.
+- [x] Run final compatibility acceptance across old saves, cloud save, monetization boundaries and P8 economy gates after P9 content breadth stabilized; `p9CompatibilityAcceptance.test.ts`, cloud/save/ad tests, long-horizon economy tests and browser QA now exercise the retained contracts together.
 
-See `V1_ROADMAP.md` for the release baseline, `SYSTEMIC_REPLAYABILITY.md` for P8, and `CAMPAIGN.md` for the P9 story/gameplay contract.
+See `V1_ROADMAP.md` for the release baseline, `SYSTEMIC_REPLAYABILITY.md` for P8, `CAMPAIGN.md` for the P9 story/gameplay contract, and `P9_TELEMETRY.md` for duration/telemetry acceptance.
