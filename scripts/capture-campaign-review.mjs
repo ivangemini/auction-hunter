@@ -115,7 +115,7 @@ async function capture(browser, localeCode, locale, viewport, file) {
     await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
     await page.locator('canvas').waitFor({ state: 'visible' });
     await page.waitForTimeout(650);
-    await clickGame(page, 1030, 161);
+    await clickGame(page, 740, 218);
     await page.waitForTimeout(700);
 
     const outputDir = path.join(reviewRoot, localeCode);
