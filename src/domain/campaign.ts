@@ -100,6 +100,8 @@ function cloneProgress(progress: Readonly<CampaignProgressState>): CampaignProgr
     completedMissionIds: [...progress.completedMissionIds],
     evidenceIds: [...progress.evidenceIds],
     branchChoiceIds: [...progress.branchChoiceIds],
+    missionBaselineAuctionsPlayed: { ...progress.missionBaselineAuctionsPlayed },
+    missionBaselineAuctionsWon: { ...progress.missionBaselineAuctionsWon },
     relationshipTrust: { ...progress.relationshipTrust },
     relationshipRivalry: { ...progress.relationshipRivalry },
     relationshipDebt: { ...progress.relationshipDebt },
