@@ -34,6 +34,45 @@ describe('save normalization', () => {
     expect(save.discoveryChainProgress).toEqual({});
     expect(save.discoveryChainLastAuction).toEqual({});
     expect(save.completedDiscoveryChains).toEqual([]);
+    expect(save.campaign).toEqual({
+      started: false,
+      activeMissionId: null,
+      completedMissionIds: [],
+      evidenceIds: [],
+      branchChoiceIds: [],
+      relationshipTrust: {},
+      relationshipRivalry: {},
+      relationshipDebt: {},
+      completed: false,
+      epilogueId: null,
+    });
+  });
+
+  it('sanitizes campaign state while preserving authored progress', () => {
+    const save = normalizeSave({
+      version: 1,
+      cash: 2500,
+      campaign: {
+        started: true,
+        activeMissionId: 'black-seal',
+        completedMissionIds: ['first-day-floor', 'first-day-floor', 42],
+        evidenceIds: ['veyr-black-seal', 'veyr-black-seal'],
+        branchChoiceIds: ['mira-deal'],
+        relationshipTrust: { victor: 5.9, mira: 140, broken: 'x' },
+        relationshipRivalry: { anton: -8.7 },
+        relationshipDebt: { mira: 2 },
+        completed: false,
+        epilogueId: '',
+      },
+    });
+
+    expect(save.campaign.started).toBe(true);
+    expect(save.campaign.activeMissionId).toBe('black-seal');
+    expect(save.campaign.completedMissionIds).toEqual(['first-day-floor']);
+    expect(save.campaign.evidenceIds).toEqual(['veyr-black-seal']);
+    expect(save.campaign.relationshipTrust).toEqual({ victor: 5, mira: 100 });
+    expect(save.campaign.relationshipRivalry).toEqual({ anton: -8 });
+    expect(save.campaign.epilogueId).toBeNull();
   });
 
   it('sanitizes persisted auction history without destroying negative results', () => {
