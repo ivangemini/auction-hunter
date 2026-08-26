@@ -52,7 +52,7 @@ export class OnboardingScene extends Phaser.Scene {
     this.locale = getPlatformLocale();
     if (this.store.snapshot.onboardingComplete) {
       endTutorialSession();
-      this.scene.start('auction');
+      this.scene.start('campaign');
       return;
     }
 
@@ -107,7 +107,7 @@ export class OnboardingScene extends Phaser.Scene {
     button(this, 1035, 622, this.locale === 'ru' ? 'Пропустить' : 'Skip', () => {
       endTutorialSession();
       this.store.completeOnboarding();
-      this.scene.start('auction');
+      this.scene.start('campaign');
     }, {
       width: 210,
       height: 58,
