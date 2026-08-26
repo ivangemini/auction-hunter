@@ -165,7 +165,7 @@ export class CampaignScene extends Phaser.Scene {
     }
     if (mission.objective.type === 'win-auction') {
       const gained = Math.max(0, auctionsWon - wonBaseline);
-      if (gained >= (mission.objective.target ?? 1)) this.completeButton(mission.id, this.locale === 'ru' ? 'Отчитаться Виктору' : 'Report to Victor');
+      if (gained >= (mission.objective.target ?? 1)) this.completeButton(mission.id, this.locale === 'ru' ? 'Закрыть задание' : 'Close mission');
       else this.auctionButton(`${this.locale === 'ru' ? 'Побед после старта' : 'Wins since start'}: ${gained}/1`);
       return;
     }
@@ -193,22 +193,35 @@ export class CampaignScene extends Phaser.Scene {
       this.renderForgeryMission(mission);
       return;
     }
+    if (mission.objective.type === 'track-rival') {
+      this.renderDealerLeakMission(mission);
+      return;
+    }
+    if (mission.objective.type === 'branch-choice') {
+      this.renderDealerAllyMission(mission);
+      return;
+    }
     if (mission.objective.type === 'negotiate') this.renderMiraNegotiation(mission);
   }
 
   private renderEvidenceLotChoice(mission: CampaignMission): void {
-    const estate = mission.id === 'estate-paper-trail';
-    const options = estate
+    const options = mission.id === 'estate-paper-trail'
       ? [
         { id: '31-C', good: false, hint: this.locale === 'ru' ? 'Сервиз · новая этикетка' : 'China · recent label' },
         { id: '47-B/2', good: true, hint: this.locale === 'ru' ? 'Фотоархив · та же нумерация' : 'Photo archive · matching number' },
         { id: '66-A', good: false, hint: this.locale === 'ru' ? 'Часы · без архивной связи' : 'Watches · no archive link' },
       ]
-      : [
-        { id: '12-A', good: false, hint: this.locale === 'ru' ? 'Фарфор · без архивной отметки' : 'Porcelain · no archive mark' },
-        { id: '47-B', good: true, hint: this.locale === 'ru' ? 'Бумаги · чёрная печать' : 'Papers · black seal' },
-        { id: '83-C', good: false, hint: this.locale === 'ru' ? 'Инструменты · складская бирка' : 'Tools · warehouse tag' },
-      ];
+      : mission.id === 'dealer-war-address'
+        ? [
+          { id: 'NORTH-8', good: false, hint: this.locale === 'ru' ? 'идеальная печать' : 'perfect print' },
+          { id: 'YARD-17', good: true, hint: this.locale === 'ru' ? 'сдвоенная точка в рамке' : 'double-dot frame defect' },
+          { id: 'HALL-4', good: false, hint: this.locale === 'ru' ? 'другой картон' : 'different card stock' },
+        ]
+        : [
+          { id: '12-A', good: false, hint: this.locale === 'ru' ? 'Фарфор · без архивной отметки' : 'Porcelain · no archive mark' },
+          { id: '47-B', good: true, hint: this.locale === 'ru' ? 'Бумаги · чёрная печать' : 'Papers · black seal' },
+          { id: '83-C', good: false, hint: this.locale === 'ru' ? 'Инструменты · складская бирка' : 'Tools · warehouse tag' },
+        ];
     options.forEach((option, index) => {
       const x = 650 + index * 182;
       button(this, x + 78, 602, `${option.id}\n${option.hint}`, () => {
@@ -297,6 +310,41 @@ export class CampaignScene extends Phaser.Scene {
       this.campaign.chooseBranch('mira-refused', 'npc-1', { rivalry: 7 });
       this.complete(mission.id);
     }, { width: 190, height: 54, background: 0x302a2a, accent: 0xc35d54, fontSize: 9 });
+  }
+
+  private renderDealerLeakMission(mission: CampaignMission): void {
+    this.add.image(1090, 420, 'private-invitation').setDisplaySize(195, 118);
+    this.label(610, 574, this.locale === 'ru' ? 'Кто проявил знание, которого у обычного участника ещё не могло быть?' : 'Who showed knowledge that an ordinary attendee could not have had yet?', 10, VISUAL.faint).setWordWrapWidth(390);
+    const options = [
+      { id: 'npc-0', name: this.locale === 'ru' ? 'Виктор' : 'Victor', good: false },
+      { id: 'npc-1', name: this.locale === 'ru' ? 'Мира' : 'Mira', good: false },
+      { id: 'npc-2', name: this.locale === 'ru' ? 'Антон' : 'Anton', good: true },
+    ];
+    options.forEach((option, index) => {
+      button(this, 710 + index * 202, 624, option.name, () => {
+        if (!option.good) {
+          this.feedback = this.locale === 'ru' ? 'Не сходится со временем прибытия. Смотрите, кто пришёл до общей рассылки.' : 'The arrival timing does not fit. Look for who came before the general notice.';
+          this.render();
+          return;
+        }
+        this.campaign.chooseBranch('dealer-leak-anton', 'npc-2', { rivalry: 10 });
+        this.complete(mission.id);
+      }, { width: 184, height: 52, background: option.good ? 0x4a3024 : 0x29313b, accent: option.good ? VISUAL.warm : 0x68717d, fontSize: 10 });
+    });
+  }
+
+  private renderDealerAllyMission(mission: CampaignMission): void {
+    this.label(610, 572, this.locale === 'ru' ? 'Выбор изменит реальные потолки ставок этих дилеров в следующих торгах.' : 'The choice changes these dealers’ real bidding ceilings in later auctions.', 10, VISUAL.faint).setWordWrapWidth(420);
+    button(this, 770, 624, this.locale === 'ru' ? 'План Виктора' : "Victor's plan", () => {
+      this.campaign.chooseBranch('dealer-ally-victor', 'npc-0', { trust: 14, debt: 6 });
+      this.campaign.chooseBranch('dealer-ally-victor-mira-reaction', 'npc-1', { rivalry: 5 });
+      this.complete(mission.id);
+    }, { width: 260, height: 54, background: 0x3a3021, accent: VISUAL.warm, fontSize: 10 });
+    button(this, 1050, 624, this.locale === 'ru' ? 'Ложный адрес Миры' : "Mira's false address", () => {
+      this.campaign.chooseBranch('dealer-ally-mira', 'npc-1', { trust: 14, debt: 6 });
+      this.campaign.chooseBranch('dealer-ally-mira-victor-reaction', 'npc-0', { rivalry: 5 });
+      this.complete(mission.id);
+    }, { width: 260, height: 54, background: 0x302843, accent: VISUAL.purple, fontSize: 10 });
   }
 
   private auctionButton(status: string): void {
