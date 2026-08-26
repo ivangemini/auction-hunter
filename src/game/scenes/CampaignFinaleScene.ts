@@ -28,6 +28,9 @@ export class CampaignFinaleScene extends Phaser.Scene {
   preload(): void {
     this.load.svg('campaign-veyr-estate', 'assets/campaign/campaign-veyr-estate.svg');
     this.load.svg('veyr-master-ledger', 'assets/campaign/veyr-master-ledger.svg');
+    this.load.svg('veyr-portrait-case', 'assets/campaign/veyr-portrait-case.svg');
+    this.load.svg('veyr-cipher-cabinet', 'assets/campaign/veyr-cipher-cabinet.svg');
+    this.load.svg('veyr-chronometer', 'assets/campaign/veyr-chronometer.svg');
   }
 
   create(): void {
@@ -97,11 +100,7 @@ export class CampaignFinaleScene extends Phaser.Scene {
     const picked = this.state.acquiredLotIds.includes(lot.id);
     const affordable = this.state.spent + lot.price <= this.state.budget;
     addSurface(this, x, y, 276, 438, { fill: picked ? 0x2b2419 : 0x15191e, accent: picked ? VISUAL.warm : (lot.kind === 'evidence' ? VISUAL.copper : VISUAL.rare), strokeAlpha: picked ? 0.65 : 0.28, glowAlpha: picked ? 0.024 : 0.008 });
-    if (lot.id === 'veyr-master-ledger') this.add.image(x + 138, y + 112, 'veyr-master-ledger').setDisplaySize(225, 148);
-    else {
-      const icon = lot.kind === 'evidence' ? '⌁' : '◆';
-      this.add.text(x + 138, y + 104, icon, { fontFamily: 'Georgia, serif', fontSize: '64px', color: lot.kind === 'evidence' ? '#c69a5a' : '#86b6ef' }).setOrigin(0.5);
-    }
+    this.add.image(x + 138, y + 112, lot.id).setDisplaySize(225, 148);
     const copy = LABELS[lot.id]!;
     this.add.text(x + 18, y + 210, this.locale === 'ru' ? copy.ru : copy.en, { fontFamily: 'Arial, sans-serif', fontSize: '17px', fontStyle: 'bold', color: '#f7f3e8' }).setWordWrapWidth(240);
     this.add.text(x + 18, y + 252, this.locale === 'ru' ? copy.detailRu : copy.detailEn, { fontFamily: 'Arial, sans-serif', fontSize: '11px', color: '#9da6b1' }).setWordWrapWidth(236);
