@@ -89,4 +89,36 @@ describe('CampaignStore', () => {
     store.resetBranchChoices('linked-buy:');
     expect(store.progress.branchChoiceIds).toEqual(['show-victor-black-seal']);
   });
+
+  it('only resolves the campaign from the active finale mission and marks Chapter V complete', () => {
+    const save = createDefaultSave();
+    save.cash = 7000;
+    save.reputationXp = 900;
+    save.campaign.started = true;
+    save.campaign.completedMissionIds = ['closed-circle-ledger-room', 'lost-collection-route', 'lost-collection-prep'];
+    save.campaign.activeMissionId = 'lost-collection-finale';
+    storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
+    const store = new CampaignStore();
+
+    expect(store.finishCampaign('shared-truth', ['veyr-master-ledger', 'veyr-cipher-cabinet'])).toBe(true);
+    const after = store.snapshot;
+    expect(after.campaign.completed).toBe(true);
+    expect(after.campaign.epilogueId).toBe('shared-truth');
+    expect(after.campaign.completedMissionIds).toContain('lost-collection-finale');
+    expect(after.campaign.activeMissionId).toBeNull();
+    expect(after.campaign.branchChoiceIds).toContain('finale-buy:veyr-master-ledger');
+    expect(after.cash).toBe(12000);
+    expect(after.reputationXp).toBe(1200);
+    expect(store.finishCampaign('dealer-king', ['veyr-portrait-case', 'veyr-chronometer'])).toBe(false);
+  });
+
+  it('rejects direct finale resolution when Chapter V preparation is not active', () => {
+    const save = createDefaultSave();
+    save.campaign.completedMissionIds = ['closed-circle-ledger-room'];
+    save.campaign.activeMissionId = null;
+    storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
+    const store = new CampaignStore();
+    expect(store.finishCampaign('unfinished-ledger', ['veyr-master-ledger'])).toBe(false);
+    expect(store.snapshot.campaign.completed).toBe(false);
+  });
 });
