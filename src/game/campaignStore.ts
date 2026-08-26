@@ -8,6 +8,7 @@ import {
   recordCampaignBranchChoice,
   startCampaignMission,
 } from '../domain/campaign';
+import type { CampaignEpilogueId } from '../domain/campaignFinale';
 import type { CampaignProgressState, PlayerSave } from '../domain/types';
 import { scheduleCloudSave } from '../platform/cloudSave';
 import { loadLocalSave, writeLocalSave } from './save';
@@ -92,6 +93,31 @@ export class CampaignStore {
       branchChoiceIds: save.campaign.branchChoiceIds.filter((choiceId) => !choiceId.startsWith(prefix)),
     };
     this.persist(save);
+  }
+
+  finishCampaign(epilogueId: CampaignEpilogueId, acquiredLotIds: readonly string[]): boolean {
+    const save = loadLocalSave();
+    if (save.campaign.completed) return false;
+    save.campaign = {
+      ...save.campaign,
+      started: true,
+      activeMissionId: null,
+      completed: true,
+      epilogueId,
+      branchChoiceIds: [
+        ...new Set([
+          ...save.campaign.branchChoiceIds,
+          ...acquiredLotIds.map((id) => `finale-buy:${id}`),
+          `finale-epilogue:${epilogueId}`,
+        ]),
+      ],
+    };
+    save.cash += 5000;
+    save.reputationXp += 300;
+    save.highestCash = Math.max(save.highestCash, save.cash);
+    this.persist(save);
+    trackEvent('campaign_completed', { epilogueId, acquiredLotIds: [...acquiredLotIds] });
+    return true;
   }
 
   private persist(save: PlayerSave): void {
