@@ -3,6 +3,7 @@ import type { InspectionConditionBand } from './domain/inspection';
 import type { RestorationMode } from './domain/restoration';
 import type { AuctionTierId } from './data/tiers';
 import type { RivalSignatureBehavior } from './domain/auction';
+import type { CampaignChapterId } from './data/campaign';
 
 export const ANALYTICS_SCHEMA_VERSION = 1 as const;
 export const ANALYTICS_DOM_EVENT = 'auction-hunter:analytics';
@@ -15,6 +16,15 @@ interface MarketTrendAnalyticsContext {
 export interface AnalyticsEventMap {
   session_started: { locale: Locale };
   onboarding_completed: Record<string, never>;
+  campaign_mission_started: { chapterId: CampaignChapterId; missionId: string };
+  campaign_mission_completed: {
+    chapterId: CampaignChapterId;
+    missionId: string;
+    rewardCash: number;
+    rewardRep: number;
+    evidenceIds: string[];
+  };
+  campaign_branch_chosen: { choiceId: string; rivalId?: string };
   tier_selected: { tierId: AuctionTierId; reputationXp: number };
   lot_options_presented: {
     tierId: AuctionTierId;
