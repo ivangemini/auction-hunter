@@ -175,4 +175,49 @@ P9 turns Auction Hunter from a primarily systemic endless auction game into a st
 - [ ] Complete visual acceptance for all campaign states/items/environments at desktop + 844×390 RU/EN. Automated state-transition, evidence-render, item-art and campaign-asset gates are in CI; final human screenshot inspection and real-device review remain.
 - [x] Run final compatibility acceptance across old saves, cloud save, monetization boundaries and P8 economy gates after P9 content breadth stabilized; `p9CompatibilityAcceptance.test.ts`, cloud/save/ad tests, long-horizon economy tests and browser QA now exercise the retained contracts together.
 
-See `V1_ROADMAP.md` for the release baseline, `SYSTEMIC_REPLAYABILITY.md` for P8, `CAMPAIGN.md` for the P9 story/gameplay contract, and `P9_TELEMETRY.md` for duration/telemetry acceptance.
+## P10 — retention, showroom and audiovisual polish — ACTIVE
+P10 deepens ownership, sensory reward and return reasons before adding more raw catalog breadth. The existing 72-item/42-lot/36-set content base is treated as sufficient for this tranche; new work should make current finds, rivals and auctions feel more valuable rather than merely increasing counts. Detailed contract: `P10_RETENTION_PRESENTATION.md`.
+
+### P10.1 — Dealer Showroom / Trophy Garage
+- [x] Add the first playable Dealer Showroom as a physical long-term trophy room using existing collection data rather than a duplicate inventory system.
+- [x] Reuse the existing Showroom business upgrade as visual capacity: levels 0/1/2/3 expose 4/6/8/10 trophy positions while retaining the existing collection-set reward multiplier.
+- [x] Auto-curate the strongest concrete copy per item identity with rarity-first trophy ordering and a legacy-save fallback when `collectionItems` are absent.
+- [x] Add RU/EN showroom presentation, a dominant centerpiece, inspectable cabinet trophies, reduced-motion-safe entrance/ambient motion and Office/Collection navigation.
+- [x] Add deterministic unit coverage for slot capacity, trophy ordering, concrete-copy selection and legacy compatibility.
+- [ ] Add backward-compatible manual pinning, ordering and slot assignment for concrete copies.
+- [ ] Add room-decoration choices and optional cosmetic cash sinks without gating economy/progression.
+- [ ] Add campaign trophies/evidence as non-inventory display props where they strengthen post-campaign ownership.
+
+### P10.2 — Production sound design and music
+- [ ] Add a sample-based production SFX bank for auction, reveal materials, appraisal, restoration, sale, rewards and UI while retaining oscillator feedback as a decode/unavailable fallback.
+- [ ] Add restrained Garage/Estate/Collector/private/finale ambience loops with correct focus, ad and platform lifecycle pause/resume behavior.
+- [ ] Add a small adaptive score for Office/collection, normal auction, high-tier/private auction, investigation, finale and epilogue; tension layers must never alter gameplay timing.
+- [ ] Add brief RU/EN auctioneer barks and non-verbal crowd reactions where they improve auction presence without making audio required for comprehension.
+- [ ] Add independent SFX/music/ambience controls once the sampled layer exists, with compressed browser-safe assets and mobile performance limits.
+
+### P10.3 — Character reactions and game feel
+- [ ] Add 3–5 bounded reaction states for important rivals/principals: idle, interested, pressured, aggressive bid and win/loss.
+- [ ] Strengthen reveal staging into concealment -> object focus -> rarity/name -> appraisal -> traits/provenance while preserving immediate state safety and reduced-motion equivalence.
+- [ ] Add causal sale feedback that visually connects item/value delta to bankroll, plus a distinct Buyer Market premium-sale acknowledgement.
+- [ ] Give collection-set and achievement completion stronger bounded celebrations than ordinary sales.
+- [ ] Add restrained environmental motion such as dust/light/fan/background crowd only where it reinforces place and remains mobile-safe.
+
+### P10.4 — Weekly Vault Auction
+- [ ] Add a deterministic local-week event with a short multi-lot run and one shared event budget.
+- [ ] Add rotating themes/rule packages that reuse current catalog, modifiers, rivals and restoration systems instead of duplicating daily content.
+- [ ] Add a bounded weekly reward/claim state with cloud-safe persistence and no penalty for missing a week.
+- [ ] Add typed event analytics plus economy/replayability simulation before tuning rewards.
+
+### P10.5 — Hero visual fidelity
+- [ ] Upgrade the top 10–15 legendary/campaign hero finds to a higher-fidelity vector/raster-hybrid presentation while retaining semantic texture IDs.
+- [ ] Add expression/pose variants for principal characters that map to the new reaction states.
+- [ ] Add controlled environment variants such as late-night, rain, VIP/private, seized/abandoned or crowded states without multiplying gameplay templates unnecessarily.
+- [ ] Promote selected campaign evidence/finale props to hero presentation where they are actual focal rewards.
+
+### P10 acceptance
+- [ ] Keep Dealer Showroom RU/EN desktop + 844×390 resting and inspect-state screenshots in CI and complete manual visual inspection after material changes.
+- [ ] Add sampled-audio decode/fallback, lifecycle and performance contracts before calling production sound complete.
+- [ ] Run real-device audio + motion QA before release acceptance.
+- [ ] Use telemetry before changing weekly reward size, event pressure, economy or monetization cadence.
+
+See `V1_ROADMAP.md` for the release baseline, `SYSTEMIC_REPLAYABILITY.md` for P8, `CAMPAIGN.md` for the P9 story/gameplay contract, `P9_TELEMETRY.md` for duration/telemetry acceptance, and `P10_RETENTION_PRESENTATION.md` for the P10 ownership/audiovisual contract.
