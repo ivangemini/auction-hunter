@@ -22,6 +22,7 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run qa:browser
+      - run: node scripts/validate-p9-campaign-visual-states.mjs
       - run: node scripts/render-yandex-promos.mjs
       - run: node scripts/capture-yandex-screenshots.mjs
       - run: node scripts/capture-restoration-review.mjs
