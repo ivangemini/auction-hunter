@@ -5,6 +5,7 @@ import { registerCampaignBreadth } from './data/campaignBreadth';
 import { registerCampaignBreadthTwo } from './data/campaignBreadthTwo';
 import { registerCampaignDiscoveryChains } from './data/campaignDiscoveryChains';
 import { registerCampaignFinaleBreadth } from './data/campaignFinaleBreadth';
+import { registerNadiaCampaignArc } from './data/campaignPrincipalArc';
 import { registerItemBreadth } from './data/itemBreadth';
 import { gameConfig } from './game/config';
 import { installAuctionHistoryTracking } from './game/historyTracking';
@@ -35,6 +36,7 @@ async function bootstrap(): Promise<void> {
   registerCampaignBreadth();
   registerCampaignBreadthTwo();
   registerCampaignFinaleBreadth();
+  registerNadiaCampaignArc();
   registerCampaignDiscoveryChains();
   installBrowserGuards();
   applyAccessibilityPreferences();
