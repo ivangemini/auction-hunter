@@ -97,6 +97,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - run: node scripts/capture-campaign-review.mjs
+      - run: node scripts/capture-campaign-assets-review.mjs
       - name: Upload P9 Campaign visual review
         uses: actions/upload-artifact@v4
         with:
