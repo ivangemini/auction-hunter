@@ -1,6 +1,10 @@
 import { trackEvent } from '../analytics';
 import { CAMPAIGN_MISSIONS } from '../data/campaign';
 import {
+  campaignOptionalObjectiveCompleted,
+  optionalObjectiveForMission,
+} from '../data/campaignOptionalObjectives';
+import {
   applyCampaignRelationshipDelta,
   campaignMissionById,
   completeCampaignMission,
@@ -44,9 +48,27 @@ export class CampaignStore {
     const save = loadLocalSave();
     const mission = campaignMissionById(CAMPAIGN_MISSIONS, missionId);
     if (!mission || save.campaign.completedMissionIds.includes(missionId)) return false;
+
+    const optional = optionalObjectiveForMission(missionId);
+    const optionalCompleted = Boolean(optional && campaignOptionalObjectiveCompleted(optional, save));
+
     save.campaign = completeCampaignMission(save.campaign, mission);
     save.cash += Math.max(0, Math.round(mission.rewardCash));
     save.reputationXp += Math.max(0, Math.round(mission.rewardRep));
+
+    if (optional && optionalCompleted) {
+      save.cash += Math.max(0, Math.round(optional.rewardCash));
+      save.reputationXp += Math.max(0, Math.round(optional.rewardRep));
+      save.campaign = recordCampaignBranchChoice(save.campaign, `optional:${optional.id}`);
+      if (optional.relationship) {
+        save.campaign = applyCampaignRelationshipDelta(
+          save.campaign,
+          optional.relationship.rivalId,
+          optional.relationship.delta,
+        );
+      }
+    }
+
     save.highestCash = Math.max(save.highestCash, save.cash);
     this.persist(save);
     trackEvent('campaign_mission_completed', {
@@ -56,6 +78,15 @@ export class CampaignStore {
       rewardRep: mission.rewardRep,
       evidenceIds: [...(mission.evidenceRewardIds ?? [])],
     });
+    if (optional && optionalCompleted) {
+      trackEvent('campaign_optional_objective_completed', {
+        objectiveId: optional.id,
+        missionId,
+        rewardCash: optional.rewardCash,
+        rewardRep: optional.rewardRep,
+        ...(optional.relationship ? { rivalId: optional.relationship.rivalId } : {}),
+      });
+    }
     return true;
   }
 
