@@ -56,8 +56,8 @@ export class CampaignOfficeScene extends OfficeScene {
     }
     addChip(this, 535, 63, `${completed}/${CAMPAIGN_MISSIONS.length}`, VISUAL.rare, { width: 60, height: 22, fontSize: 8 });
 
-    button(this, 400, 91, locale === 'ru' ? 'Дело' : 'Case', () => this.scene.start('campaign'), {
-      width: 102,
+    button(this, 376, 91, locale === 'ru' ? 'Дело' : 'Case', () => this.scene.start('campaign'), {
+      width: 68,
       height: 28,
       background: VISUAL.warm,
       accent: 0xffd260,
@@ -65,11 +65,20 @@ export class CampaignOfficeScene extends OfficeScene {
       fontSize: 8,
       hitSlop: 4,
     });
-    button(this, 514, 91, locale === 'ru' ? 'Телефон' : 'Inbox', () => this.scene.start('campaign-inbox'), {
-      width: 102,
+    button(this, 455, 91, locale === 'ru' ? 'Телефон' : 'Inbox', () => this.scene.start('campaign-inbox'), {
+      width: 68,
       height: 28,
       background: 0x242b31,
       accent: VISUAL.rare,
+      fontSize: 8,
+      hitSlop: 4,
+    });
+    button(this, 534, 91, locale === 'ru' ? 'Зал' : 'Gallery', () => this.scene.start('showroom'), {
+      width: 68,
+      height: 28,
+      background: 0x3b2b1e,
+      accent: VISUAL.warm,
+      foreground: '#f6d888',
       fontSize: 8,
       hitSlop: 4,
     });
