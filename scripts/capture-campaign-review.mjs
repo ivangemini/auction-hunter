@@ -244,6 +244,10 @@ async function captureNadia(browser, localeCode, locale, viewport, file) {
   await captureSeededHub(browser, localeCode, locale, viewport, file, nadiaCampaignSave);
 }
 
+async function captureCaseRecord(browser, localeCode, locale, viewport, file) {
+  await captureSeededHub(browser, localeCode, locale, viewport, file, completedCampaignSave);
+}
+
 async function captureSeededHub(browser, localeCode, locale, viewport, file, save) {
   const context = await browser.newContext({ viewport, locale, deviceScaleFactor: 1 });
   const page = await context.newPage();
@@ -340,8 +344,10 @@ try {
       await captureFinale(browser, localeCode, locale, { width: 844, height: 390 }, '08-compact-lost-collection.png');
       await captureNadia(browser, localeCode, locale, { width: 1280, height: 720 }, '09-desktop-nadia-choice.png');
       await captureNadia(browser, localeCode, locale, { width: 844, height: 390 }, '10-compact-nadia-choice.png');
-      await capturePersistentEpilogue(browser, localeCode, locale, { width: 1280, height: 720 }, '11-desktop-persistent-epilogue.png');
-      await capturePersistentEpilogue(browser, localeCode, locale, { width: 844, height: 390 }, '12-compact-persistent-epilogue.png');
+      await captureCaseRecord(browser, localeCode, locale, { width: 1280, height: 720 }, '11-desktop-case-record.png');
+      await captureCaseRecord(browser, localeCode, locale, { width: 844, height: 390 }, '12-compact-case-record.png');
+      await capturePersistentEpilogue(browser, localeCode, locale, { width: 1280, height: 720 }, '13-desktop-persistent-epilogue.png');
+      await capturePersistentEpilogue(browser, localeCode, locale, { width: 844, height: 390 }, '14-compact-persistent-epilogue.png');
     }
   } finally {
     await browser.close();
@@ -353,4 +359,4 @@ try {
   await stopPreview(preview);
 }
 
-console.log('P9 Campaign RU/EN hub + inbox + bonus goals + finale + Nadia choice + persistent epilogue desktop/844x390 visual review capture OK');
+console.log('P9 Campaign RU/EN hub + inbox + bonus goals + finale + Nadia choice + Case Record + persistent epilogue desktop/844x390 visual review capture OK');
