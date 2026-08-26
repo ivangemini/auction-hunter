@@ -113,7 +113,7 @@ export function button(
     };
 
     hitTarget.on('pointerover', () => settle(true));
-    hitTarget.on('pointerout', () => settle(false));
+    hitTarget.on('pointerout', () => { lowerEdge.setAlpha(1); settle(false); });
     hitTarget.on('pointerdown', () => {
       scene.tweens.killTweensOf(visual);
       if (motionEnabled) {

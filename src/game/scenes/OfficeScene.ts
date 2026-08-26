@@ -56,6 +56,11 @@ export class OfficeScene extends Phaser.Scene {
     this.children.removeAll(true);
     const accent = this.tabAccent(this.tab);
     addAtmosphere(this, WIDTH, HEIGHT, accent, 1030);
+    // The Office sits in a real working room: desk edge, lamp pool and brass filing rail.
+    this.add.ellipse(1020, 232, 430, 330, VISUAL.warm, 0.026);
+    this.add.rectangle(0, 650, WIDTH, 70, VISUAL.wood, 0.2).setOrigin(0);
+    this.add.rectangle(0, 648, WIDTH, 3, VISUAL.brass, 0.22).setOrigin(0);
+    this.add.rectangle(30, 188, 1220, 8, VISUAL.leather, 0.2).setOrigin(0);
     this.renderHeader(accent);
     this.renderTabs();
     addSurface(this, 54, 198, 1172, 478, {

@@ -124,25 +124,23 @@ function renderAuctionCharacters(scene: CharacterRuntime): void {
 }
 
 function renderAuctioneerHeader(scene: CharacterRuntime): void {
-  // Keep the auctioneer as a visible show host, not a tiny decorative avatar.
-  const plate = scene.add.rectangle(704, 72, 116, 112, 0x0b1016, 0.94).setStrokeStyle(2, 0xe9b949, 0.42);
-  scene.add.rectangle(704, 118, 104, 22, 0x17130b, 0.94).setStrokeStyle(1, 0xe9b949, 0.35);
-  scene.add.text(704, 118, scene.locale === 'ru' ? 'ВЕДУЩИЙ' : 'AUCTIONEER', {
+  // The auctioneer is a stage host. Keep the resting state strong and reserve motion for entry/emphasis.
+  const spotlight = scene.add.ellipse(704, 72, 176, 162, 0xe9b949, 0.055).setDepth(2);
+  const shadow = scene.add.rectangle(710, 77, 126, 122, 0x000000, 0.42).setDepth(3);
+  const plate = scene.add.rectangle(704, 72, 124, 120, 0x0b1016, 0.96).setStrokeStyle(2, 0xe9b949, 0.5).setDepth(4);
+  scene.add.rectangle(704, 124, 112, 24, 0x251c0f, 0.96).setStrokeStyle(1, 0xe9b949, 0.42).setDepth(6);
+  scene.add.text(704, 124, scene.locale === 'ru' ? 'ВЕДУЩИЙ' : 'AUCTIONEER', {
     fontFamily: 'Arial, sans-serif',
     fontSize: '9px',
     fontStyle: 'bold',
     color: '#f0c969',
-  }).setOrigin(0.5);
-  const portrait = addCharacterPortrait(scene, 'auctioneer', 704, 66, 96, 118, 0xe9b949);
+  }).setOrigin(0.5).setDepth(7);
+  const portrait = addCharacterPortrait(scene, 'auctioneer', 704, 65, 102, 124, 0xe9b949).setDepth(5);
   if (!prefersReducedMotion()) {
-    scene.tweens.add({
-      targets: [portrait, plate],
-      y: '-=2',
-      duration: 980,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.InOut',
-    });
+    portrait.setAlpha(0.7).setScale(0.96);
+    scene.tweens.add({ targets: portrait, alpha: 1, scaleX: 1, scaleY: 1, duration: 240, ease: 'Back.Out' });
+    scene.tweens.add({ targets: spotlight, alpha: { from: 0.02, to: 0.07 }, duration: 360, yoyo: true, ease: 'Sine.Out' });
+    scene.tweens.add({ targets: [plate, shadow], y: { from: 78, to: 72 }, duration: 220, ease: 'Cubic.Out' });
   }
 }
 

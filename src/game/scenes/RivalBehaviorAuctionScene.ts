@@ -87,7 +87,7 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
       button(
         runtime,
         740,
-        218,
+        112,
         runtime.locale === 'ru' ? 'Дело: Чёрный реестр' : 'Case: Black Ledger',
         () => runtime.scene.start('campaign'),
         {

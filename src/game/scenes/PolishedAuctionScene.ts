@@ -80,7 +80,11 @@ function renderPolishedLotSelection(scene: AuctionRuntime): void {
       .setOrigin(0)
       .setStrokeStyle(1, 0xffffff, 0.06);
 
-    card.add([shadow, glow, body, inner]);
+    const materialBack = scene.add.rectangle(10, 10, CARD_WIDTH - 20, CARD_HEIGHT - 20, 0x241a14, 0.12)
+      .setOrigin(0)
+      .setStrokeStyle(1, 0xe9b949, 0.06);
+    const brassRail = scene.add.rectangle(13, CARD_HEIGHT - 13, CARD_WIDTH - 26, 2, 0xb78a3b, 0.2).setOrigin(0);
+    card.add([shadow, glow, body, inner, materialBack, brassRail]);
 
     renderHeroArt(scene, card, choice, accent);
     renderRankRibbon(scene, card, index + 1, accent);
@@ -219,22 +223,31 @@ function renderHeroArt(
   choice: LotChoice,
   accent: number,
 ): void {
-  const artFrame = scene.add.rectangle(20, 18, CARD_WIDTH - 40, 184, 0x171c24, 1)
+  const artShadow = scene.add.rectangle(25, 27, CARD_WIDTH - 42, 194, 0x000000, 0.42)
+    .setOrigin(0);
+  const artFrame = scene.add.rectangle(18, 16, CARD_WIDTH - 36, 202, 0x171c24, 1)
     .setOrigin(0)
-    .setStrokeStyle(1, accent, 0.36);
-  card.add(artFrame);
+    .setStrokeStyle(2, accent, 0.42);
+  const innerFrame = scene.add.rectangle(23, 21, CARD_WIDTH - 46, 192, 0x0a0d11, 1)
+    .setOrigin(0)
+    .setStrokeStyle(1, 0xffffff, 0.08);
+  card.add([artShadow, artFrame, innerFrame]);
 
   const texture = resolveLotTexture(scene, choice.lot.artId ?? choice.lot.id);
   if (texture) {
-    const image = scene.add.image(CARD_WIDTH / 2, 110, texture).setDisplaySize(CARD_WIDTH - 44, 180);
+    const image = scene.add.image(CARD_WIDTH / 2, 117, texture).setDisplaySize(CARD_WIDTH - 48, 188);
     card.add(image);
   } else {
-    card.add(scene.add.rectangle(22, 20, CARD_WIDTH - 44, 180, 0x20242b, 1).setOrigin(0));
+    card.add(scene.add.rectangle(24, 23, CARD_WIDTH - 48, 188, 0x20242b, 1).setOrigin(0));
   }
 
-  const lowerShade = scene.add.rectangle(22, 165, CARD_WIDTH - 44, 35, 0x06080b, 0.58).setOrigin(0);
-  const warmEdge = scene.add.rectangle(22, 20, 4, 180, accent, 0.22).setOrigin(0);
-  card.add([lowerShade, warmEdge]);
+  // Lighting and foreground framing make the lot read as a place rather than a thumbnail.
+  const lampPool = scene.add.ellipse(CARD_WIDTH * 0.7, 79, 210, 112, accent, 0.045);
+  const lowerShade = scene.add.rectangle(24, 162, CARD_WIDTH - 48, 49, 0x05070a, 0.54).setOrigin(0);
+  const floorRail = scene.add.rectangle(24, 207, CARD_WIDTH - 48, 3, 0xb78a3b, 0.22).setOrigin(0);
+  const leftPost = scene.add.rectangle(24, 23, 4, 188, accent, 0.25).setOrigin(0);
+  const rightPost = scene.add.rectangle(CARD_WIDTH - 28, 23, 4, 188, 0xffffff, 0.04).setOrigin(0);
+  card.add([lampPool, lowerShade, floorRail, leftPost, rightPost]);
 }
 
 function renderRankRibbon(
@@ -262,14 +275,16 @@ function renderMetric(
   accent: number,
   emphasized: boolean,
 ): void {
-  const labelText = text(scene, x, y, label.toUpperCase(), 8, '#707985', 'bold');
-  const box = scene.add.rectangle(x, y + 18, width, 34, emphasized ? 0x233d18 : 0x151a20, 1)
+  const labelText = text(scene, x + 2, y, label.toUpperCase(), 8, '#707985', 'bold');
+  const shadow = scene.add.rectangle(x + 3, y + 20, width, 34, 0x000000, 0.3).setOrigin(0);
+  const box = scene.add.rectangle(x, y + 17, width, 34, emphasized ? 0x26351f : 0x15191f, 0.96)
     .setOrigin(0)
-    .setStrokeStyle(1, accent, emphasized ? 0.52 : 0.24);
-  const pip = scene.add.circle(x + 15, y + 35, 7, accent, emphasized ? 0.95 : 0.65);
-  const valueText = text(scene, x + 29, y + 24, value, emphasized ? 17 : 13, '#f4f0e7', 'bold')
-    .setWordWrapWidth(width - 34);
-  card.add([labelText, box, pip, valueText]);
+    .setStrokeStyle(1, accent, emphasized ? 0.5 : 0.22);
+  const rail = scene.add.rectangle(x, y + 17, 4, 34, accent, emphasized ? 0.86 : 0.5).setOrigin(0);
+  const top = scene.add.rectangle(x + 7, y + 20, Math.max(8, width - 14), 1, 0xffffff, 0.08).setOrigin(0);
+  const valueText = text(scene, x + 14, y + 25, value, emphasized ? 17 : 13, '#f4f0e7', 'bold')
+    .setWordWrapWidth(width - 20);
+  card.add([labelText, shadow, box, rail, top, valueText]);
 }
 
 function installCardHover(
