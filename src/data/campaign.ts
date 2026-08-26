@@ -89,7 +89,7 @@ export const CAMPAIGN_MISSIONS: CampaignMission[] = [
     title: { ru: 'Проверка Виктора', en: "Victor's Test" },
     briefing: { ru: 'Виктор считает, что вы переплачиваете. Докажите, что умеете остановиться — и всё же забрать правильный лот.', en: 'Victor thinks you overpay. Prove you can stop — and still take the right lot.' },
     objective: { type: 'win-auction', target: 1, description: { ru: 'Выиграйте следующий сюжетный аукцион.', en: 'Win the next story auction.' } },
-    prerequisiteMissionIds: ['first-day-floor'], rewardCash: 400, rewardRep: 15, featuredRivalId: 'victor',
+    prerequisiteMissionIds: ['first-day-floor'], rewardCash: 400, rewardRep: 15, featuredRivalId: 'npc-0',
   },
   {
     id: 'black-seal', chapterId: 'first-flip', order: 3,
