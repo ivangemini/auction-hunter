@@ -4,24 +4,31 @@ import { CAMPAIGN_EVIDENCE, CAMPAIGN_MISSIONS } from './campaign';
 describe('P9 Chapter III Dealer War', () => {
   const missions = CAMPAIGN_MISSIONS.filter((mission) => mission.chapterId === 'dealer-war');
 
-  it('ships a four-mission playable chapter spine', () => {
-    expect(missions).toHaveLength(4);
-    expect(missions.map((mission) => mission.order)).toEqual([1, 2, 3, 4]);
+  it('ships a six-mission playable chapter spine', () => {
+    expect(missions).toHaveLength(6);
+    expect(missions.map((mission) => mission.order)).toEqual([1, 2, 3, 4, 5, 6]);
     expect(missions.map((mission) => mission.objective.type)).toEqual([
       'track-rival',
       'win-auction',
       'branch-choice',
+      'proxy-bid',
+      'rival-deal',
       'select-evidence-lot',
     ]);
   });
 
   it('starts only after Estate Trail and ends with a Closed Circle lead', () => {
     expect(missions[0]?.prerequisiteMissionIds).toEqual(['estate-mira-offer']);
-    expect(missions[3]?.evidenceRewardIds).toContain('closed-circle-address');
+    expect(missions[5]?.evidenceRewardIds).toContain('closed-circle-address');
     expect(CAMPAIGN_EVIDENCE.some((evidence) => evidence.id === 'closed-circle-address')).toBe(true);
   });
 
-  it('makes a named pressure rival part of the chapter', () => {
-    expect(missions.some((mission) => mission.featuredRivalId === 'npc-2')).toBe(true);
+  it('makes rival pressure and shared-budget bidding mechanically meaningful', () => {
+    expect(missions[1]?.featuredRivalId).toBe('npc-2');
+    expect(missions[1]?.objective.target).toBe(2);
+    expect(missions[3]?.objective.budget).toBe(9500);
+    expect(missions[4]?.featuredRivalId).toBe('npc-2');
+    expect(missions[3]?.evidenceRewardIds).toContain('proxy-bid-slip');
+    expect(missions[4]?.evidenceRewardIds).toContain('anton-buyer-alias');
   });
 });
