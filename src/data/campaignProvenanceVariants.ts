@@ -16,9 +16,9 @@ export interface CampaignProvenanceVariantDefinition {
  */
 export const CAMPAIGN_PROVENANCE_VARIANTS: readonly CampaignProvenanceVariantDefinition[] = [
   {
-    id: 'veyr-appraisal-loupe', itemId: 'archivist-loupe', requiredTraits: ['matching-serials'], bonusMultiplier: 1.06,
+    id: 'veyr-appraisal-loupe', itemId: 'archivist-loupe', requiredTraits: ['documented-history'], bonusMultiplier: 1.06,
     name: { ru: 'Лупа оценщика Вейра', en: "Veyr Appraiser's Loupe" },
-    description: { ru: 'Номер на оправе совпадает с номером в архивной ведомости ликвидатора.', en: "The frame number matches an entry in Veyr's liquidator inventory." },
+    description: { ru: 'Архивная карточка связывает эту лупу с ведомостью ликвидатора.', en: "Archive paperwork links this loupe to Veyr's liquidator inventory." },
   },
   {
     id: 'municipal-microfilm-unit', itemId: 'microfilm-reader', requiredTraits: ['matching-serials'], bonusMultiplier: 1.05,
@@ -41,9 +41,9 @@ export const CAMPAIGN_PROVENANCE_VARIANTS: readonly CampaignProvenanceVariantDef
     description: { ru: 'Редкая шкала содержит сектор C-17, отсутствующий на обычных экземплярах.', en: 'The rare scale includes a C-17 sector missing from standard examples.' },
   },
   {
-    id: 'river-route-camera', itemId: 'expedition-camera', requiredTraits: ['documented-history'], bonusMultiplier: 1.08,
+    id: 'river-route-camera', itemId: 'expedition-camera', requiredTraits: ['matching-serials'], bonusMultiplier: 1.08,
     name: { ru: 'Камера речного маршрута', en: 'River Route Camera' },
-    description: { ru: 'Подписи на конвертах негативов связывают камеру с последним маршрутом Вейра.', en: "Negative sleeves tie the camera to Veyr's final river route." },
+    description: { ru: 'Номера корпуса и оптического блока совпадают с полевой ведомостью речного маршрута.', en: "Body and lens serials match the field inventory from Veyr's river route." },
   },
   {
     id: 'dock-interview-recorder', itemId: 'field-recorder', requiredTraits: ['matching-serials'], bonusMultiplier: 1.06,
