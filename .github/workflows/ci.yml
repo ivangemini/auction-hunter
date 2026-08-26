@@ -41,7 +41,8 @@ jobs:
           if-no-files-found: error
           retention-days: 7
       - run: node scripts/capture-item-breadth-review.mjs
-      - name: Upload P5 second-wave item review
+      - run: node scripts/capture-p9-item-compact-review.mjs
+      - name: Upload P5/P9 expansion item review
         uses: actions/upload-artifact@v4
         with:
           name: auction-hunter-item-breadth-review-ci
