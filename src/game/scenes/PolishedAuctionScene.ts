@@ -32,7 +32,7 @@ type AuctionRuntime = Phaser.Scene & {
   renderLotSelection: () => void;
 };
 
-const CARD_ACCENTS = [0xe9b949, 0x61a8ff, 0xb576ff] as const;
+const CARD_ACCENTS = [0xf6b72c, 0x37a9ff, 0x9959ff] as const;
 const CARD_XS = [28, 444, 860] as const;
 const CARD_WIDTH = 392;
 const CARD_HEIGHT = 476;
@@ -73,19 +73,23 @@ function renderPolishedLotSelection(scene: AuctionRuntime): void {
     const glow = scene.add.rectangle(-3, -3, CARD_WIDTH + 6, CARD_HEIGHT + 6, accent, 0)
       .setOrigin(0)
       .setStrokeStyle(2, accent, 0.18);
-    const body = scene.add.rectangle(0, 0, CARD_WIDTH, CARD_HEIGHT, 0x11151c, 1)
+    const body = scene.add.rectangle(0, 0, CARD_WIDTH, CARD_HEIGHT, 0x0a2945, 1)
       .setOrigin(0)
       .setStrokeStyle(2, accent, 0.58);
-    const inner = scene.add.rectangle(8, 8, CARD_WIDTH - 16, CARD_HEIGHT - 16, 0x0c1016, 1)
+    const inner = scene.add.rectangle(8, 8, CARD_WIDTH - 16, CARD_HEIGHT - 16, 0x0d3658, 1)
       .setOrigin(0)
       .setStrokeStyle(1, 0xffffff, 0.06);
 
-    card.add([shadow, glow, body, inner]);
+    const materialBack = scene.add.rectangle(10, 10, CARD_WIDTH - 20, CARD_HEIGHT - 20, 0x7a351e, 0.2)
+      .setOrigin(0)
+      .setStrokeStyle(1, 0xe9b949, 0.06);
+    const brassRail = scene.add.rectangle(13, CARD_HEIGHT - 13, CARD_WIDTH - 26, 2, 0xd68a2f, 0.34).setOrigin(0);
+    card.add([shadow, glow, body, inner, materialBack, brassRail]);
 
     renderHeroArt(scene, card, choice, accent);
     renderRankRibbon(scene, card, index + 1, accent);
 
-    const title = text(scene, CARD_WIDTH / 2, 214, choice.lot.name[scene.locale], 21, '#f7f3e8', 'bold')
+    const title = text(scene, CARD_WIDTH / 2, 214, choice.lot.name[scene.locale], 21, '#fff8ea', 'bold')
       .setOrigin(0.5, 0)
       .setWordWrapWidth(340)
       .setAlign('center');
@@ -116,7 +120,7 @@ function renderPolishedLotSelection(scene: AuctionRuntime): void {
         358 + clueIndex * 25,
         scene.compactText(clue.text[scene.locale], 47),
         10,
-        '#c8cdd5',
+        '#dcebf8',
       ).setWordWrapWidth(320);
       card.add([icon, dot, clueText]);
     });
@@ -130,13 +134,13 @@ function renderPolishedLotSelection(scene: AuctionRuntime): void {
           visits: memory.visits,
           result: scene.signedMoney(memory.averageEstimatedResult),
         });
-      const memoryBadge = scene.add.rectangle(20, statusY, CARD_WIDTH - 40, 22, 0x122235, 0.72)
+      const memoryBadge = scene.add.rectangle(20, statusY, CARD_WIDTH - 40, 22, 0x0d3e67, 0.88)
         .setOrigin(0)
         .setStrokeStyle(1, 0x61a8ff, 0.24);
-      const memoryLabel = text(scene, 30, statusY + 5, scene.compactText(memoryText, 59), 9, '#8fc3ff', 'bold');
+      const memoryLabel = text(scene, 30, statusY + 5, scene.compactText(memoryText, 59), 9, '#9ed3ff', 'bold');
       card.add([memoryBadge, memoryLabel]);
     } else if (choice.modifier) {
-      const modifierBadge = scene.add.rectangle(20, statusY, CARD_WIDTH - 40, 22, 0x2b1e12, 0.78)
+      const modifierBadge = scene.add.rectangle(20, statusY, CARD_WIDTH - 40, 22, 0x5a321d, 0.84)
         .setOrigin(0)
         .setStrokeStyle(1, 0xe9b949, 0.28);
       const modifierLabel = text(
@@ -145,7 +149,7 @@ function renderPolishedLotSelection(scene: AuctionRuntime): void {
         statusY + 5,
         `${t(scene.locale, 'event').toUpperCase()} · ${scene.compactText(choice.modifier.description[scene.locale], 48)}`,
         9,
-        '#f0c969',
+        '#ffd56a',
         'bold',
       );
       card.add([modifierBadge, modifierLabel]);
@@ -158,8 +162,8 @@ function renderPolishedLotSelection(scene: AuctionRuntime): void {
     }, {
       width: 344,
       height: 42,
-      background: 0xe9b949,
-      accent: 0xffcf59,
+      background: 0xf6b72c,
+      accent: 0xffdd6a,
       hitSlop: 5,
     });
     card.add(choose);
@@ -175,13 +179,13 @@ function renderPolishedLotSelection(scene: AuctionRuntime): void {
 function renderHeader(scene: AuctionRuntime): void {
   const save = scene.store.snapshot;
 
-  scene.add.rectangle(28, 20, 212, 88, 0x11151c, 0.98)
+  scene.add.rectangle(28, 20, 212, 88, 0x082944, 0.98)
     .setOrigin(0)
-    .setStrokeStyle(2, 0xe9b949, 0.45);
-  text(scene, 50, 32, 'AUCTION', 27, '#f1c75b', 'bold');
-  text(scene, 88, 64, 'HUNTER', 17, '#c4773a', 'bold');
-  text(scene, 275, 29, t(scene.locale, 'chooseLotTitle').toUpperCase(), 29, '#f7f3e8', 'bold');
-  text(scene, 275, 67, t(scene.locale, 'chooseLotHint'), 13, '#9ca4b0').setWordWrapWidth(410);
+    .setStrokeStyle(2, 0xf6b72c, 0.64);
+  text(scene, 50, 32, 'AUCTION', 27, '#ffd66d', 'bold');
+  text(scene, 88, 64, 'HUNTER', 17, '#ff8a42', 'bold');
+  text(scene, 275, 29, t(scene.locale, 'chooseLotTitle').toUpperCase(), 29, '#fff8ea', 'bold');
+  text(scene, 275, 67, t(scene.locale, 'chooseLotHint'), 13, '#b8cde0').setWordWrapWidth(410);
 
   renderHeaderStat(scene, 750, t(scene.locale, 'cash'), scene.money(save.cash), 0xe9b949);
   renderHeaderStat(scene, 890, t(scene.locale, 'collection'), String(uniqueCollectionCount(save.collection)), 0x61a8ff);
@@ -190,9 +194,9 @@ function renderHeader(scene: AuctionRuntime): void {
   button(scene, 1000, 112, t(scene.locale, 'collectionBook'), () => scene.scene.start('collection'), {
     width: 176,
     height: 32,
-    background: 0x253a55,
-    foreground: '#d9e9ff',
-    accent: 0x61a8ff,
+    background: 0x126bb0,
+    foreground: '#f3fbff',
+    accent: 0x37a9ff,
     hitSlop: 3,
   });
   scene.renderDailyControl(112, 1178, 150);
@@ -205,12 +209,12 @@ function renderHeaderStat(
   value: string,
   accent: number,
 ): void {
-  scene.add.rectangle(x, 25, 126, 64, 0x11151c, 0.96)
+  scene.add.rectangle(x, 25, 126, 64, 0x0b3152, 0.98)
     .setOrigin(0)
     .setStrokeStyle(1, accent, 0.35);
-  text(scene, x + 12, 34, label.toUpperCase(), 9, '#777f8b', 'bold');
+  text(scene, x + 12, 34, label.toUpperCase(), 9, '#9cb8cf', 'bold');
   scene.add.circle(x + 18, 68, 8, accent, 0.9);
-  text(scene, x + 33, 55, value, 17, '#f7f3e8', 'bold');
+  text(scene, x + 33, 55, value, 17, '#fff8ea', 'bold');
 }
 
 function renderHeroArt(
@@ -219,22 +223,33 @@ function renderHeroArt(
   choice: LotChoice,
   accent: number,
 ): void {
-  const artFrame = scene.add.rectangle(20, 18, CARD_WIDTH - 40, 184, 0x171c24, 1)
+  const artShadow = scene.add.rectangle(25, 27, CARD_WIDTH - 42, 194, 0x000000, 0.42)
+    .setOrigin(0);
+  const artFrame = scene.add.rectangle(18, 16, CARD_WIDTH - 36, 202, 0x0a2a47, 1)
     .setOrigin(0)
-    .setStrokeStyle(1, accent, 0.36);
-  card.add(artFrame);
+    .setStrokeStyle(2, accent, 0.42);
+  const innerFrame = scene.add.rectangle(23, 21, CARD_WIDTH - 46, 192, 0x0d3557, 1)
+    .setOrigin(0)
+    .setStrokeStyle(1, 0xffffff, 0.08);
+  card.add([artShadow, artFrame, innerFrame]);
 
   const texture = resolveLotTexture(scene, choice.lot.artId ?? choice.lot.id);
   if (texture) {
-    const image = scene.add.image(CARD_WIDTH / 2, 110, texture).setDisplaySize(CARD_WIDTH - 44, 180);
+    const image = scene.add.image(CARD_WIDTH / 2, 117, texture).setDisplaySize(CARD_WIDTH - 48, 188);
     card.add(image);
   } else {
-    card.add(scene.add.rectangle(22, 20, CARD_WIDTH - 44, 180, 0x20242b, 1).setOrigin(0));
+    card.add(scene.add.rectangle(24, 23, CARD_WIDTH - 48, 188, 0x20242b, 1).setOrigin(0));
   }
 
-  const lowerShade = scene.add.rectangle(22, 165, CARD_WIDTH - 44, 35, 0x06080b, 0.58).setOrigin(0);
-  const warmEdge = scene.add.rectangle(22, 20, 4, 180, accent, 0.22).setOrigin(0);
-  card.add([lowerShade, warmEdge]);
+  // Lighting and foreground framing make the lot read as a place rather than a thumbnail.
+  const lampPool = scene.add.ellipse(CARD_WIDTH * 0.68, 76, 250, 138, accent, 0.105);
+  const coolWash = scene.add.ellipse(CARD_WIDTH * 0.34, 92, 238, 150, 0x37a9ff, 0.065);
+  const marquee = scene.add.rectangle(CARD_WIDTH / 2, 27, CARD_WIDTH - 74, 5, 0xffffff, 0.12);
+  const lowerShade = scene.add.rectangle(24, 162, CARD_WIDTH - 48, 49, 0x06121d, 0.2).setOrigin(0);
+  const floorRail = scene.add.rectangle(24, 207, CARD_WIDTH - 48, 3, 0xd68a2f, 0.342).setOrigin(0);
+  const leftPost = scene.add.rectangle(24, 23, 4, 188, accent, 0.25).setOrigin(0);
+  const rightPost = scene.add.rectangle(CARD_WIDTH - 28, 23, 4, 188, 0xffffff, 0.1).setOrigin(0);
+  card.add([coolWash, lampPool, marquee, lowerShade, floorRail, leftPost, rightPost]);
 }
 
 function renderRankRibbon(
@@ -247,7 +262,7 @@ function renderRankRibbon(
     .setOrigin(0.5, 0)
     .setStrokeStyle(2, 0xffffff, 0.16);
   const tail = scene.add.triangle(39, 86, 15, 0, 63, 0, 39, 20, accent, 0.92).setOrigin(0.5, 0);
-  const rankText = text(scene, 39, 27, String(rank), 27, '#f7f3e8', 'bold').setOrigin(0.5, 0);
+  const rankText = text(scene, 39, 27, String(rank), 27, '#fff8ea', 'bold').setOrigin(0.5, 0);
   card.add([ribbon, tail, rankText]);
 }
 
@@ -262,14 +277,16 @@ function renderMetric(
   accent: number,
   emphasized: boolean,
 ): void {
-  const labelText = text(scene, x, y, label.toUpperCase(), 8, '#707985', 'bold');
-  const box = scene.add.rectangle(x, y + 18, width, 34, emphasized ? 0x233d18 : 0x151a20, 1)
+  const labelText = text(scene, x + 2, y, label.toUpperCase(), 8, '#9ab6ce', 'bold');
+  const shadow = scene.add.rectangle(x + 3, y + 20, width, 34, 0x000000, 0.3).setOrigin(0);
+  const box = scene.add.rectangle(x, y + 17, width, 34, emphasized ? 0x174f3b : 0x0d3658, 0.96)
     .setOrigin(0)
-    .setStrokeStyle(1, accent, emphasized ? 0.52 : 0.24);
-  const pip = scene.add.circle(x + 15, y + 35, 7, accent, emphasized ? 0.95 : 0.65);
-  const valueText = text(scene, x + 29, y + 24, value, emphasized ? 17 : 13, '#f4f0e7', 'bold')
-    .setWordWrapWidth(width - 34);
-  card.add([labelText, box, pip, valueText]);
+    .setStrokeStyle(1, accent, emphasized ? 0.5 : 0.22);
+  const rail = scene.add.rectangle(x, y + 17, 4, 34, accent, emphasized ? 0.86 : 0.5).setOrigin(0);
+  const top = scene.add.rectangle(x + 7, y + 20, Math.max(8, width - 14), 1, 0xffffff, 0.08).setOrigin(0);
+  const valueText = text(scene, x + 14, y + 25, value, emphasized ? 17 : 13, '#fff7e9', 'bold')
+    .setWordWrapWidth(width - 20);
+  card.add([labelText, shadow, box, rail, top, valueText]);
 }
 
 function installCardHover(

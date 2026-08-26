@@ -205,6 +205,17 @@ export class CollectionScene extends Phaser.Scene {
     const spacing = itemCount <= 1 ? 0 : Math.min(78, available / (itemCount - 1));
     const startX = itemCount <= 1 ? 54 : 30;
 
+    // A shelf/display-case field gives owned finds a physical collection context.
+    const displayCase = this.add.rectangle(18, 92, 344, 101, VISUAL.wood, 0.18)
+      .setOrigin(0)
+      .setStrokeStyle(1, VISUAL.warm, 0.12);
+    const velvetBack = this.add.rectangle(24, 98, 332, 82, VISUAL.velvet, 0.22)
+      .setOrigin(0)
+      .setStrokeStyle(1, 0xffffff, 0.035);
+    const shelfShadow = this.add.rectangle(24, 179, 332, 8, 0x000000, 0.32).setOrigin(0);
+    const shelfRail = this.add.rectangle(24, 176, 332, 4, VISUAL.brass, 0.34).setOrigin(0);
+    card.add([displayCase, velvetBack, shelfShadow, shelfRail]);
+
     set.itemIds.forEach((itemId, index) => {
       const item = ITEM_BY_ID.get(itemId);
       if (!item) return;
@@ -214,11 +225,11 @@ export class CollectionScene extends Phaser.Scene {
       const slotX = startX + index * spacing + 28;
       const slotY = 130;
       const slot = this.add.container(slotX, slotY);
-      const shadow = this.add.rectangle(2, 4, 68, 72, 0x000000, 0.34);
-      const frame = this.add.rectangle(0, 0, 68, 72, rarityColor, owned ? 0.085 : 0.018)
+      const shadow = this.add.rectangle(2, 5, 72, 76, 0x000000, 0.4);
+      const frame = this.add.rectangle(0, 0, 72, 76, rarityColor, owned ? 0.095 : 0.018)
         .setStrokeStyle(1, rarityColor, owned ? 0.5 : 0.12);
       const image = this.add.image(0, -5, resolveItemTexture(this, itemId))
-        .setDisplaySize(64, 46)
+        .setDisplaySize(68, 50)
         .setAlpha(owned ? 1 : 0.15);
       const count = this.add.text(0, 29, owned ? `×${copies}` : '—', {
         fontFamily: 'Arial, sans-serif',

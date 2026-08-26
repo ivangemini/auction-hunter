@@ -11,6 +11,7 @@ import { resolveItemTexture, resolveLotTexture } from '../art';
 import { playFeedbackCue } from '../feedback';
 import { MOTION, prefersReducedMotion } from '../motion';
 import { button } from '../ui';
+import { addHeroStage, VISUAL } from '../visual';
 import { PolishedAuctionScene } from './PolishedAuctionScene';
 
 type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
@@ -56,16 +57,16 @@ type AuctionRuntime = Phaser.Scene & {
 
 const RARITY_COLORS: Record<Rarity, number> = {
   common: 0xaeb5c0,
-  uncommon: 0x63d28d,
-  rare: 0x61a8ff,
-  epic: 0xb576ff,
+  uncommon: 0x47d36f,
+  rare: 0x37a9ff,
+  epic: 0x9959ff,
   legendary: 0xffc857,
 };
 
 const TELL_COLORS: Record<BidderTell, string> = {
   calm: '#87909c',
   watching: '#d7dbe2',
-  hesitating: '#f0c969',
+  hesitating: '#ffd66d',
   out: '#5e6672',
 };
 
@@ -95,19 +96,39 @@ function renderBidding(scene: AuctionRuntime): void {
   scene.resetCanvas();
   header(scene, t(scene.locale, 'title'), scene.lot.name[scene.locale]);
 
-  panel(scene, 28, 132, 802, 554, 0xe9b949);
-  lotArt(scene, 429, 258, 756, 212);
-  scene.add.rectangle(51, 300, 756, 64, 0x05070a, 0.64).setOrigin(0);
+  panel(scene, 28, 132, 802, 554, 0xf6b72c);
 
-  const bidCard = scene.add.container(70, 286);
-  const bidGlow = scene.add.rectangle(0, 0, 312, 116, 0xe9b949, 0.08)
+  // A theatrical lot stage: environment first, UI floats in front of it.
+  scene.add.rectangle(48, 150, 762, 286, 0x0a2b49, 0.98).setOrigin(0).setStrokeStyle(2, 0xf6b72c, 0.34);
+  scene.add.ellipse(430, 226, 650, 270, 0x37a9ff, 0.07);
+  scene.add.ellipse(610, 226, 360, 250, 0xf6b72c, 0.09);
+  lotArt(scene, 429, 266, 756, 224);
+  const showBulbLeft = scene.add.circle(74, 174, 5, 0xffdd7a, 0.78);
+  const showBulbRight = scene.add.circle(784, 174, 5, 0x8fd1ff, 0.78);
+  scene.add.rectangle(429, 157, 690, 3, 0xffffff, 0.12);
+  if (!prefersReducedMotion()) {
+    scene.tweens.add({ targets: [showBulbLeft, showBulbRight], alpha: { from: 0.45, to: 0.95 }, duration: 720, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+  }
+  scene.add.rectangle(51, 328, 756, 58, 0x061622, 0.26).setOrigin(0);
+  scene.add.rectangle(51, 382, 756, 3, VISUAL.brass, 0.25).setOrigin(0);
+  scene.add.rectangle(51, 386, 756, 15, VISUAL.wood, 0.24).setOrigin(0);
+
+  const bidCard = scene.add.container(70, 300);
+  const bidShadow = scene.add.rectangle(7, 8, 326, 120, 0x000000, 0.46).setOrigin(0);
+  const bidGlow = scene.add.rectangle(-4, -4, 326, 120, 0xf6b72c, 0.08)
     .setOrigin(0)
-    .setStrokeStyle(2, 0xe9b949, 0.52);
+    .setStrokeStyle(2, 0xf6b72c, 0.56);
+  const bidBody = scene.add.rectangle(4, 4, 310, 104, 0x0a2f50, 0.98)
+    .setOrigin(0)
+    .setStrokeStyle(1, 0xffffff, 0.09);
+  const bidTop = scene.add.rectangle(12, 12, 294, 2, 0xf6b72c, 0.42).setOrigin(0);
   bidCard.add([
+    bidShadow,
     bidGlow,
-    scene.add.rectangle(8, 8, 296, 100, 0x10151b, 0.96).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.08),
-    text(scene, 26, 22, t(scene.locale, 'currentBid').toUpperCase(), 10, '#8f98a4', 'bold'),
-    text(scene, 26, 43, scene.money(scene.currentBid), 42, '#f7f3e8', 'bold'),
+    bidBody,
+    bidTop,
+    text(scene, 26, 23, t(scene.locale, 'currentBid').toUpperCase(), 10, '#a9c5df', 'bold'),
+    text(scene, 26, 44, scene.money(scene.currentBid), 42, '#fff8ea', 'bold'),
   ]);
   if (!prefersReducedMotion()) {
     bidCard.setScale(0.965);
@@ -119,14 +140,15 @@ function renderBidding(scene: AuctionRuntime): void {
     ? t(scene.locale, 'you')
     : scene.opponents.find((opponent) => opponent.id === scene.currentLeader)?.name[scene.locale] ?? t(scene.locale, 'npc');
   const playerLeading = scene.currentLeader === 'player';
-  scene.add.rectangle(70, 418, 312, 40, playerLeading ? 0x173522 : 0x362a15, 0.86)
+  scene.add.rectangle(70, 429, 326, 42, playerLeading ? 0x174d39 : 0x5b3a17, 0.94)
     .setOrigin(0)
-    .setStrokeStyle(1, playerLeading ? 0x63d28d : 0xe9b949, 0.36);
-  text(scene, 86, 429, `${t(scene.locale, 'leader')}: ${leader}`, 16, playerLeading ? '#7ee0a0' : '#f0c969', 'bold');
+    .setStrokeStyle(1, playerLeading ? 0x47d36f : 0xf6b72c, 0.44);
+  scene.add.rectangle(70, 429, 5, 42, playerLeading ? 0x47d36f : 0xf6b72c, 0.88).setOrigin(0);
+  text(scene, 88, 440, `${t(scene.locale, 'leader')}: ${leader}`, 16, playerLeading ? '#7ee0a0' : '#ffd66d', 'bold');
 
   if (scene.notice) {
-    scene.add.rectangle(70, 468, 312, 34, 0x351719, 0.9).setOrigin(0).setStrokeStyle(1, 0xff8d85, 0.38);
-    text(scene, 84, 477, scene.notice, 12, '#ffaaa4', 'bold').setWordWrapWidth(282);
+    scene.add.rectangle(70, 480, 326, 34, 0x5a2528, 0.94).setOrigin(0).setStrokeStyle(1, 0xff8d85, 0.42);
+    text(scene, 84, 489, scene.notice, 12, '#ffaaa4', 'bold').setWordWrapWidth(294);
   }
 
   cluePanel(scene);
@@ -136,7 +158,7 @@ function renderBidding(scene: AuctionRuntime): void {
   button(scene, 226, 626, `${t(scene.locale, 'bid')} +${scene.money(scene.lot.bidIncrement)}`, () => scene.placePlayerBid(), {
     width: 320,
     height: 62,
-    background: 0xe9b949,
+    background: 0xf6b72c,
     accent: 0xffd260,
     disabled: !canBid,
     feedback: false,
@@ -144,8 +166,8 @@ function renderBidding(scene: AuctionRuntime): void {
   button(scene, 580, 626, t(scene.locale, 'pass'), () => scene.passAuction(), {
     width: 240,
     height: 62,
-    background: 0x2b313a,
-    accent: 0x6f7886,
+    background: 0x33465b,
+    accent: 0x7899b8,
     disabled: scene.awaitingNpc,
     feedback: false,
   });
@@ -161,41 +183,41 @@ function renderBidding(scene: AuctionRuntime): void {
 }
 
 function cluePanel(scene: AuctionRuntime): void {
-  scene.add.rectangle(410, 394, 398, 160, 0x0d1218, 0.94).setOrigin(0).setStrokeStyle(1, 0xe9b949, 0.18);
-  text(scene, 430, 412, t(scene.locale, 'visibleClues').toUpperCase(), 10, '#f0c969', 'bold');
+  scene.add.rectangle(410, 394, 398, 160, 0x0b3152, 0.97).setOrigin(0).setStrokeStyle(1, 0xf6b72c, 0.18);
+  text(scene, 430, 412, t(scene.locale, 'visibleClues').toUpperCase(), 10, '#ffd66d', 'bold');
   scene.lot.clues.slice(0, 3).forEach((clue, index) => {
     const y = 439 + index * 31;
-    scene.add.rectangle(430, y, 20, 20, 0xe9b949, 0.08).setOrigin(0).setStrokeStyle(1, 0xe9b949, 0.24);
-    scene.add.circle(440, y + 10, 3, 0xe9b949, 0.85);
-    text(scene, 462, y + 2, clue.text[scene.locale], 10, '#c1c7d0').setWordWrapWidth(320);
+    scene.add.rectangle(430, y, 20, 20, 0xf6b72c, 0.08).setOrigin(0).setStrokeStyle(1, 0xf6b72c, 0.24);
+    scene.add.circle(440, y + 10, 3, 0xf6b72c, 0.85);
+    text(scene, 462, y + 2, clue.text[scene.locale], 10, '#dcebf8').setWordWrapWidth(320);
   });
   if (scene.lotModifier) {
-    scene.add.rectangle(430, 532, 358, 26, 0x2f2114, 0.92).setOrigin(0).setStrokeStyle(1, 0xe9b949, 0.3);
-    text(scene, 440, 539, `${t(scene.locale, 'event').toUpperCase()} · ${scene.lotModifier.name[scene.locale]}`, 9, '#f0c969', 'bold');
+    scene.add.rectangle(430, 532, 358, 26, 0x6a3a1d, 0.92).setOrigin(0).setStrokeStyle(1, 0xf6b72c, 0.3);
+    text(scene, 440, 539, `${t(scene.locale, 'event').toUpperCase()} · ${scene.lotModifier.name[scene.locale]}`, 9, '#ffd66d', 'bold');
   }
 }
 
 function rivalPanel(scene: AuctionRuntime): void {
-  panel(scene, 850, 132, 402, 554, 0x61a8ff);
-  text(scene, 876, 156, t(scene.locale, 'bidders').toUpperCase(), 12, '#7f8996', 'bold');
-  text(scene, 876, 178, scene.locale === 'ru' ? 'Характер и специализация влияют на давление в торгах' : 'Specialty and temperament shape their bidding pressure', 10, '#626b77').setWordWrapWidth(340);
+  panel(scene, 850, 132, 402, 554, 0x37a9ff);
+  text(scene, 876, 156, t(scene.locale, 'bidders').toUpperCase(), 12, '#9bb7cf', 'bold');
+  text(scene, 876, 178, scene.locale === 'ru' ? 'Характер и специализация влияют на давление в торгах' : 'Specialty and temperament shape their bidding pressure', 10, '#7f9db7').setWordWrapWidth(340);
 
   scene.opponents.forEach((opponent, index) => {
     const y = 220 + index * 132;
     const active = opponent.id === scene.currentLeader;
     const tell = opponentTell(opponent, scene.currentBid, scene.lot);
-    const accent = active ? 0xe9b949 : tell === 'out' ? 0x59616d : 0x61a8ff;
+    const accent = active ? 0xf6b72c : tell === 'out' ? 0x59616d : 0x37a9ff;
     const card = scene.add.container(872, y);
     const glow = scene.add.rectangle(-4, -4, 358, 108, accent, active ? 0.07 : 0).setOrigin(0).setStrokeStyle(2, accent, active ? 0.55 : 0.12);
-    const body = scene.add.rectangle(0, 0, 350, 100, active ? 0x171b21 : 0x13171c, 1).setOrigin(0).setStrokeStyle(1, accent, active ? 0.4 : 0.12);
+    const body = scene.add.rectangle(0, 0, 350, 100, active ? 0x123b5a : 0x0b2b49, 1).setOrigin(0).setStrokeStyle(1, accent, active ? 0.4 : 0.12);
     const portrait = scene.add.circle(44, 50, 27, active ? accent : 0x303640, 0.9).setStrokeStyle(2, accent, active ? 0.72 : 0.24);
-    const initial = center(scene, 44, 50, opponent.name[scene.locale].slice(0, 1).toUpperCase(), 23, '#f7f3e8', 'bold');
-    const name = text(scene, 86, 18, opponent.name[scene.locale], 19, active ? '#f7f3e8' : '#c8cdd5', 'bold');
+    const initial = center(scene, 44, 50, opponent.name[scene.locale].slice(0, 1).toUpperCase(), 23, '#fff8ea', 'bold');
+    const name = text(scene, 86, 18, opponent.name[scene.locale], 19, active ? '#fff8ea' : '#c8cdd5', 'bold');
     const trait = opponent.trait?.[scene.locale] ?? BIDDER_TELL_TEXT[tell][scene.locale];
     const detail = text(scene, 86, 46, trait, 10, TELL_COLORS[tell], 'bold').setWordWrapWidth(235);
-    const chip = scene.add.rectangle(86, 73, 150, 20, active ? 0x362a15 : 0x172535, 0.9).setOrigin(0).setStrokeStyle(1, accent, 0.3);
+    const chip = scene.add.rectangle(86, 73, 150, 20, active ? 0x362a15 : 0x10436c, 0.9).setOrigin(0).setStrokeStyle(1, accent, 0.3);
     const chipText = text(scene, 95, 77, BIDDER_TELL_TEXT[tell][scene.locale].toUpperCase(), 8, TELL_COLORS[tell], 'bold');
-    const status = center(scene, 326, 50, active ? '●' : tell === 'out' ? '×' : '○', 18, active ? '#f0c969' : '#68717e');
+    const status = center(scene, 326, 50, active ? '●' : tell === 'out' ? '×' : '○', 18, active ? '#ffd66d' : '#68717e');
     card.add([glow, body, portrait, initial, name, detail, chip, chipText, status]);
     if (active && !prefersReducedMotion()) {
       scene.tweens.add({ targets: card, x: 878, duration: MOTION.rivalReactMs, ease: 'Back.Out' });
@@ -207,22 +229,28 @@ function rivalPanel(scene: AuctionRuntime): void {
 function renderWin(scene: AuctionRuntime): void {
   scene.resetCanvas();
   header(scene, t(scene.locale, 'won'), scene.lot.name[scene.locale]);
-  panel(scene, 140, 145, 1000, 500, 0xe9b949);
-  const halo = scene.add.circle(640, 315, 205, 0xe9b949, 0.055).setStrokeStyle(2, 0xe9b949, 0.17);
-  lotArt(scene, 640, 302, 620, 280);
-  scene.add.rectangle(330, 380, 620, 62, 0x06080b, 0.76).setOrigin(0);
-  center(scene, 640, 171, t(scene.locale, 'won').toUpperCase(), 38, '#f0c969', 'bold');
-  center(scene, 640, 397, scene.lot.name[scene.locale], 25, '#f7f3e8', 'bold');
-  metric(scene, 430, 470, t(scene.locale, 'paid'), scene.money(scene.roundCost), 0xc4773a);
-  metric(scene, 650, 470, scene.locale === 'ru' ? 'РЕПУТАЦИЯ' : 'REPUTATION', `+${scene.roundReputationGain} REP`, 0x61a8ff);
-  center(scene, 640, 535, t(scene.locale, 'wonValueTease'), 13, '#aeb5c0');
+  panel(scene, 140, 145, 1000, 500, 0xf6b72c);
+  scene.add.rectangle(166, 168, 948, 292, 0x0a0d10, 0.92).setOrigin(0).setStrokeStyle(1, 0xf6b72c, 0.22);
+  const halo = scene.add.ellipse(640, 302, 720, 330, 0xf6b72c, 0.06).setStrokeStyle(2, 0xf6b72c, 0.15);
+  lotArt(scene, 640, 304, 690, 294);
+  scene.add.rectangle(295, 382, 690, 68, 0x06080b, 0.72).setOrigin(0);
+  scene.add.rectangle(295, 446, 690, 3, VISUAL.brass, 0.3).setOrigin(0);
+  center(scene, 640, 171, t(scene.locale, 'won').toUpperCase(), 38, '#ffd66d', 'bold');
+  center(scene, 640, 402, scene.lot.name[scene.locale], 25, '#fff8ea', 'bold');
+  metric(scene, 430, 475, t(scene.locale, 'paid'), scene.money(scene.roundCost), 0xe97832);
+  metric(scene, 650, 475, scene.locale === 'ru' ? 'РЕПУТАЦИЯ' : 'REPUTATION', `+${scene.roundReputationGain} REP`, 0x37a9ff);
+  center(scene, 640, 537, t(scene.locale, 'wonValueTease'), 13, '#aeb5c0');
   button(scene, 640, 592, t(scene.locale, 'openLot'), () => {
     scene.revealIndex = 0;
     scene.revealStage = 'closed';
     scene.renderReveal();
-  }, { width: 310, height: 58, background: 0xe9b949, accent: 0xffd260 });
+  }, { width: 310, height: 58, background: 0xf6b72c, accent: 0xffd260 });
   if (!prefersReducedMotion()) {
-    scene.tweens.add({ targets: halo, scaleX: { from: 0.9, to: 1.08 }, scaleY: { from: 0.9, to: 1.08 }, alpha: { from: 0.03, to: 0.08 }, duration: MOTION.celebrateMs, yoyo: true, repeat: 1, ease: 'Sine.InOut' });
+    scene.tweens.add({ targets: halo, scaleX: { from: 0.92, to: 1.05 }, scaleY: { from: 0.92, to: 1.05 }, alpha: { from: 0.025, to: 0.075 }, duration: MOTION.celebrateMs, yoyo: true, repeat: 1, ease: 'Sine.InOut' });
+    for (let index = 0; index < 7; index += 1) {
+      const mote = scene.add.circle(430 + index * 70, 250 + (index % 3) * 46, 2 + (index % 2), 0xf6b72c, 0.55);
+      scene.tweens.add({ targets: mote, y: mote.y - 24, alpha: 0, duration: MOTION.celebrateMs, delay: index * 35, ease: 'Cubic.Out', onComplete: () => mote.destroy() });
+    }
   }
 }
 
@@ -249,22 +277,23 @@ function renderReveal(scene: AuctionRuntime): void {
 }
 
 function sealed(scene: AuctionRuntime, item: RevealedItem): void {
-  panel(scene, 150, 150, 980, 500, 0xe9b949);
-  const glow = scene.add.circle(640, 330, 220, 0xe9b949, 0.04).setStrokeStyle(2, 0xe9b949, 0.11);
-  scene.add.rectangle(390, 205, 500, 300, 0x151a20, 1).setOrigin(0).setStrokeStyle(1, 0xe9b949, 0.26);
-  const image = scene.add.image(640, 350, resolveItemTexture(scene, 'fallback')).setDisplaySize(420, 294);
-  center(scene, 640, 520, t(scene.locale, 'sealedFind'), 20, '#c6ccd4', 'bold');
-  center(scene, 640, 548, scene.locale === 'ru' ? 'Ценность ещё скрыта' : 'The value is still hidden', 12, '#737c88');
-  button(scene, 640, 600, t(scene.locale, 'reveal'), () => {
+  panel(scene, 150, 150, 980, 500, 0xf6b72c);
+  const stage = addHeroStage(scene, 640, 354, 650, 334, VISUAL.warm, { fill: 0x0a3155, haloAlpha: 0.1 });
+  stage.setDepth(0);
+  scene.add.rectangle(395, 438, 490, 18, VISUAL.wood, 0.35).setOrigin(0);
+  scene.add.rectangle(395, 436, 490, 2, VISUAL.brass, 0.34).setOrigin(0);
+  const image = scene.add.image(640, 350, resolveItemTexture(scene, 'fallback')).setDisplaySize(440, 308);
+  center(scene, 640, 526, t(scene.locale, 'sealedFind'), 21, '#d8dde4', 'bold');
+  center(scene, 640, 553, scene.locale === 'ru' ? 'Ценность скрыта под пылью и упаковкой' : 'Value is still hidden beneath the dust and packing', 12, '#7f8894');
+  button(scene, 640, 603, t(scene.locale, 'reveal'), () => {
     playFeedbackCue(scene, 'reveal');
     trackEvent('item_revealed', { itemId: item.definition.id, rarity: item.definition.rarity });
     scene.revealStage = 'revealed';
     scene.renderReveal();
-  }, { width: 290, height: 60, background: 0xe9b949, accent: 0xffd260, feedback: false });
+  }, { width: 290, height: 60, background: 0xf6b72c, accent: 0xffd260, feedback: false });
   if (!prefersReducedMotion()) {
-    image.setY(360).setAlpha(0.7);
-    scene.tweens.add({ targets: image, y: 345, alpha: 1, duration: MOTION.revealSettleMs, ease: 'Cubic.Out' });
-    scene.tweens.add({ targets: glow, alpha: { from: 0.025, to: 0.065 }, duration: 900, yoyo: true, repeat: -1, ease: 'Sine.InOut' });
+    image.setY(362).setAlpha(0.72);
+    scene.tweens.add({ targets: image, y: 348, alpha: 1, duration: MOTION.revealSettleMs, ease: 'Cubic.Out' });
   }
 }
 
@@ -272,15 +301,22 @@ function revealed(scene: AuctionRuntime, item: RevealedItem): void {
   const rarity = RARITY_COLORS[item.definition.rarity];
   panel(scene, 42, 150, 744, 500, rarity);
   panel(scene, 806, 150, 432, 500, rarity);
-  const halo = scene.add.circle(414, 342, 205, rarity, 0.045).setStrokeStyle(2, rarity, 0.13);
-  const image = scene.add.image(414, 330, resolveItemTexture(scene, item.definition.id)).setDisplaySize(500, 350);
-  center(scene, 414, 510, item.definition.name[scene.locale], 25, '#f7f3e8', 'bold');
-  scene.add.rectangle(414, 551, 154, 28, rarity, 0.14).setStrokeStyle(1, rarity, 0.48);
-  center(scene, 414, 551, scene.rarityLabel(item.definition.rarity).toUpperCase(), 10, scene.hexColor(rarity), 'bold');
+
+  const stage = addHeroStage(scene, 414, 350, 680, 410, rarity, { fill: 0x0a3155, haloAlpha: 0.12 });
+  stage.setDepth(0);
+  scene.add.rectangle(150, 443, 528, 26, VISUAL.wood, 0.24).setOrigin(0);
+  scene.add.rectangle(150, 441, 528, 3, VISUAL.brass, 0.25).setOrigin(0);
+  const halo = scene.add.ellipse(414, 336, 560, 330, rarity, 0.095);
+  scene.add.circle(414, 326, 168, rarity, 0.028).setStrokeStyle(3, rarity, 0.22);
+  scene.add.circle(414, 326, 205, 0xffffff, 0.012).setStrokeStyle(2, 0xffffff, 0.08);
+  const image = scene.add.image(414, 326, resolveItemTexture(scene, item.definition.id)).setDisplaySize(520, 364);
+  center(scene, 414, 520, item.definition.name[scene.locale], 25, '#fff8ea', 'bold');
+  scene.add.rectangle(414, 560, 166, 30, rarity, 0.14).setStrokeStyle(1, rarity, 0.5);
+  center(scene, 414, 560, scene.rarityLabel(item.definition.rarity).toUpperCase(), 10, scene.hexColor(rarity), 'bold');
 
   if (!prefersReducedMotion()) {
     image.setScale(0.9).setAlpha(0.2);
-    scene.tweens.add({ targets: image, scaleX: 1, scaleY: 1, alpha: 1, y: { from: 350, to: 330 }, duration: MOTION.revealMs, ease: 'Back.Out' });
+    scene.tweens.add({ targets: image, scaleX: 1, scaleY: 1, alpha: 1, y: { from: 346, to: 326 }, duration: MOTION.revealMs, ease: 'Back.Out' });
     scene.tweens.add({ targets: halo, alpha: { from: 0.015, to: 0.075 }, duration: MOTION.revealSettleMs, yoyo: true, ease: 'Sine.Out' });
   }
 
@@ -293,7 +329,7 @@ function revealed(scene: AuctionRuntime, item: RevealedItem): void {
 
 function preAppraisal(scene: AuctionRuntime, item: RevealedItem, rarity: number): void {
   text(scene, 842, 187, scene.locale === 'ru' ? 'НАХОДКА ОТКРЫТА' : 'FIND REVEALED', 10, scene.hexColor(rarity), 'bold');
-  text(scene, 842, 222, t(scene.locale, 'unknownValue'), 26, '#f7f3e8', 'bold').setWordWrapWidth(350);
+  text(scene, 842, 222, t(scene.locale, 'unknownValue'), 26, '#fff8ea', 'bold').setWordWrapWidth(350);
   text(scene, 842, 285, scene.locale === 'ru' ? 'Оценка раскроет состояние, происхождение и рыночную цену.' : 'Appraisal resolves condition, provenance and market price.', 13, '#969faa').setWordWrapWidth(340);
   scene.add.rectangle(842, 360, 348, 1, 0xffffff, 0.08).setOrigin(0);
   text(scene, 842, 390, scene.locale === 'ru' ? 'ГОТОВО К ОЦЕНКЕ' : 'READY TO APPRAISE', 10, '#aeb5c0', 'bold');
@@ -308,43 +344,50 @@ function preAppraisal(scene: AuctionRuntime, item: RevealedItem, rarity: number)
     });
     scene.revealStage = 'appraised';
     scene.renderReveal();
-  }, { width: 318, height: 60, background: 0x61a8ff, foreground: '#0b1117', accent: 0x8fc3ff, feedback: false });
+  }, { width: 318, height: 60, background: 0x37a9ff, foreground: '#0b1117', accent: 0x8fc3ff, feedback: false });
 }
 
 function appraisal(scene: AuctionRuntime, item: RevealedItem): void {
-  text(scene, 842, 178, t(scene.locale, 'estimatedValue').toUpperCase(), 10, '#7f8996', 'bold');
-  const price = text(scene, 842, 202, scene.money(item.appraisedValue), 38, '#63d28d', 'bold');
+  // Appraiser's desk treatment: value first, physical-material accents second.
+  scene.add.rectangle(826, 168, 388, 98, 0x0f3c60, 0.96).setOrigin(0).setStrokeStyle(1, VISUAL.brass, 0.24);
+  scene.add.rectangle(826, 168, 5, 98, VISUAL.brass, 0.7).setOrigin(0);
+  scene.add.rectangle(838, 176, 362, 1, 0xf0dba8, 0.12).setOrigin(0);
+  text(scene, 842, 184, t(scene.locale, 'estimatedValue').toUpperCase(), 10, '#b7d0e4', 'bold');
+  const price = text(scene, 842, 207, scene.money(item.appraisedValue), 39, '#63d28d', 'bold');
   animateValue(scene, price, item.appraisedValue);
 
   const traits = itemTraitNamesForIds(item.traitIds ?? [], scene.locale);
   if (traits.length > 0) {
-    text(scene, 842, 266, scene.locale === 'ru' ? 'ПРИЗНАКИ' : 'TRAITS', 9, '#7f8996', 'bold');
+    text(scene, 842, 286, scene.locale === 'ru' ? 'ПРИЗНАКИ' : 'TRAITS', 9, '#9bb7cf', 'bold');
     traits.slice(0, 3).forEach((trait, index) => {
       const x = 842 + (index % 2) * 168;
-      const y = 288 + Math.floor(index / 2) * 32;
-      scene.add.rectangle(x, y, 156, 24, 0x15263a, 0.95).setOrigin(0).setStrokeStyle(1, 0x61a8ff, 0.3);
+      const y = 307 + Math.floor(index / 2) * 32;
+      scene.add.rectangle(x + 2, y + 3, 156, 24, 0x000000, 0.24).setOrigin(0);
+      scene.add.rectangle(x, y, 156, 24, 0x0d4875, 0.98).setOrigin(0).setStrokeStyle(1, 0x37a9ff, 0.34);
+      scene.add.rectangle(x, y, 3, 24, 0x37a9ff, 0.68).setOrigin(0);
       text(scene, x + 10, y + 6, trait, 9, '#9bc8ff', 'bold').setWordWrapWidth(136);
     });
   }
 
   const owned = scene.store.snapshot.collection.includes(item.definition.id);
   if (owned) {
-    scene.add.rectangle(842, 350, 348, 28, 0x172536, 0.9).setOrigin(0).setStrokeStyle(1, 0x61a8ff, 0.32);
-    text(scene, 852, 358, t(scene.locale, 'alreadyCollected'), 10, '#8fc3ff', 'bold');
+    scene.add.rectangle(842, 369, 348, 28, 0x0d426b, 0.96).setOrigin(0).setStrokeStyle(1, 0x37a9ff, 0.34);
+    text(scene, 852, 377, t(scene.locale, 'alreadyCollected'), 10, '#8fc3ff', 'bold');
   }
 
-  text(scene, 842, 393, t(scene.locale, 'condition').toUpperCase(), 9, '#7f8996', 'bold');
-  text(scene, 1190, 389, `${scene.conditionLabel(item.condition)} · ${Math.round(item.condition * 100)}%`, 11, scene.hexColor(scene.conditionColor(item.condition)), 'bold').setOrigin(1, 0);
-  scene.conditionBar(842, 420, 348, item.condition);
+  text(scene, 842, 409, t(scene.locale, 'condition').toUpperCase(), 9, '#9bb7cf', 'bold');
+  text(scene, 1190, 405, `${scene.conditionLabel(item.condition)} · ${Math.round(item.condition * 100)}%`, 11, scene.hexColor(scene.conditionColor(item.condition)), 'bold').setOrigin(1, 0);
+  scene.conditionBar(842, 436, 348, item.condition);
+  scene.add.rectangle(842, 442, 348, 1, VISUAL.brass, 0.16).setOrigin(0);
 
   if (item.restored) {
     const grade = item.restorationGrade ? scene.restorationGradeLabel(item.restorationGrade) : '';
     const accent = restorationAccent(item.restorationGrade);
-    const plate = scene.add.rectangle(842, 446, 348, 38, accent, 0.12).setOrigin(0).setStrokeStyle(1, accent, 0.56);
+    const plate = scene.add.rectangle(842, 458, 348, 38, accent, 0.12).setOrigin(0).setStrokeStyle(1, accent, 0.56);
     const result = text(
       scene,
       854,
-      457,
+      469,
       `${grade} · ${t(scene.locale, 'restorationGain', { amount: scene.money(item.restorationGain ?? 0) })}`,
       10,
       scene.hexColor(accent),
@@ -360,8 +403,8 @@ function appraisal(scene: AuctionRuntime, item: RevealedItem): void {
     button(scene, 1104, 572, t(scene.locale, 'keep'), () => scene.keepCurrentItem(), {
       width: 160,
       height: 52,
-      background: 0x3f73b8,
-      accent: 0x61a8ff,
+      background: 0x167fd1,
+      accent: 0x37a9ff,
       feedback: false,
       fontSize: 14,
     });
@@ -369,11 +412,11 @@ function appraisal(scene: AuctionRuntime, item: RevealedItem): void {
   }
 
   const canRestore = !scene.restorationUsed;
-  text(scene, 842, 452, canRestore ? t(scene.locale, 'restorationAvailable') : t(scene.locale, 'restorationSpent'), 10, canRestore ? '#d8a46c' : '#69717c', 'bold').setWordWrapWidth(348);
+  text(scene, 842, 466, canRestore ? t(scene.locale, 'restorationAvailable') : t(scene.locale, 'restorationSpent'), 10, canRestore ? '#d8a46c' : '#69717c', 'bold').setWordWrapWidth(348);
   button(scene, 882, 572, t(scene.locale, 'restore'), () => scene.startRestoration(), {
     width: 124,
     height: 52,
-    background: 0xc4773a,
+    background: 0xe97832,
     accent: 0xe39a58,
     disabled: !canRestore,
     fontSize: 13,
@@ -387,17 +430,17 @@ function appraisal(scene: AuctionRuntime, item: RevealedItem): void {
   button(scene, 1150, 572, t(scene.locale, 'keep'), () => scene.keepCurrentItem(), {
     width: 124,
     height: 52,
-    background: 0x3f73b8,
-    accent: 0x61a8ff,
+    background: 0x167fd1,
+    accent: 0x37a9ff,
     feedback: false,
     fontSize: 14,
   });
 }
 
 function restorationAccent(grade: RestorationGrade | undefined): number {
-  if (grade === 'perfect') return 0x63d28d;
-  if (grade === 'good') return 0x61a8ff;
-  return 0xc4773a;
+  if (grade === 'perfect') return 0x47d36f;
+  if (grade === 'good') return 0x37a9ff;
+  return 0xe97832;
 }
 
 function renderRestorationResultFeedback(
@@ -434,7 +477,7 @@ function renderRestorationResultFeedback(
 
 function showDecisionFeedback(scene: AuctionRuntime, kind: DecisionFeedbackKind, item: RevealedItem): void {
   const selling = kind === 'sell';
-  const accent = selling ? 0x63d28d : 0x61a8ff;
+  const accent = selling ? 0x47d36f : 0x37a9ff;
   const label = selling
     ? `${scene.locale === 'ru' ? 'ПРОДАНО' : 'SOLD'} · +${scene.money(item.appraisedValue)}`
     : `${scene.locale === 'ru' ? 'В КОЛЛЕКЦИЮ' : 'KEPT'} · ${item.definition.name[scene.locale]}`;
@@ -490,33 +533,33 @@ function animateValue(scene: AuctionRuntime, label: Phaser.GameObjects.Text, val
 function progress(scene: AuctionRuntime): void {
   const startX = 640 - ((scene.items.length - 1) * 30) / 2;
   scene.items.forEach((_item, index) => {
-    scene.add.circle(startX + index * 30, 122, index === scene.revealIndex ? 6 : 4, index < scene.revealIndex ? 0x63d28d : index === scene.revealIndex ? 0xe9b949 : 0x3c434d, 1);
+    scene.add.circle(startX + index * 30, 122, index === scene.revealIndex ? 6 : 4, index < scene.revealIndex ? 0x47d36f : index === scene.revealIndex ? 0xf6b72c : 0x3c434d, 1);
   });
 }
 
 function header(scene: AuctionRuntime, titleValue: string, subtitle: string): void {
-  scene.add.rectangle(28, 20, 204, 88, 0x11151c, 0.98).setOrigin(0).setStrokeStyle(2, 0xe9b949, 0.42);
-  text(scene, 50, 34, 'AUCTION', 24, '#f0c969', 'bold');
+  scene.add.rectangle(28, 20, 204, 88, 0x082944, 0.99).setOrigin(0).setStrokeStyle(2, 0xf6b72c, 0.42);
+  text(scene, 50, 34, 'AUCTION', 24, '#ffd66d', 'bold');
   text(scene, 92, 65, 'HUNTER', 15, '#c4773a', 'bold');
-  text(scene, 266, 31, titleValue, 25, '#f7f3e8', 'bold').setWordWrapWidth(390);
-  text(scene, 266, 67, subtitle, 12, '#8f98a4').setWordWrapWidth(410);
+  text(scene, 266, 31, titleValue, 25, '#fff8ea', 'bold').setWordWrapWidth(390);
+  text(scene, 266, 67, subtitle, 12, '#a9c5df').setWordWrapWidth(410);
   const save = scene.store.snapshot;
-  stat(scene, 760, t(scene.locale, 'cash'), scene.money(save.cash), 0xe9b949);
-  stat(scene, 910, t(scene.locale, 'collection'), String(uniqueCollectionCount(save.collection)), 0x61a8ff);
-  stat(scene, 1060, t(scene.locale, 'reputation'), `${Math.floor(save.reputationXp)} REP`, 0xb576ff);
+  stat(scene, 760, t(scene.locale, 'cash'), scene.money(save.cash), 0xf6b72c);
+  stat(scene, 910, t(scene.locale, 'collection'), String(uniqueCollectionCount(save.collection)), 0x37a9ff);
+  stat(scene, 1060, t(scene.locale, 'reputation'), `${Math.floor(save.reputationXp)} REP`, 0x9959ff);
   scene.add.rectangle(28, 116, 1224, 1, 0xffffff, 0.08).setOrigin(0);
 }
 
 function stat(scene: Phaser.Scene, x: number, label: string, value: string, accent: number): void {
-  scene.add.rectangle(x, 25, 132, 64, 0x11151c, 0.96).setOrigin(0).setStrokeStyle(1, accent, 0.3);
+  scene.add.rectangle(x, 25, 132, 64, 0x0b3152, 0.98).setOrigin(0).setStrokeStyle(1, accent, 0.3);
   text(scene, x + 12, 34, label.toUpperCase(), 8, '#707985', 'bold');
   scene.add.circle(x + 18, 68, 7, accent, 0.9);
-  text(scene, x + 32, 55, value, 16, '#f7f3e8', 'bold');
+  text(scene, x + 32, 55, value, 16, '#fff8ea', 'bold');
 }
 
 function panel(scene: Phaser.Scene, x: number, y: number, width: number, height: number, accent: number): void {
-  scene.add.rectangle(x, y, width, height, 0x0d1117, 0.98).setOrigin(0).setStrokeStyle(2, accent, 0.22);
-  scene.add.rectangle(x + 8, y + 8, width - 16, height - 16, 0x11151c, 0.45).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.04);
+  scene.add.rectangle(x, y, width, height, 0x071f36, 0.99).setOrigin(0).setStrokeStyle(2, accent, 0.22);
+  scene.add.rectangle(x + 8, y + 8, width - 16, height - 16, 0x0d3658, 0.76).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.04);
 }
 
 function lotArt(scene: AuctionRuntime, x: number, y: number, width: number, height: number): void {
@@ -527,9 +570,9 @@ function lotArt(scene: AuctionRuntime, x: number, y: number, width: number, heig
 }
 
 function metric(scene: Phaser.Scene, x: number, y: number, label: string, value: string, accent: number): void {
-  scene.add.rectangle(x, y, 200, 54, 0x151a20, 0.96).setOrigin(0).setStrokeStyle(1, accent, 0.32);
+  scene.add.rectangle(x, y, 200, 54, 0x0d3658, 0.98).setOrigin(0).setStrokeStyle(1, accent, 0.32);
   text(scene, x + 12, y + 8, label.toUpperCase(), 8, '#747d89', 'bold');
-  text(scene, x + 12, y + 25, value, 17, '#f7f3e8', 'bold');
+  text(scene, x + 12, y + 25, value, 17, '#fff8ea', 'bold');
 }
 
 function text(scene: Phaser.Scene, x: number, y: number, value: string, size: number, color: string, style: 'normal' | 'bold' = 'normal'): Phaser.GameObjects.Text {

@@ -11,7 +11,7 @@ import { playFeedbackCue } from '../feedback';
 import { enterWithStagger, MOTION, prefersReducedMotion } from '../motion';
 import { GameStore } from '../store';
 import { button } from '../ui';
-import { addAtmosphere, addChip, addSurface, VISUAL } from '../visual';
+import { addAtmosphere, addChip, addHeroStage, addSurface, VISUAL } from '../visual';
 
 const WIDTH = 1280;
 const HEIGHT = 720;
@@ -162,18 +162,17 @@ export class BuyerMarketScene extends Phaser.Scene {
     const item = ITEM_BY_ID.get(match.itemId);
     if (!item) return;
 
-    const hero = addSurface(this, 28, 176, 326, 173, {
-      accent,
+    const hero = addHeroStage(this, 191, 262, 326, 173, accent, {
       fill: VISUAL.panelDeep,
-      strokeAlpha: 0.24,
-      glowAlpha: 0.018,
+      haloAlpha: 0.06,
     });
-    hero.add(this.add.ellipse(163, 77, 240, 126, accent, 0.045));
-    hero.add(this.add.image(163, 78, resolveItemTexture(this, item.id)).setDisplaySize(210, 142));
-    hero.add(addChip(this, 66, 148, item.rarity.toUpperCase(), accent, { width: 112, filled: true, fontSize: 9 }));
+    hero.add(this.add.ellipse(0, -7, 248, 132, accent, 0.05));
+    hero.add(this.add.image(0, -10, resolveItemTexture(this, item.id)).setDisplaySize(224, 152));
+    hero.add(addChip(this, -98, 68, item.rarity.toUpperCase(), accent, { width: 112, filled: true, fontSize: 9 }));
     if (match.condition !== undefined) {
-      hero.add(addChip(this, 248, 148, `${Math.round(match.condition * 100)}%`, VISUAL.rare, { width: 72, fontSize: 10 }));
+      hero.add(addChip(this, 101, 68, `${Math.round(match.condition * 100)}%`, VISUAL.rare, { width: 72, fontSize: 10 }));
     }
+
     card.add(hero);
 
     card.add(this.centerLabel(width / 2, 366, item.name[this.locale], 17, VISUAL.text, 'bold').setWordWrapWidth(315));

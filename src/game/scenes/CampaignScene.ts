@@ -83,8 +83,13 @@ export class CampaignScene extends Phaser.Scene {
   private render(): void {
     this.children.removeAll(true);
     addAtmosphere(this, WIDTH, HEIGHT, VISUAL.warm, 980);
-    this.add.image(952, 360, 'campaign-estate-study').setDisplaySize(620, 520).setAlpha(0.34);
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x090b0e, 0.42).setOrigin(0);
+    // Let authored campaign environment art read through the UI instead of burying it under black.
+    this.add.image(952, 360, 'campaign-estate-study').setDisplaySize(660, 548).setAlpha(0.52);
+    this.add.ellipse(990, 250, 520, 390, VISUAL.warm, 0.035);
+    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x090b0e, 0.26).setOrigin(0);
+    this.add.rectangle(0, 676, WIDTH, 44, VISUAL.wood, 0.28).setOrigin(0);
+    this.add.rectangle(0, 674, WIDTH, 3, VISUAL.brass, 0.28).setOrigin(0);
+    this.add.rectangle(42, 222, 1195, 4, VISUAL.leather, 0.24).setOrigin(0);
     this.renderHeader();
     this.renderChapterRail();
     this.renderInvestigationWall();

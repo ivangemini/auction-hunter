@@ -51,9 +51,15 @@ export function addCharacterPortrait(
   accent = 0xe9b949,
 ): Phaser.GameObjects.Container {
   const container = scene.add.container(x, y);
-  const shadow = scene.add.rectangle(4, 5, width, height, 0x000000, 0.34).setOrigin(0.5);
-  const frame = scene.add.rectangle(0, 0, width, height, 0x11151c, 1).setStrokeStyle(2, accent, 0.52);
-  const image = scene.add.image(0, 0, characterTextureKey(id)).setDisplaySize(width - 6, height - 6);
-  container.add([shadow, frame, image]);
+  const outerShadow = scene.add.rectangle(5, 7, width + 5, height + 5, 0x000000, 0.4).setOrigin(0.5);
+  const glow = scene.add.rectangle(0, 0, width + 6, height + 6, accent, 0.07).setStrokeStyle(1, accent, 0.24);
+  const outer = scene.add.rectangle(0, 0, width, height, 0x082944, 1).setStrokeStyle(2, accent, 0.78);
+  const frame = scene.add.rectangle(0, 0, width - 6, height - 6, 0x0d3658, 1).setStrokeStyle(1, 0xffffff, 0.13);
+  const image = scene.add.image(0, 0, characterTextureKey(id)).setDisplaySize(width - 10, height - 10);
+  const topLight = scene.add.rectangle(0, -height / 2 + 5, Math.max(10, width - 14), 2, 0xffffff, 0.22);
+  const foot = scene.add.rectangle(0, height / 2 - 5, Math.max(10, width - 14), 3, accent, 0.46);
+  container.add([outerShadow, glow, outer, frame, image, topLight, foot]);
   return container;
+
+
 }

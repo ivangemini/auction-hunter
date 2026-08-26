@@ -37,6 +37,7 @@ import { MOTION, prefersReducedMotion } from '../motion';
 import { renderRestorationModePicker, renderRestorationTimingGame } from '../restorationUi';
 import { GameStore } from '../store';
 import { button } from '../ui';
+import { addAtmosphere, VISUAL } from '../visual';
 
 type RevealStage = 'closed' | 'revealed' | 'appraised' | 'restoring';
 type RevealDecision = 'sell' | 'keep';
@@ -1133,12 +1134,17 @@ export class AuctionScene extends Phaser.Scene {
 
   private renderLotArtworkFor(lot: LotTemplate, x: number, y: number, width: number, height: number): void {
     const texture = resolveLotTexture(this, lot.artId ?? lot.id);
+    this.add.rectangle(x + 6, y + 8, width + 2, height + 2, 0x000000, 0.42);
+    this.add.rectangle(x, y, width + 8, height + 8, VISUAL.warm, 0.018)
+      .setStrokeStyle(1, VISUAL.warm, 0.08);
     if (!texture) {
       this.add.rectangle(x, y, width, height, 0x20242b).setStrokeStyle(1, 0xffffff, 0.08);
       return;
     }
     this.add.image(x, y, texture).setDisplaySize(width, height);
-    this.add.rectangle(x, y, width, height, 0x000000, 0).setStrokeStyle(1, 0xffffff, 0.12);
+    this.add.rectangle(x, y + height * 0.38, width, height * 0.24, 0x000000, 0.14);
+    this.add.rectangle(x, y, width, height, 0x000000, 0).setStrokeStyle(1, 0xffffff, 0.14);
+    this.add.rectangle(x, y - height / 2 + 2, Math.max(24, width - 12), 2, VISUAL.warm, 0.18);
   }
 
   private conditionBar(x: number, y: number, width: number, condition: number): void {
@@ -1149,13 +1155,27 @@ export class AuctionScene extends Phaser.Scene {
 
   private resetCanvas(): void {
     this.children.removeAll(true);
-    this.add.rectangle(WIDTH / 2, HEIGHT / 2, WIDTH, HEIGHT, 0x101216);
-    this.add.rectangle(1050, HEIGHT / 2, 460, HEIGHT, 0xe9b949, 0.018);
-    this.add.rectangle(WIDTH / 2, 116, WIDTH - 120, 1, 0x2b3038);
+    const tierAccent = getAuctionTier(this.currentTierId).accent ?? VISUAL.warm;
+    addAtmosphere(this, WIDTH, HEIGHT, tierAccent, 1040);
+
+    // Physical room cues survive behind every inherited production renderer.
+    this.add.rectangle(0, 112, WIDTH, 2, 0xffffff, 0.025).setOrigin(0);
+    this.add.rectangle(0, 682, WIDTH, 38, VISUAL.wood, 0.18).setOrigin(0);
+    this.add.rectangle(0, 680, WIDTH, 2, VISUAL.brass, 0.16).setOrigin(0);
+    this.add.ellipse(1040, 180, 440, 250, tierAccent, 0.028);
   }
 
   private panel(x: number, y: number, width: number, height: number, color = 0x15181e): Phaser.GameObjects.Rectangle {
-    return this.add.rectangle(x, y, width, height, color, 1).setOrigin(0).setStrokeStyle(1, 0xffffff, 0.08);
+    this.add.rectangle(x + 7, y + 9, width, height, 0x000000, 0.36).setOrigin(0);
+    this.add.rectangle(x - 3, y - 3, width + 6, height + 6, VISUAL.warm, 0.012)
+      .setOrigin(0)
+      .setStrokeStyle(1, VISUAL.warm, 0.045);
+    const body = this.add.rectangle(x, y, width, height, color, 0.985)
+      .setOrigin(0)
+      .setStrokeStyle(1, 0xffffff, 0.09);
+    this.add.rectangle(x + 9, y + 9, Math.max(0, width - 18), 1, 0xffffff, 0.05).setOrigin(0);
+    this.add.rectangle(x, y, width, 2, VISUAL.warm, 0.18).setOrigin(0);
+    return body;
   }
 
   private divider(x: number, y: number, width: number): void {
