@@ -13,6 +13,7 @@ import type { LotModifierDefinition } from '../../domain/lotModifier';
 import { rivalDossierLabel, rivalMemorySnapshot } from '../../domain/rivalMemory';
 import type { Locale, LotTemplate, PlayerSave, RevealedItem } from '../../domain/types';
 import { playFeedbackCue } from '../feedback';
+import { button } from '../ui';
 import { CharacterAuctionScene } from './CharacterAuctionScene';
 
 const VIP_RIVAL_PRESSURE_MULTIPLIER = 1.08;
@@ -39,13 +40,15 @@ type RivalBehaviorRuntime = Phaser.Scene & {
   passAuction: () => void;
   npcRespond: () => void;
   finalizeWin: () => void;
+  renderLotSelection: () => void;
   renderBidding: () => void;
   renderReveal: () => void;
 };
 
 /**
- * Adds persistent rival learning, bounded one-shot signature bids, VIP pressure
- * and concrete-copy jackpot presentation without moving economy ownership out of AuctionScene.
+ * Adds persistent rival learning, bounded one-shot signature bids, VIP pressure,
+ * campaign access and concrete-copy jackpot presentation without moving economy
+ * ownership out of AuctionScene.
  */
 export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
   constructor() {
@@ -61,6 +64,7 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
     const startAuction = runtime.startAuction.bind(runtime);
     const passAuction = runtime.passAuction.bind(runtime);
     const finalizeWin = runtime.finalizeWin.bind(runtime);
+    const renderLotSelection = runtime.renderLotSelection.bind(runtime);
     const renderBidding = runtime.renderBidding.bind(runtime);
     const renderReveal = runtime.renderReveal.bind(runtime);
     const sellItem = runtime.store.sellItem.bind(runtime.store);
@@ -73,6 +77,25 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
       prepareLot(lot, modifier, valueMultiplier);
       vipPressureApplied = false;
       jackpotTracked.clear();
+    };
+
+    runtime.renderLotSelection = () => {
+      renderLotSelection();
+      button(
+        runtime,
+        1030,
+        161,
+        runtime.locale === 'ru' ? 'Дело: Чёрный реестр' : 'Case: Black Ledger',
+        () => runtime.scene.start('campaign'),
+        {
+          width: 222,
+          height: 38,
+          background: 0x3a2c1d,
+          accent: 0xe9b949,
+          fontSize: 10,
+          hitSlop: 4,
+        },
+      );
     };
 
     runtime.startAuction = () => {
