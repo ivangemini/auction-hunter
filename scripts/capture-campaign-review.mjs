@@ -12,7 +12,7 @@ const SAVE_KEY = 'auction-hunter.save.v1';
 const GAME_WIDTH = 1280;
 const GAME_HEIGHT = 720;
 
-const seedSave = {
+const baseSave = {
   version: 1,
   updatedAt: 1,
   cash: 8400,
@@ -33,6 +33,10 @@ const seedSave = {
   auctionHistory: [],
   buyerMarketDayKey: null,
   claimedBuyerOfferIds: [],
+};
+
+const earlyCampaignSave = {
+  ...baseSave,
   campaign: {
     started: true,
     activeMissionId: 'black-seal',
@@ -44,6 +48,32 @@ const seedSave = {
     relationshipTrust: { 'npc-0': 4 },
     relationshipRivalry: {},
     relationshipDebt: {},
+    completed: false,
+    epilogueId: null,
+  },
+};
+
+const finaleCampaignSave = {
+  ...baseSave,
+  cash: 28600,
+  reputationXp: 780,
+  highestCash: 28600,
+  campaign: {
+    started: true,
+    activeMissionId: null,
+    completedMissionIds: [
+      'first-day-floor', 'victor-test', 'black-seal', 'missing-inventory',
+      'estate-paper-trail', 'estate-linked-lots', 'estate-false-paper', 'estate-mira-offer',
+      'dealer-war-leak', 'dealer-war-pressure', 'dealer-war-ally', 'dealer-war-address',
+      'closed-circle-preview', 'closed-circle-sealed-bid', 'closed-circle-debt', 'closed-circle-ledger-room',
+    ],
+    evidenceIds: ['veyr-black-seal', 'lost-collection-index'],
+    branchChoiceIds: ['dealer-ally-mira'],
+    missionBaselineAuctionsPlayed: {},
+    missionBaselineAuctionsWon: {},
+    relationshipTrust: { 'npc-0': 8, 'npc-1': 18 },
+    relationshipRivalry: { 'npc-2': 22 },
+    relationshipDebt: { 'npc-1': 4 },
     completed: false,
     epilogueId: null,
   },
@@ -82,8 +112,8 @@ async function stopPreview(preview) {
   if (!graceful && preview.exitCode === null) preview.kill('SIGKILL');
 }
 
-async function installSeed(page, lang) {
-  await page.addInitScript(({ key, save, locale }) => {
+async function installSeed(page, lang, save) {
+  await page.addInitScript(({ key, seededSave, locale }) => {
     window.YaGames = {
       init: async () => ({
         environment: { i18n: { lang: locale } },
@@ -93,39 +123,57 @@ async function installSeed(page, lang) {
         },
       }),
     };
-    localStorage.setItem(key, JSON.stringify(save));
-  }, { key: SAVE_KEY, save: seedSave, locale: lang });
+    localStorage.setItem(key, JSON.stringify(seededSave));
+  }, { key: SAVE_KEY, seededSave: save, locale: lang });
 }
 
 async function clickGame(page, gameX, gameY) {
   const canvas = page.locator('canvas');
   const box = await canvas.boundingBox();
   assert(box, 'Campaign canvas has no bounding box');
-  await page.mouse.click(
-    box.x + (gameX / GAME_WIDTH) * box.width,
-    box.y + (gameY / GAME_HEIGHT) * box.height,
-  );
+  await page.mouse.click(box.x + (gameX / GAME_WIDTH) * box.width, box.y + (gameY / GAME_HEIGHT) * box.height);
 }
 
-async function capture(browser, localeCode, locale, viewport, file) {
+async function captureHub(browser, localeCode, locale, viewport, file) {
   const context = await browser.newContext({ viewport, locale, deviceScaleFactor: 1 });
   const page = await context.newPage();
   try {
-    await installSeed(page, localeCode);
+    await installSeed(page, localeCode, earlyCampaignSave);
     await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
     await page.locator('canvas').waitFor({ state: 'visible' });
     await page.waitForTimeout(650);
     await clickGame(page, 740, 218);
     await page.waitForTimeout(700);
-
-    const outputDir = path.join(reviewRoot, localeCode);
-    ensureDirectory(outputDir);
-    const screenshot = await page.screenshot({ type: 'png' });
-    assert(screenshot.length > 15_000, `${file} looks corrupt or empty`);
-    fs.writeFileSync(path.join(outputDir, file), screenshot);
+    await saveShot(page, localeCode, file);
   } finally {
     await context.close();
   }
+}
+
+async function captureFinale(browser, localeCode, locale, viewport, file) {
+  const context = await browser.newContext({ viewport, locale, deviceScaleFactor: 1 });
+  const page = await context.newPage();
+  try {
+    await installSeed(page, localeCode, finaleCampaignSave);
+    await page.goto(previewUrl, { waitUntil: 'domcontentloaded' });
+    await page.locator('canvas').waitFor({ state: 'visible' });
+    await page.waitForTimeout(650);
+    await clickGame(page, 740, 218);
+    await page.waitForTimeout(500);
+    await clickGame(page, 1112, 205);
+    await page.waitForTimeout(700);
+    await saveShot(page, localeCode, file);
+  } finally {
+    await context.close();
+  }
+}
+
+async function saveShot(page, localeCode, file) {
+  const outputDir = path.join(reviewRoot, localeCode);
+  ensureDirectory(outputDir);
+  const screenshot = await page.screenshot({ type: 'png' });
+  assert(screenshot.length > 15_000, `${file} looks corrupt or empty`);
+  fs.writeFileSync(path.join(outputDir, file), screenshot);
 }
 
 fs.rmSync(reviewRoot, { recursive: true, force: true });
@@ -145,8 +193,10 @@ try {
   const browser = await chromium.launch({ headless: true });
   try {
     for (const [localeCode, locale] of [['ru', 'ru-RU'], ['en', 'en-US']]) {
-      await capture(browser, localeCode, locale, { width: 1280, height: 720 }, '01-desktop-black-seal.png');
-      await capture(browser, localeCode, locale, { width: 844, height: 390 }, '02-compact-black-seal.png');
+      await captureHub(browser, localeCode, locale, { width: 1280, height: 720 }, '01-desktop-black-seal.png');
+      await captureHub(browser, localeCode, locale, { width: 844, height: 390 }, '02-compact-black-seal.png');
+      await captureFinale(browser, localeCode, locale, { width: 1280, height: 720 }, '03-desktop-lost-collection.png');
+      await captureFinale(browser, localeCode, locale, { width: 844, height: 390 }, '04-compact-lost-collection.png');
     }
   } finally {
     await browser.close();
@@ -158,4 +208,4 @@ try {
   await stopPreview(preview);
 }
 
-console.log('P9 Campaign RU/EN desktop + 844x390 visual review capture OK');
+console.log('P9 Campaign RU/EN hub + Lost Collection desktop/844x390 visual review capture OK');
