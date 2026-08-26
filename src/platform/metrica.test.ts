@@ -20,6 +20,9 @@ describe('Yandex Metrica analytics adapter', () => {
 
   it('uses stable safe JavaScript-goal identifiers', () => {
     expect(metricaGoalId('round_completed')).toBe('ah_round_completed');
+    expect(METRICA_GOAL_EVENTS.has('campaign_mission_started')).toBe(true);
+    expect(METRICA_GOAL_EVENTS.has('campaign_mission_completed')).toBe(true);
+    expect(METRICA_GOAL_EVENTS.has('campaign_optional_objective_completed')).toBe(true);
     expect(METRICA_GOAL_EVENTS.has('lot_option_selected')).toBe(true);
     expect(METRICA_GOAL_EVENTS.has('auction_started')).toBe(true);
     expect(METRICA_GOAL_EVENTS.has('bid_placed')).toBe(false);
