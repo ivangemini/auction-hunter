@@ -24,6 +24,13 @@ export interface AnalyticsEventMap {
     rewardRep: number;
     evidenceIds: string[];
   };
+  campaign_optional_objective_completed: {
+    objectiveId: string;
+    missionId: string;
+    rewardCash: number;
+    rewardRep: number;
+    rivalId?: string;
+  };
   campaign_branch_chosen: { choiceId: string; rivalId?: string };
   campaign_relationship_auction_effect: {
     rivalId: string;
