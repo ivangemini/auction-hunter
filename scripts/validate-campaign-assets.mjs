@@ -16,6 +16,9 @@ const assetById = {
   'circle-sponsor-token': 'circle-sponsor-token.svg',
   'campaign-veyr-estate': 'campaign-veyr-estate.svg',
   'veyr-master-ledger': 'veyr-master-ledger.svg',
+  'veyr-portrait-case': 'veyr-portrait-case.svg',
+  'veyr-cipher-cabinet': 'veyr-cipher-cabinet.svg',
+  'veyr-chronometer': 'veyr-chronometer.svg',
 };
 
 const referenced = new Set();
