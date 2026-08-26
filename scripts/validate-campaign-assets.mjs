@@ -7,6 +7,9 @@ const campaignSource = fs.readFileSync(path.join(root, 'src', 'data', 'campaign.
 const assetRoot = path.join(root, 'public', 'assets', 'campaign');
 const assetById = {
   'campaign-estate-study': 'campaign-estate-study.svg',
+  'campaign-records-basement': 'campaign-records-basement.svg',
+  'campaign-dealer-backroom': 'campaign-dealer-backroom.svg',
+  'campaign-river-archive': 'campaign-river-archive.svg',
   'evidence-black-seal': 'evidence-black-seal.svg',
   'evidence-ledger-fragment': 'evidence-ledger-fragment.svg',
   'private-invitation': 'private-invitation.svg',
@@ -20,7 +23,6 @@ const assetById = {
   'veyr-cipher-cabinet': 'veyr-cipher-cabinet.svg',
   'veyr-chronometer': 'veyr-chronometer.svg',
   'evidence-restored-serial': 'evidence-restored-serial.svg',
-  'campaign-records-basement': 'campaign-records-basement.svg',
   'dealer-proxy-sheet': 'dealer-proxy-sheet.svg',
   'counterfeit-table': 'counterfeit-table.svg',
   'final-route-map': 'final-route-map.svg',
