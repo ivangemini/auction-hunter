@@ -1,4 +1,5 @@
 import { getPlatformLocale } from '../../platform/yandex';
+import { CampaignStore } from '../campaignStore';
 import { button } from '../ui';
 import { VISUAL } from '../visual';
 import { CampaignScene } from './CampaignScene';
@@ -9,6 +10,8 @@ import { CampaignScene } from './CampaignScene';
  * rendering scene can stay focused on the current investigation/mission.
  */
 export class CampaignGatewayScene extends CampaignScene {
+  private readonly gatewayCampaign = new CampaignStore();
+
   override create(): void {
     super.create();
     const locale = getPlatformLocale();
@@ -28,5 +31,17 @@ export class CampaignGatewayScene extends CampaignScene {
       fontSize: 9,
       hitSlop: 4,
     });
+
+    const progress = this.gatewayCampaign.progress;
+    if (progress.completed && progress.epilogueId) {
+      button(this, 1036, 588, locale === 'ru' ? 'Итог дела' : 'View epilogue', () => this.scene.start('campaign-finale'), {
+        width: 260,
+        height: 54,
+        background: VISUAL.warm,
+        accent: 0xffd260,
+        foreground: '#111318',
+        fontSize: 12,
+      });
+    }
   }
 }
