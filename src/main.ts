@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import './styles.css';
 import { trackEvent } from './analytics';
 import { registerCampaignBreadth } from './data/campaignBreadth';
+import { registerCampaignBreadthTwo } from './data/campaignBreadthTwo';
 import { registerCampaignFinaleBreadth } from './data/campaignFinaleBreadth';
 import { registerItemBreadth } from './data/itemBreadth';
 import { gameConfig } from './game/config';
@@ -31,6 +32,7 @@ function localizeOrientationGuard(locale: Locale): void {
 async function bootstrap(): Promise<void> {
   registerItemBreadth();
   registerCampaignBreadth();
+  registerCampaignBreadthTwo();
   registerCampaignFinaleBreadth();
   installBrowserGuards();
   applyAccessibilityPreferences();
