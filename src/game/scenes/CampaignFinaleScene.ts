@@ -36,12 +36,12 @@ export class CampaignFinaleScene extends Phaser.Scene {
   create(): void {
     this.locale = getPlatformLocale();
     const save = this.campaign.snapshot;
-    if (!save.campaign.completedMissionIds.includes('closed-circle-ledger-room')) {
-      this.scene.start('campaign');
-      return;
-    }
     if (save.campaign.completed && save.campaign.epilogueId) {
       this.renderEpilogue(save.campaign.epilogueId);
+      return;
+    }
+    if (save.campaign.activeMissionId !== 'lost-collection-finale') {
+      this.scene.start('campaign');
       return;
     }
     this.restoreAttempt();
