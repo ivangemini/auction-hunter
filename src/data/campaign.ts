@@ -11,6 +11,9 @@ export type CampaignObjectiveType =
   | 'track-rival'
   | 'negotiate'
   | 'branch-choice'
+  | 'limited-preview'
+  | 'sealed-bid'
+  | 'relationship-gate'
   | 'finale';
 
 export interface CampaignObjective {
@@ -19,6 +22,7 @@ export interface CampaignObjective {
   optional?: boolean;
   budget?: number;
   targetIds?: string[];
+  maxInspections?: number;
   description: LocalizedText;
 }
 
@@ -174,6 +178,34 @@ export const CAMPAIGN_MISSIONS: CampaignMission[] = [
     objective: { type: 'select-evidence-lot', target: 1, description: { ru: 'Найдите настоящий новый адрес по дефекту печати.', en: 'Find the genuine new address from the printing defect.' } },
     prerequisiteMissionIds: ['dealer-war-ally'], rewardCash: 1500, rewardRep: 140, evidenceRewardIds: ['closed-circle-address'], artId: 'private-invitation',
   },
+  {
+    id: 'closed-circle-preview', chapterId: 'closed-circle', order: 1,
+    title: { ru: 'Три минуты на просмотр', en: 'Three-Minute Preview' },
+    briefing: { ru: 'В закрытом круге нельзя осмотреть всё. Вам дают три проверки на пять объектов, и две витрины специально выставлены как приманки.', en: 'The closed circle does not allow full inspection. You get three checks across five objects, with two displays deliberately staged as decoys.' },
+    objective: { type: 'limited-preview', target: 2, maxInspections: 3, targetIds: ['ledger-frame', 'ivory-catalogue'], description: { ru: 'Найдите обе связанные с Вейром вещи, используя не более трёх проверок.', en: 'Identify both Veyr-linked objects using no more than three inspections.' } },
+    prerequisiteMissionIds: ['dealer-war-address'], rewardCash: 1700, rewardRep: 155, evidenceRewardIds: ['circle-preview-code'], artId: 'closed-circle-room',
+  },
+  {
+    id: 'closed-circle-sealed-bid', chapterId: 'closed-circle', order: 2,
+    title: { ru: 'Одна ставка', en: 'One Bid Only' },
+    briefing: { ru: 'На ключевой архивный лот нет открытых торгов. Каждый дилер пишет одну сумму, не видя остальных. Переплата режет дальнейший бюджет, недобор отдаёт лот Антону.', en: 'The key archive lot has no open bidding. Every dealer writes one number without seeing the others. Overpaying hurts the next stage; bidding short hands the lot to Anton.' },
+    objective: { type: 'sealed-bid', budget: 9600, target: 1, description: { ru: 'Выберите единственную ставку: достаточно высокую для победы, но не выше 9 600 ₽.', en: 'Choose one sealed bid: high enough to win, but no higher than 9,600 ₽.' } },
+    prerequisiteMissionIds: ['closed-circle-preview'], rewardCash: 2100, rewardRep: 175, evidenceRewardIds: ['veyr-buyer-list'], featuredRivalId: 'npc-2', artId: 'sealed-bid-card',
+  },
+  {
+    id: 'closed-circle-debt', chapterId: 'closed-circle', order: 3,
+    title: { ru: 'Счёт приходит сейчас', en: 'The Debt Comes Due' },
+    briefing: { ru: 'Организатор требует поручителя. Старые решения с Виктором и Мирой впервые определяют, кто впишется за вас — и какой долг придётся вернуть.', en: 'The host requires a sponsor. Your earlier choices with Victor and Mira now determine who will vouch for you — and which debt must be repaid.' },
+    objective: { type: 'relationship-gate', target: 1, description: { ru: 'Получите поручительство через доверие или закройте старый долг ценой денег/репутации.', en: 'Secure sponsorship through trust or settle an old debt with cash/reputation.' } },
+    prerequisiteMissionIds: ['closed-circle-sealed-bid'], rewardCash: 900, rewardRep: 210, evidenceRewardIds: ['circle-sponsor-token'], artId: 'circle-sponsor-token',
+  },
+  {
+    id: 'closed-circle-ledger-room', chapterId: 'closed-circle', order: 4,
+    title: { ru: 'Комната без каталога', en: 'The Uncatalogued Room' },
+    briefing: { ru: 'Последняя комната не отмечена ни в одном списке. У вас есть список покупателей, код просмотра и жетон поручителя — вместе они дают номер ячейки с последней частью реестра.', en: 'The final room appears in no catalogue. The buyer list, preview code and sponsor token together reveal the locker holding the ledger’s final surviving section.' },
+    objective: { type: 'select-evidence-lot', target: 1, description: { ru: 'Сопоставьте три улики и выберите правильную ячейку.', en: 'Combine the three clues and choose the correct locker.' } },
+    prerequisiteMissionIds: ['closed-circle-debt'], rewardCash: 2600, rewardRep: 240, evidenceRewardIds: ['lost-collection-index'], artId: 'sealed-bid-card',
+  },
 ];
 
 export const CAMPAIGN_EVIDENCE = [
@@ -224,5 +256,29 @@ export const CAMPAIGN_EVIDENCE = [
     title: { ru: 'Новый адрес круга', en: 'Closed Circle Address' },
     description: { ru: 'Типографский дефект подтверждает подлинность новой карточки. След ведёт в закрытый круг покупателей.', en: 'A printing defect authenticates the new card. The trail now leads into the closed circle of buyers.' },
     artId: 'private-invitation',
+  },
+  {
+    id: 'circle-preview-code',
+    title: { ru: 'Код закрытого просмотра', en: 'Private Preview Code' },
+    description: { ru: 'Два настоящих объекта несут одинаковую микрометку: C-17. Это не номер лота, а внутренний код комнаты.', en: 'Two genuine objects carry the same micro-mark: C-17. It is not a lot number but an internal room code.' },
+    artId: 'closed-circle-room',
+  },
+  {
+    id: 'veyr-buyer-list',
+    title: { ru: 'Список покупателей Вейра', en: "Veyr's Buyer List" },
+    description: { ru: 'За выигранной sealed bid карточкой скрывается короткий список покупателей и повторяющийся номер 17.', en: 'The won sealed-bid card conceals a short buyer list with the number 17 recurring beside several names.' },
+    artId: 'sealed-bid-card',
+  },
+  {
+    id: 'circle-sponsor-token',
+    title: { ru: 'Жетон поручителя', en: 'Sponsor Token' },
+    description: { ru: 'Поручитель передаёт латунный жетон с буквой C. Вместе с кодом просмотра он указывает на сектор C-17.', en: 'Your sponsor provides a brass token stamped C. Combined with the preview code, it points to sector C-17.' },
+    artId: 'circle-sponsor-token',
+  },
+  {
+    id: 'lost-collection-index',
+    title: { ru: 'Индекс потерянной коллекции', en: 'Lost Collection Index' },
+    description: { ru: 'В ячейке C-17 лежит индекс последней коллекции Вейра — переход к финальной главе.', en: "Locker C-17 contains the index to Veyr's final collection — the lead into the last chapter." },
+    artId: 'evidence-ledger-fragment',
   },
 ] as const;
