@@ -9,6 +9,7 @@ import {
   roundToBid,
   type AuctionOpponent,
 } from '../../domain/auction';
+import { campaignRivalEffect } from '../../domain/campaignRelationshipEffects';
 import type { LotModifierDefinition } from '../../domain/lotModifier';
 import { rivalDossierLabel, rivalMemorySnapshot } from '../../domain/rivalMemory';
 import type { Locale, LotTemplate, PlayerSave, RevealedItem } from '../../domain/types';
@@ -47,8 +48,8 @@ type RivalBehaviorRuntime = Phaser.Scene & {
 
 /**
  * Adds persistent rival learning, bounded one-shot signature bids, VIP pressure,
- * campaign access and concrete-copy jackpot presentation without moving economy
- * ownership out of AuctionScene.
+ * campaign relationship consequences, campaign access and concrete-copy jackpot
+ * presentation without moving economy ownership out of AuctionScene.
  */
 export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
   constructor() {
@@ -59,6 +60,7 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
     let outcomeRecorded = false;
     let signatureNotice = '';
     let vipPressureApplied = false;
+    let relationshipPressureApplied = false;
 
     const prepareLot = runtime.prepareLot.bind(runtime);
     const startAuction = runtime.startAuction.bind(runtime);
@@ -76,14 +78,12 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
     runtime.prepareLot = (lot, modifier, valueMultiplier = 1) => {
       prepareLot(lot, modifier, valueMultiplier);
       vipPressureApplied = false;
+      relationshipPressureApplied = false;
       jackpotTracked.clear();
     };
 
     runtime.renderLotSelection = () => {
       renderLotSelection();
-      // Keep campaign access in the same secondary-action row as Collection/Daily.
-      // It must never overlap the tier tabs at y=151 because those remain a core
-      // selection interaction and are exercised by browser/Yandex contract tests.
       button(
         runtime,
         740,
@@ -105,6 +105,26 @@ export class RivalBehaviorAuctionScene extends CharacterAuctionScene {
       signatureUsed.clear();
       outcomeRecorded = false;
       signatureNotice = '';
+
+      if (!relationshipPressureApplied) {
+        const save = runtime.store.snapshot;
+        runtime.opponents.forEach((opponent) => {
+          const effect = campaignRivalEffect(save.campaign, opponent.id);
+          opponent.maxBid = roundToBid(opponent.maxBid * effect.pressureMultiplier, runtime.lot);
+          if (effect.pressureMultiplier !== 1) {
+            trackEvent('campaign_relationship_auction_effect', {
+              rivalId: opponent.id,
+              pressureMultiplier: effect.pressureMultiplier,
+              intelLevel: effect.intelLevel,
+              trust: effect.trust,
+              rivalry: effect.rivalry,
+              debt: effect.debt,
+            });
+          }
+        });
+        relationshipPressureApplied = true;
+      }
+
       if (!vipPressureApplied && runtime.lotModifier?.id.includes('vip-invitation')) {
         runtime.opponents.forEach((opponent) => {
           opponent.maxBid = roundToBid(opponent.maxBid * VIP_RIVAL_PRESSURE_MULTIPLIER, runtime.lot);
@@ -213,18 +233,35 @@ function renderRivalDossiers(scene: RivalBehaviorRuntime): void {
   const save = scene.store.snapshot;
   scene.opponents.forEach((opponent, index) => {
     const memory = rivalMemorySnapshot(save, opponent.id);
-    if (memory.knowledgeLevel === 0) return;
+    const campaignEffect = campaignRivalEffect(save.campaign, opponent.id);
+    if (memory.knowledgeLevel === 0 && campaignEffect.intelLevel === 0 && campaignEffect.pressureMultiplier === 1) return;
 
     const y = 320 + index * 92;
-    const dossier = rivalDossierLabel(memory).label[scene.locale];
-    scene.add.text(900, y + 48, dossier, {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '9px',
-      fontStyle: 'bold',
-      color: memory.knowledgeLevel >= 2 ? '#61a8ff' : '#737b88',
-    }).setWordWrapWidth(235);
+    if (memory.knowledgeLevel > 0) {
+      const dossier = rivalDossierLabel(memory).label[scene.locale];
+      scene.add.text(900, y + 48, dossier, {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '9px',
+        fontStyle: 'bold',
+        color: memory.knowledgeLevel >= 2 ? '#61a8ff' : '#737b88',
+      }).setWordWrapWidth(235);
+    }
 
-    if (memory.knowledgeLevel >= 3 && opponent.weakness) {
+    if (campaignEffect.intelLevel > 0) {
+      const relationText = scene.locale === 'ru'
+        ? campaignEffect.pressureMultiplier < 1
+          ? `Сюжетная связь · давление −${Math.round((1 - campaignEffect.pressureMultiplier) * 100)}%`
+          : `Сюжетная связь · давление +${Math.round((campaignEffect.pressureMultiplier - 1) * 100)}%`
+        : campaignEffect.pressureMultiplier < 1
+          ? `Campaign intel · pressure −${Math.round((1 - campaignEffect.pressureMultiplier) * 100)}%`
+          : `Campaign intel · pressure +${Math.round((campaignEffect.pressureMultiplier - 1) * 100)}%`;
+      scene.add.text(900, y + 62, relationText, {
+        fontFamily: 'Arial, sans-serif',
+        fontSize: '8px',
+        fontStyle: 'bold',
+        color: campaignEffect.pressureMultiplier <= 1 ? '#63d28d' : '#e9b949',
+      }).setWordWrapWidth(235);
+    } else if (memory.knowledgeLevel >= 3 && opponent.weakness) {
       scene.add.text(900, y + 62, opponent.weakness[scene.locale], {
         fontFamily: 'Arial, sans-serif',
         fontSize: '8px',
