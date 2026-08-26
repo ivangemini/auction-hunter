@@ -14,17 +14,21 @@ const assetById = {
   'closed-circle-room': 'closed-circle-room.svg',
   'sealed-bid-card': 'sealed-bid-card.svg',
   'circle-sponsor-token': 'circle-sponsor-token.svg',
+  'campaign-veyr-estate': 'campaign-veyr-estate.svg',
+  'veyr-master-ledger': 'veyr-master-ledger.svg',
 };
 
 const referenced = new Set();
 for (const match of campaignSource.matchAll(/artId:\s*['"]([^'"]+)['"]/g)) referenced.add(match[1]);
 
-if (referenced.size < 8) throw new Error(`Campaign art breadth regressed: expected >=8 semantic art IDs, got ${referenced.size}`);
+if (referenced.size < 8) throw new Error(`Campaign art breadth regressed: expected >=8 authored mission/evidence art IDs, got ${referenced.size}`);
 for (const artId of referenced) {
-  const filename = assetById[artId];
-  if (!filename) throw new Error(`Campaign art id is not mapped to a production asset: ${artId}`);
+  if (!assetById[artId]) throw new Error(`Campaign art id is not mapped to a production asset: ${artId}`);
+}
+
+for (const [artId, filename] of Object.entries(assetById)) {
   const filepath = path.join(assetRoot, filename);
-  if (!fs.existsSync(filepath)) throw new Error(`Campaign production asset is missing: ${filename}`);
+  if (!fs.existsSync(filepath)) throw new Error(`Campaign production asset is missing for ${artId}: ${filename}`);
   const stats = fs.statSync(filepath);
   if (stats.size < 500) throw new Error(`Campaign asset looks like a placeholder/empty file: ${filename}`);
 }
@@ -33,4 +37,4 @@ if (new Set(Object.values(assetById)).size !== Object.keys(assetById).length) {
   throw new Error('Campaign semantic art IDs must not silently alias the same source file in the production batch');
 }
 
-console.log(`Campaign asset coverage OK: ${referenced.size} semantic assets`);
+console.log(`Campaign asset coverage OK: ${Object.keys(assetById).length} semantic production assets`);
