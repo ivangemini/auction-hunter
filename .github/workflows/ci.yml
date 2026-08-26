@@ -95,6 +95,14 @@ jobs:
           path: release/screenshots/office-review/**/*.png
           if-no-files-found: error
           retention-days: 7
+      - run: node scripts/capture-campaign-review.mjs
+      - name: Upload P9 Campaign visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-campaign-review-ci
+          path: release/screenshots/campaign-review/**/*.png
+          if-no-files-found: error
+          retention-days: 7
       - name: Upload screenshot diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
