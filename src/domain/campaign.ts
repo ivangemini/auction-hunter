@@ -1,5 +1,5 @@
 import type { CampaignProgressState } from './types';
-import type { CampaignMission } from '../data/campaign';
+import { CAMPAIGN_CHAPTER_ORDER, type CampaignMission } from '../data/campaign';
 
 export interface CampaignMissionAvailability {
   mission: CampaignMission;
@@ -41,7 +41,7 @@ export function nextCampaignMission(
   if (active && !progress.completedMissionIds.includes(active.id)) return active;
 
   return [...missions]
-    .sort((left, right) => left.chapterId.localeCompare(right.chapterId) || left.order - right.order)
+    .sort((left, right) => CAMPAIGN_CHAPTER_ORDER[left.chapterId] - CAMPAIGN_CHAPTER_ORDER[right.chapterId] || left.order - right.order)
     .find((mission) => campaignMissionAvailable(mission, progress)) ?? null;
 }
 
