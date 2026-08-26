@@ -22,9 +22,9 @@ export interface CampaignCompletionSummary {
 export function buildCampaignCompletionSummary(
   progress: Readonly<CampaignProgressState>,
 ): CampaignCompletionSummary {
-  const missionIds = new Set(CAMPAIGN_MISSIONS.map((mission) => mission.id));
-  const evidenceIds = new Set(CAMPAIGN_EVIDENCE.map((evidence) => evidence.id));
-  const masteryIds = new Set(CAMPAIGN_OPTIONAL_OBJECTIVES.map((objective) => `optional:${objective.id}`));
+  const missionIds = new Set<string>(CAMPAIGN_MISSIONS.map((mission) => mission.id));
+  const evidenceIds = new Set<string>(CAMPAIGN_EVIDENCE.map((evidence) => evidence.id));
+  const masteryIds = new Set<string>(CAMPAIGN_OPTIONAL_OBJECTIVES.map((objective) => `optional:${objective.id}`));
   const completedMissionIds = new Set(progress.completedMissionIds.filter((missionId) => missionIds.has(missionId)));
   const recoveredEvidenceIds = new Set(progress.evidenceIds.filter((evidenceId) => evidenceIds.has(evidenceId)));
   const completedMasteryIds = new Set(progress.branchChoiceIds.filter((choiceId) => masteryIds.has(choiceId)));
