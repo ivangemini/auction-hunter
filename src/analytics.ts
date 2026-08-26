@@ -25,6 +25,14 @@ export interface AnalyticsEventMap {
     evidenceIds: string[];
   };
   campaign_branch_chosen: { choiceId: string; rivalId?: string };
+  campaign_relationship_auction_effect: {
+    rivalId: string;
+    pressureMultiplier: number;
+    intelLevel: 0 | 1 | 2;
+    trust: number;
+    rivalry: number;
+    debt: number;
+  };
   tier_selected: { tierId: AuctionTierId; reputationXp: number };
   lot_options_presented: {
     tierId: AuctionTierId;
