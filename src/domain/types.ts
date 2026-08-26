@@ -88,6 +88,19 @@ export interface BusinessUpgradeState {
   showroom: number;
 }
 
+export interface CampaignProgressState {
+  started: boolean;
+  activeMissionId: string | null;
+  completedMissionIds: string[];
+  evidenceIds: string[];
+  branchChoiceIds: string[];
+  relationshipTrust: Record<string, number>;
+  relationshipRivalry: Record<string, number>;
+  relationshipDebt: Record<string, number>;
+  completed: boolean;
+  epilogueId: string | null;
+}
+
 export interface AuctionHistoryEntry {
   id: string;
   occurredAt: string;
@@ -135,4 +148,5 @@ export interface PlayerSave {
   discoveryChainProgress: Record<string, number>;
   discoveryChainLastAuction: Record<string, number>;
   completedDiscoveryChains: string[];
+  campaign: CampaignProgressState;
 }
