@@ -42,7 +42,7 @@ export const CAMPAIGN_BREADTH_FIVE_ROUTES: Readonly<Record<string, readonly stri
   'brass-seal-calipers': ['maker-locker-41', 'moving-sale-35'],
   'river-signal-lantern': ['traveler-estate-12', 'music-estate-24'],
   'consignment-token-board': ['writer-estate-33', 'media-vault-31'],
-  'railway-chronometer': ['traveler-estate-12', 'repair-shop-4'],
+  'railway-chronometer': ['traveler-estate-12', 'collector-parlor-15'],
 };
 
 export function registerCampaignBreadthFive(): void {
