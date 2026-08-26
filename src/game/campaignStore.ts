@@ -97,7 +97,11 @@ export class CampaignStore {
 
   finishCampaign(epilogueId: CampaignEpilogueId, acquiredLotIds: readonly string[]): boolean {
     const save = loadLocalSave();
-    if (save.campaign.completed) return false;
+    if (save.campaign.completed || save.campaign.activeMissionId !== 'lost-collection-finale') return false;
+    const finaleMission = campaignMissionById(CAMPAIGN_MISSIONS, 'lost-collection-finale');
+    if (!finaleMission) return false;
+
+    save.campaign = completeCampaignMission(save.campaign, finaleMission);
     save.campaign = {
       ...save.campaign,
       started: true,
@@ -116,6 +120,13 @@ export class CampaignStore {
     save.reputationXp += 300;
     save.highestCash = Math.max(save.highestCash, save.cash);
     this.persist(save);
+    trackEvent('campaign_mission_completed', {
+      chapterId: finaleMission.chapterId,
+      missionId: finaleMission.id,
+      rewardCash: 0,
+      rewardRep: 0,
+      evidenceIds: [],
+    });
     trackEvent('campaign_branch_chosen', { choiceId: `campaign-completed:${epilogueId}` });
     return true;
   }
