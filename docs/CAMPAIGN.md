@@ -1,173 +1,236 @@
 # P9 Campaign — The Black Ledger
 
-## Product goal
+## Status
 
-Turn Auction Hunter into a structured treasure-hunting campaign without replacing the auction/economy game. The campaign should provide roughly 6–10 hours of authored progression, then hand the player into the existing systemic P8 endgame.
+The authored campaign feature set is implemented. P9 remains **ACTIVE** only because three release-level acceptance items still require human evidence: a no-shortcuts real-device playthrough, measured 6–10 hour first-play duration, and final human visual inspection.
 
-Narrative rule: a story beat is valuable only when it creates a later auction, evidence, inventory, relationship or economic decision. Dialogue exists to frame decisions, not to become the game.
+Current production scope:
+
+- 5 authored chapters;
+- 28 production missions;
+- 72 item identities;
+- 42 normal lot templates;
+- 36 collection sets;
+- 5 optional campaign mastery objectives;
+- 4 mechanically resolved epilogues;
+- 20 semantic campaign production assets plus direct P9 item art;
+- P8 systemic endgame retained after the finale.
+
+The authored chapter-time envelope is currently **415–625 minutes** (6 h 55 min – 10 h 25 min). That is a regression-protected design budget, not proof of real player duration. See `P9_TELEMETRY.md`.
+
+## Product rule
+
+Auction Hunter remains an auction/economy game. Narrative exists to create later auction, evidence, inventory, relationship, restoration, route-planning or economic decisions. P9 must not collapse into a dialogue-only visual novel.
+
+The story never gives away exact hidden item value or NPC bid ceilings outside the existing appraisal/auction information rules.
 
 ## Central mystery
 
-Years ago, reclusive collector **Aleksandr Veyr** disappeared after quietly breaking up a private collection known among dealers as **The Black Ledger**. The name refers both to a physical handwritten ledger and to the collection indexed inside it: objects acquired through bankrupt estates, shuttered workshops and private expeditions whose provenance was deliberately obscured.
+Reclusive collector **Aleksandr Veyr** disappeared after quietly breaking apart a private collection known among dealers as **The Black Ledger**. The name refers both to a handwritten ledger and to the collection indexed inside it: objects acquired through bankrupt estates, shuttered workshops and private expeditions whose provenance was deliberately obscured.
 
-A mundane estate clearance puts the first numbered ledger fragment into circulation. Other dealers recognize its mark. From that point, ordinary auctions begin intersecting with a race to reconstruct the ledger before a private buyer can consolidate the collection.
+A mundane estate clearance puts the first numbered Black Ledger trace into circulation. Other dealers recognize its mark. Ordinary auctions then become part of a race to reconstruct the ledger before competing dealers and a private buyer consolidate the remaining pieces.
 
-The mystery is grounded in auction gameplay: provenance, incomplete evidence, competing valuations, fake documents, rival ownership and opportunity cost. It is not supernatural and does not reveal hidden exact values outside normal appraisal rules.
+The mystery is grounded in provenance, incomplete evidence, competing valuations, forged documentation, rival ownership and opportunity cost. It is not supernatural.
 
-## Five-act structure
+## Five-act production structure
 
 ### Chapter I — First Flip
-Target: 30–45 minutes.
 
-The player is introduced to the ordinary dealer loop and mentor/auctioneer context. A low-tier estate lot contains an apparently unimportant provenance slip bearing Veyr's black seal.
+Authored budget: **30–45 minutes**. Four missions.
 
-Gameplay beats:
-- normal auction competence;
-- first evidence discovery;
-- first explicit choice between immediate profit and preserving evidence;
-- Victor becomes the first dealer who visibly recognizes the seal.
+Purpose: teach the ordinary dealer loop, then make the first profit-versus-evidence choice.
 
-Chapter turn: the slip points to an estate inventory number that should not exist in the public catalogue.
+Key beats:
+
+- complete a normal auction;
+- prove bidding discipline under Victor's scrutiny;
+- preserve the Black Seal evidence instead of taking immediate profit;
+- follow an inventory number that should not exist in the public catalogue.
 
 ### Chapter II — Estate Trail
-Target: 60–90 minutes.
 
-The player follows estate clearances and must distinguish useful evidence from expensive noise.
+Authored budget: **75–110 minutes**. Six missions.
 
-Gameplay beats:
-- identify the correct lot from truthful visual/document clues;
-- linked two-lot purchase under one budget;
-- first counterfeit provenance document;
-- optional restoration preserves a serial/engraving clue;
-- Mira can trade information for an owned collectible or cash.
+Purpose: expand evidence handling into materially different gameplay.
 
-Chapter turn: evidence shows that several Black Ledger objects were deliberately sold to different dealers on the same week.
+Key beats:
+
+- select the correct evidence-bearing lot from truthful clues;
+- acquire linked targets under one shared budget;
+- identify false provenance;
+- use restoration carefully enough to recover a serial trace;
+- complete two ordinary auctions to compare repeated clearance patterns;
+- negotiate with Mira using cash/favor/relationship consequences.
 
 ### Chapter III — Dealer War
-Target: 90–120 minutes.
 
-The search becomes visible to the rival network. Dealer relationships gain campaign consequences.
+Authored budget: **110–155 minutes**. Seven missions.
 
-Gameplay beats:
-- choose which dealer to approach for information;
-- rival-owned target can be tracked instead of immediately acquired;
-- off-auction negotiation using cash, concrete inventory or favor;
-- multi-lot mission where buying the first attractive lot can make the actual target unaffordable;
-- a chapter choice establishes trust/rivalry/debt with a principal dealer.
+Purpose: make the rival network mechanically consequential.
 
-Chapter turn: a private invitation reveals that the collection is being reconsolidated by an anonymous buyer.
+Key beats:
+
+- track a leak through dealer behavior;
+- withstand Anton's campaign pressure;
+- choose an ally;
+- resolve Nadia's Archive through trade, purchase or pressure;
+- allocate a proxy bid;
+- handle a counteroffer;
+- recover the route into the Closed Circle.
+
+Nadia is a full campaign principal here: her trust/rivalry outcome feeds back into real auction pressure rather than existing only as dialogue.
 
 ### Chapter IV — Closed Circle
-Target: 90–150 minutes.
 
-The player enters invitation-only auctions and faces stronger information asymmetry.
+Authored budget: **110–165 minutes**. Six missions.
 
-Gameplay beats:
-- acquire or earn a private-auction invitation;
-- closed auction with limited inspection;
-- identify a deliberate fake without receiving a free exact-value answer;
-- choose whether to expose the fake, exploit it as leverage, or walk away;
-- evidence board begins showing multiple plausible routes to the final location.
+Purpose: increase information asymmetry and consequence density.
 
-Chapter turn: the physical Black Ledger is real, but its final pages were removed. The anonymous buyer has one part; a rival has another.
+Key beats:
+
+- limited private preview;
+- sealed-bid decision;
+- relationship/debt gate;
+- counterfeit-table deduction;
+- silent-room / private-auction pressure;
+- ledger-room resolution that opens the final route.
 
 ### Chapter V — The Lost Collection
-Target: 90–150 minutes.
 
-The campaign culminates in a multi-stage estate/private auction. The player cannot buy every target.
+Authored budget: **90–150 minutes**. Five missions.
 
-Gameplay beats:
-- prepare using evidence and relationships;
-- choose a route/ally before the finale;
-- 3–4 linked final lots share one campaign budget envelope;
-- some lots are valuable financially, others resolve evidence or alter the epilogue;
-- rival assistance/pressure depends on earlier choices;
-- final ownership/evidence state determines the resolution.
+Purpose: force the player to convert the accumulated evidence, bankroll and relationships into a final strategic plan.
 
-Post-game: Endless Dealer Career unlocks with all P8 systems intact. No prestige/reset is required.
+Production sequence:
 
-## Principal characters
+1. choose/resolve the final route;
+2. complete three normal auctions to read the late-game market;
+3. win two auctions under renewed Anton pressure;
+4. prepare the final partner/budget plan;
+5. enter the four-lot Veyr finale.
 
-Use existing cast first.
-
-- **Victor** — recognizes institutional provenance and initially treats the player as an amateur. Arc axis: professional respect vs rivalry.
-- **Mira** — information broker mentality; values margins and leverage. Arc axis: trust vs transactional debt.
-- **Anton** — aggressive collector who may overcommit when a personal target appears. Arc axis: rivalry vs reluctant cooperation.
-- One additional existing rival should become a late-campaign Closed Circle contact after roster review.
-- Mentor/auctioneer remains a framing character and tutorial voice, not a magical source of correct answers.
-
-Campaign relationships never reveal exact max bids.
-
-## Campaign state contract
-
-Planned additive save state:
-- current chapter;
-- completed mission IDs;
-- active mission ID;
-- evidence IDs discovered;
-- branch choice IDs;
-- campaign relationship flags/values;
-- finale/epilogue state;
-- campaign completed flag.
-
-Legacy saves normalize to campaign-not-started without changing bankroll, REP, collection, rivals, contracts, trends or discovery progress.
+The final auction uses one shared budget. Buying everything is impossible. Evidence lots and financially attractive lots compete for the same resources, so the epilogue is resolved from actual ownership plus relationship state rather than a standalone dialogue choice.
 
 ## Mission objective vocabulary
 
-The first implementation should support reusable objective types rather than hardcoding every mission into scenes:
+The campaign graph uses reusable objective types rather than one scene per piece of prose:
 
-- win a specified story lot;
-- identify/select the correct lot from evidence;
-- acquire one of a set of acceptable evidence-bearing items;
-- keep/preserve a target instead of selling it;
-- complete a linked-lot sequence under a total spend cap;
-- do not exceed a bid ceiling;
-- appraise/restore a target to reveal evidence;
-- allow a named rival to win a tracked target;
-- fulfill a concrete negotiation cost (cash or owned item);
-- make a campaign branch choice;
-- optional objective with bonus reward/relationship effect.
+- normal auction play/win gates;
+- keep evidence;
+- select an evidence-bearing lot;
+- linked-budget acquisition;
+- provenance appraisal;
+- restoration trace;
+- rival tracking;
+- negotiation;
+- branch choice;
+- proxy bid;
+- rival deal;
+- limited preview;
+- sealed bid;
+- relationship gate;
+- counterfeit table;
+- route plan;
+- finale preparation;
+- multi-lot finale.
 
-## Art and texture production plan
+Five optional mastery objectives add rewards/relationship effects without blocking the main campaign.
 
-Campaign production must add visual assets alongside mechanics, not after all gameplay is coded.
+## Principal characters
 
-### Campaign environment set
-At least six semantic hero environments:
-1. `campaign-estate-study` — dusty private study, dark wood, green-shaded lamp, archive boxes, framed maps.
-2. `campaign-records-basement` — municipal/archive basement, steel shelving, paper bundles, fluorescent spill.
-3. `campaign-dealer-backroom` — cramped dealer room with display cases, packing paper and warm task lights.
-4. `campaign-private-preview` — upscale preview room, velvet ropes, dark walls, controlled spot lighting.
-5. `campaign-closed-auction` — intimate invitation auction, numbered paddles, brass details, low warm light.
-6. `campaign-veyr-estate` — final estate hall/study hybrid with layered evidence props and stronger authored composition.
+- **Victor (`npc-0`)** — institutional provenance, professional respect and skepticism.
+- **Mira (`npc-1`)** — information leverage, trust and transactional debt.
+- **Anton (`npc-2`)** — aggressive collector pressure and rivalry.
+- **Nadia (`npc-6`)** — archive intelligence with a dedicated Dealer War negotiation and downstream auction-pressure consequences.
+- Mentor/auctioneer frames the first-session experience but is never a magical source of correct values or bid ceilings.
 
-### Evidence props/textures
-Create semantic assets for:
-- black wax seal;
-- torn ledger page;
-- numbered provenance folder;
-- invitation card;
-- annotated estate photograph;
-- marked map;
-- dealer handwritten note;
-- forged certificate variant.
+Campaign relationships are bounded trust/rivalry/debt values. They may alter sponsorship, information and bidding pressure, but they never expose exact NPC maximum bids.
 
-These should be authored/generated as production assets with readable silhouette/material, not flat UI icons. Paper assets need distinct paper grain, aging, ink/stamp language and edge wear while keeping text itself rendered/localized in UI where necessary.
+## Persistence contract
 
-### Story-critical item art
-Every new story item gets direct hero art at the same or higher fidelity than P7 catalog art. Prefer strong three-quarter object presentation and condition variants when restoration/evidence depends on physical wear.
+P9 remains additive inside the version-1 save contract. Campaign progress persists:
 
-## First implementation slice
+- `started`;
+- `activeMissionId`;
+- `completedMissionIds`;
+- `evidenceIds`;
+- `branchChoiceIds`;
+- per-mission auction baselines;
+- relationship trust/rivalry/debt;
+- `completed`;
+- `epilogueId`.
 
-P9 should begin with a vertical campaign slice rather than all five chapters at once:
+Legacy saves normalize to campaign-not-started without resetting bankroll, REP, collection, concrete inventory copies, business upgrades, buyer state, rivals, market trends, Discovery progress or P8 systems.
 
-1. campaign domain/types + authored chapter/mission data;
-2. legacy-safe campaign progress normalization/persistence;
-3. Chapter I with 3–4 missions;
-4. first Black Ledger evidence prop and campaign-specific estate-study environment;
-5. Investigation Wall/mission briefing entry in Business Office;
-6. one story mission that changes the normal auction decision rather than only displaying text;
-7. typed analytics and deterministic integrity tests;
-8. desktop + 844×390 RU/EN visual capture.
+`src/data/p9CompatibilityAcceptance.test.ts` protects the old-save/cloud/monetization/P8 compatibility boundary after the 72/42/36 content expansion.
 
-Only after this slice feels like Auction Hunter rather than a dialogue overlay should Chapters II–V be produced.
+## Finale and post-game
+
+The finale resolves one of four outcomes from acquired finale lots plus campaign relationship support:
+
+- `shared-truth`;
+- `ledger-restored`;
+- `dealer-king`;
+- `unfinished-ledger`.
+
+Campaign completion does not reset the economy. Endless Dealer Career immediately keeps the player's collection, bankroll, Office, Buyer Market, rivals, trends, Discovery cases and all P8 replayability systems.
+
+The completed Campaign HQ exposes a persistent **Case Record** derived from existing save data. It summarizes:
+
+- missions completed;
+- evidence recovered;
+- optional mastery completed;
+- finale lots recovered;
+- strongest ally;
+- strongest rival.
+
+The epilogue remains reopenable after restart. No extra save migration is required for the Case Record because it is derived from existing campaign state.
+
+## Content and art contract
+
+P9 content breadth reached the target **72 items / 42 lots / 36 sets** while keeping old IDs/rewards stable.
+
+Every P9 catalog addition must keep:
+
+- direct semantic 512×360 item art;
+- truthful lot-category clues;
+- at least one meaningful gameplay/story use;
+- collection-set coverage;
+- stable IDs for save compatibility.
+
+Campaign visuals include at least six authored environment/hero compositions: estate study, records basement, dealer backroom, Closed Circle room, river archive and Veyr estate/finale. Evidence/hero assets include the Black Seal, ledger fragments, invitations, provenance folders, sponsor/proxy material, route maps and finale objects.
+
+Text remains localized in UI rather than embedded into production art where possible.
+
+## Analytics and duration measurement
+
+Typed events cover mission start/completion, optional mastery, branch choices, relationship auction effects and campaign-specific provenance reveals.
+
+`campaign_mission_started`, `campaign_mission_completed` and `campaign_optional_objective_completed` are stable Yandex Metrica JavaScript goals. Their `chapterId`/`missionId` payloads allow mission funnels and pacing reports without creating 28 separate event types.
+
+Use `P9_TELEMETRY.md` for the exact distinction between wall-clock time-to-finale and active first-play duration. The 6–10 hour roadmap item must not be checked from the authored budget alone.
+
+## Automated acceptance
+
+Current automated coverage includes:
+
+- production campaign/test bootstrap parity;
+- complete 28-mission graph integrity and fresh-state graph walk;
+- a Playwright 28-state production-path mission render matrix;
+- old-save/cloud/monetization/P8 compatibility acceptance;
+- 30/60/120-minute long-horizon economy gates;
+- RU/EN desktop + 844×390 campaign-state transition validation;
+- campaign evidence texture rendering validation;
+- desktop and compact campaign asset review sheets;
+- P9 item-art compact review plus full catalog art manifest coverage;
+- persistent epilogue and post-game Case Record unit coverage.
+
+## Manual acceptance still required
+
+Do not call P9 fully complete until all three are done:
+
+1. **Fresh-save real-device playthrough:** no developer shortcuts from the first mission through finale and post-game continuation.
+2. **Measured duration:** controlled human playtests followed by live telemetry evidence, using `P9_TELEMETRY.md`.
+3. **Final visual review:** inspect the generated RU/EN desktop + 844×390 state/item/environment evidence and repeat the important path on a real device.
+
+These are intentionally kept separate from automated CI so a passing test suite cannot be mistaken for a human acceptance pass.
