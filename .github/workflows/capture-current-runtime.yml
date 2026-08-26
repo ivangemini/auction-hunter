@@ -1,0 +1,40 @@
+name: Capture current runtime
+
+on:
+  push:
+    branches: [production-visual-integration-2026-08-26]
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: production-visual-integration-2026-08-26
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/capture-yandex-screenshots.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-current-runtime
+          path: release/screenshots/generated/**/*.png
+          retention-days: 7
+      - name: Remove one-shot workflow
+        if: always()
+        shell: bash
+        run: |
+          rm .github/workflows/capture-current-runtime.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: remove current runtime capture workflow [skip ci]"
+            git push origin HEAD:production-visual-integration-2026-08-26
+          fi
