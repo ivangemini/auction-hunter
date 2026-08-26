@@ -8,12 +8,18 @@ export type CampaignObjectiveType =
   | 'select-evidence-lot'
   | 'linked-budget'
   | 'appraise-evidence'
+  | 'restoration-trace'
   | 'track-rival'
   | 'negotiate'
   | 'branch-choice'
+  | 'proxy-bid'
+  | 'rival-deal'
   | 'limited-preview'
   | 'sealed-bid'
   | 'relationship-gate'
+  | 'counterfeit-table'
+  | 'route-plan'
+  | 'finale-prep'
   | 'finale';
 
 export interface CampaignObjective {
@@ -68,19 +74,19 @@ export const CAMPAIGN_CHAPTERS: CampaignChapter[] = [
     id: 'estate-trail', order: 2,
     title: { ru: 'Глава II — След поместья', en: 'Chapter II — Estate Trail' },
     subtitle: { ru: 'Архивы, подделки и вещи, которые не должны были встретиться.', en: 'Archives, fakes and objects that should never have crossed paths.' },
-    targetMinutes: [60, 90],
+    targetMinutes: [75, 110],
   },
   {
     id: 'dealer-war', order: 3,
     title: { ru: 'Глава III — Война дилеров', en: 'Chapter III — Dealer War' },
     subtitle: { ru: 'Теперь за реестром охотитесь не только вы.', en: 'You are no longer the only dealer hunting the ledger.' },
-    targetMinutes: [90, 120],
+    targetMinutes: [110, 155],
   },
   {
     id: 'closed-circle', order: 4,
     title: { ru: 'Глава IV — Закрытый круг', en: 'Chapter IV — Closed Circle' },
     subtitle: { ru: 'Частные просмотры, ограниченная информация и дорогие ошибки.', en: 'Private previews, limited information and expensive mistakes.' },
-    targetMinutes: [90, 150],
+    targetMinutes: [110, 165],
   },
   {
     id: 'lost-collection', order: 5,
@@ -144,11 +150,25 @@ export const CAMPAIGN_MISSIONS: CampaignMission[] = [
     prerequisiteMissionIds: ['estate-linked-lots'], rewardCash: 900, rewardRep: 70, evidenceRewardIds: ['veyr-forgery-pattern'], artId: 'provenance-folder',
   },
   {
-    id: 'estate-mira-offer', chapterId: 'estate-trail', order: 4,
+    id: 'estate-restoration-trace', chapterId: 'estate-trail', order: 4,
+    title: { ru: 'Серийный номер под пылью', en: 'Serial Under the Dust' },
+    briefing: { ru: 'На латунной архивной бирке остался слабый номер. Агрессивная очистка уничтожит след, слишком мягкая — ничего не покажет.', en: 'A brass archive tag carries a faint serial. Aggressive cleaning will destroy it; the wrong gentle method reveals nothing.' },
+    objective: { type: 'restoration-trace', target: 1, description: { ru: 'Выберите метод очистки, который проявит номер и сохранит улику.', en: 'Choose a cleaning method that reveals the serial while preserving the evidence.' } },
+    prerequisiteMissionIds: ['estate-false-paper'], rewardCash: 1000, rewardRep: 75, evidenceRewardIds: ['veyr-restored-serial'], artId: 'evidence-restored-serial',
+  },
+  {
+    id: 'estate-night-clearances', chapterId: 'estate-trail', order: 5,
+    title: { ru: 'Две ночные распродажи', en: 'Two Night Clearances' },
+    briefing: { ru: 'Серийный номер указывает не на владельца, а на ликвидационную фирму. Нужно увидеть ещё две её распродажи и сравнить повторяющиеся лоты.', en: 'The serial points to a liquidation broker, not an owner. Observe two more clearances and compare the repeated lot pattern.' },
+    objective: { type: 'play-auction', target: 2, description: { ru: 'Завершите 2 аукциона после начала задания.', en: 'Complete 2 auctions after starting the mission.' } },
+    prerequisiteMissionIds: ['estate-restoration-trace'], rewardCash: 1200, rewardRep: 85, evidenceRewardIds: ['estate-broker-pattern'], artId: 'campaign-records-basement',
+  },
+  {
+    id: 'estate-mira-offer', chapterId: 'estate-trail', order: 6,
     title: { ru: 'Цена информации', en: 'The Price of Information' },
-    briefing: { ru: 'Мира знает, кто купил следующую часть реестра, но просит оплату сейчас — деньгами или предметом из вашей коллекции.', en: 'Mira knows who bought the next ledger fragment, but wants payment now — cash or an item from your collection.' },
+    briefing: { ru: 'Мира знает, кто купил следующую часть реестра, но просит оплату сейчас — деньгами или услугой.', en: 'Mira knows who bought the next ledger fragment, but wants payment now — cash or a favor.' },
     objective: { type: 'negotiate', target: 1, description: { ru: 'Решите, чем заплатить Мире — или откажитесь от её короткого пути.', en: 'Choose how to pay Mira — or refuse her shortcut.' } },
-    prerequisiteMissionIds: ['estate-false-paper'], rewardCash: 700, rewardRep: 80, evidenceRewardIds: ['private-auction-lead'], featuredRivalId: 'npc-1', artId: 'private-invitation',
+    prerequisiteMissionIds: ['estate-night-clearances'], rewardCash: 700, rewardRep: 80, evidenceRewardIds: ['private-auction-lead'], featuredRivalId: 'npc-1', artId: 'private-invitation',
   },
   {
     id: 'dealer-war-leak', chapterId: 'dealer-war', order: 1,
@@ -160,9 +180,9 @@ export const CAMPAIGN_MISSIONS: CampaignMission[] = [
   {
     id: 'dealer-war-pressure', chapterId: 'dealer-war', order: 2,
     title: { ru: 'Поднять цену', en: 'Run the Price Up' },
-    briefing: { ru: 'Антон теперь знает, что вы идёте по следу Вейра, и специально давит на ваши ставки. Отношения с дилерами впервые меняют потолки торгов.', en: 'Anton now knows you are following Veyr and deliberately pressures your bids. Dealer relationships now change auction ceilings.' },
-    objective: { type: 'win-auction', target: 1, description: { ru: 'Выиграйте аукцион после начала задания, несмотря на давление дилеров.', en: 'Win an auction after starting the mission despite dealer pressure.' } },
-    prerequisiteMissionIds: ['dealer-war-leak'], rewardCash: 1250, rewardRep: 105, featuredRivalId: 'npc-2',
+    briefing: { ru: 'Антон теперь знает, что вы идёте по следу Вейра, и специально давит на ваши ставки. Одной победой его не убедить.', en: 'Anton knows you are following Veyr and deliberately pressures your bids. One win will not make him back off.' },
+    objective: { type: 'win-auction', target: 2, description: { ru: 'Выиграйте 2 аукциона после начала задания, несмотря на давление дилеров.', en: 'Win 2 auctions after starting the mission despite dealer pressure.' } },
+    prerequisiteMissionIds: ['dealer-war-leak'], rewardCash: 1500, rewardRep: 115, featuredRivalId: 'npc-2',
   },
   {
     id: 'dealer-war-ally', chapterId: 'dealer-war', order: 3,
@@ -172,11 +192,25 @@ export const CAMPAIGN_MISSIONS: CampaignMission[] = [
     prerequisiteMissionIds: ['dealer-war-pressure'], rewardCash: 800, rewardRep: 120, artId: 'provenance-folder',
   },
   {
-    id: 'dealer-war-address', chapterId: 'dealer-war', order: 4,
+    id: 'dealer-war-proxy', chapterId: 'dealer-war', order: 4,
+    title: { ru: 'Два конверта', en: 'Two Proxy Slips' },
+    briefing: { ru: 'Два лота закрываются одновременно. Один содержит архивный ящик, второй специально выглядит дороже. На оба действует один лимит.', en: 'Two lots close simultaneously. One carries the archive crate; the other is staged to look more valuable. Both share one hard envelope.' },
+    objective: { type: 'proxy-bid', target: 1, budget: 9500, description: { ru: 'Распределите не более 9 500 ₽ так, чтобы гарантировать архивный лот и не сжечь бюджет на приманке.', en: 'Allocate no more than 9,500 ₽ so the archive lot is secured without burning the envelope on the decoy.' } },
+    prerequisiteMissionIds: ['dealer-war-ally'], rewardCash: 1600, rewardRep: 130, evidenceRewardIds: ['proxy-bid-slip'], featuredRivalId: 'npc-2', artId: 'dealer-proxy-sheet',
+  },
+  {
+    id: 'dealer-war-counteroffer', chapterId: 'dealer-war', order: 5,
+    title: { ru: 'Контрпредложение Антона', en: "Anton's Counteroffer" },
+    briefing: { ru: 'После проигранного архивного лота Антон предлагает имя покупателя. Он хочет деньги, будущую услугу или открытый отказ.', en: 'After losing the archive lot, Anton offers the buyer alias. He wants cash, a future favor or an explicit refusal.' },
+    objective: { type: 'rival-deal', target: 1, description: { ru: 'Закройте сделку с Антоном или откажитесь и примите последствия для соперничества.', en: 'Settle with Anton or refuse and accept the rivalry consequence.' } },
+    prerequisiteMissionIds: ['dealer-war-proxy'], rewardCash: 1000, rewardRep: 135, evidenceRewardIds: ['anton-buyer-alias'], featuredRivalId: 'npc-2', artId: 'dealer-proxy-sheet',
+  },
+  {
+    id: 'dealer-war-address', chapterId: 'dealer-war', order: 6,
     title: { ru: 'Сгоревший адрес', en: 'The Burned Address' },
     briefing: { ru: 'После вашей сделки сеть меняет место встречи. На трёх карточках только одна использует тот же типографский дефект, что и настоящее приглашение.', en: 'After your move, the network changes venues. Only one of three cards carries the same printing defect as the genuine invitation.' },
     objective: { type: 'select-evidence-lot', target: 1, description: { ru: 'Найдите настоящий новый адрес по дефекту печати.', en: 'Find the genuine new address from the printing defect.' } },
-    prerequisiteMissionIds: ['dealer-war-ally'], rewardCash: 1500, rewardRep: 140, evidenceRewardIds: ['closed-circle-address'], artId: 'private-invitation',
+    prerequisiteMissionIds: ['dealer-war-counteroffer'], rewardCash: 1500, rewardRep: 140, evidenceRewardIds: ['closed-circle-address'], artId: 'private-invitation',
   },
   {
     id: 'closed-circle-preview', chapterId: 'closed-circle', order: 1,
@@ -200,11 +234,46 @@ export const CAMPAIGN_MISSIONS: CampaignMission[] = [
     prerequisiteMissionIds: ['closed-circle-sealed-bid'], rewardCash: 900, rewardRep: 210, evidenceRewardIds: ['circle-sponsor-token'], artId: 'circle-sponsor-token',
   },
   {
-    id: 'closed-circle-ledger-room', chapterId: 'closed-circle', order: 4,
+    id: 'closed-circle-counterfeit', chapterId: 'closed-circle', order: 4,
+    title: { ru: 'Стол подделок', en: 'The Counterfeit Table' },
+    briefing: { ru: 'Перед внутренним аукционом выкладывают четыре provenance-папки. Две настоящие, две собраны из правильных деталей в неправильных сочетаниях.', en: 'Before the inner auction, four provenance folders are laid out. Two are genuine; two combine correct details in the wrong pairings.' },
+    objective: { type: 'counterfeit-table', target: 2, targetIds: ['folder-17', 'wax-card-c'], description: { ru: 'Выберите две подлинные provenance-улики, сопоставив бумагу, воск и микрометку.', en: 'Choose the two genuine provenance pieces by matching paper, wax and micro-mark.' } },
+    prerequisiteMissionIds: ['closed-circle-debt'], rewardCash: 1900, rewardRep: 220, evidenceRewardIds: ['circle-genuine-pair'], artId: 'counterfeit-table',
+  },
+  {
+    id: 'closed-circle-silent-room', chapterId: 'closed-circle', order: 5,
+    title: { ru: 'Подтвердить место за столом', en: 'Keep Your Seat' },
+    briefing: { ru: 'После проверки документов вам дают два обычных торговых раунда. Нужно доказать, что приглашение было не случайностью.', en: 'After the document check, you get two ordinary auction rounds. Prove the invitation was not a fluke.' },
+    objective: { type: 'win-auction', target: 2, description: { ru: 'Выиграйте 2 аукциона после старта задания.', en: 'Win 2 auctions after starting the mission.' } },
+    prerequisiteMissionIds: ['closed-circle-counterfeit'], rewardCash: 2200, rewardRep: 230, featuredRivalId: 'npc-2', artId: 'closed-circle-room',
+  },
+  {
+    id: 'closed-circle-ledger-room', chapterId: 'closed-circle', order: 6,
     title: { ru: 'Комната без каталога', en: 'The Uncatalogued Room' },
     briefing: { ru: 'Последняя комната не отмечена ни в одном списке. У вас есть список покупателей, код просмотра и жетон поручителя — вместе они дают номер ячейки с последней частью реестра.', en: 'The final room appears in no catalogue. The buyer list, preview code and sponsor token together reveal the locker holding the ledger’s final surviving section.' },
     objective: { type: 'select-evidence-lot', target: 1, description: { ru: 'Сопоставьте три улики и выберите правильную ячейку.', en: 'Combine the three clues and choose the correct locker.' } },
-    prerequisiteMissionIds: ['closed-circle-debt'], rewardCash: 2600, rewardRep: 240, evidenceRewardIds: ['lost-collection-index'], artId: 'sealed-bid-card',
+    prerequisiteMissionIds: ['closed-circle-silent-room'], rewardCash: 2600, rewardRep: 240, evidenceRewardIds: ['lost-collection-index'], artId: 'sealed-bid-card',
+  },
+  {
+    id: 'lost-collection-route', chapterId: 'lost-collection', order: 1,
+    title: { ru: 'Маршрут из индекса', en: 'Route from the Index' },
+    briefing: { ru: 'Индекс не содержит адреса. Он связывает сектор C-17, список покупателей и старую транспортную схему. Только один маршрут сходится по всем трём признакам.', en: 'The index contains no address. It links sector C-17, the buyer list and an old transport diagram. Only one route fits all three clues.' },
+    objective: { type: 'route-plan', target: 1, description: { ru: 'Восстановите правильный маршрут к последней распродаже Вейра.', en: 'Reconstruct the correct route to Veyr’s final sale.' } },
+    prerequisiteMissionIds: ['closed-circle-ledger-room'], rewardCash: 2000, rewardRep: 250, evidenceRewardIds: ['veyr-river-route'], artId: 'final-route-map',
+  },
+  {
+    id: 'lost-collection-prep', chapterId: 'lost-collection', order: 2,
+    title: { ru: 'Кого взять в финал', en: 'Choose Your Final Partner' },
+    briefing: { ru: 'На последнюю распродажу можно войти с одним союзником — или без него. Выбор меняет информационное преимущество и финальную оценку отношений.', en: 'You can enter the last sale with one ally — or alone. The choice changes your information edge and the final relationship outcome.' },
+    objective: { type: 'finale-prep', target: 1, description: { ru: 'Выберите Виктора, Миру или одиночный вход перед финальными торгами.', en: 'Choose Victor, Mira or a solo entry before the final auction.' } },
+    prerequisiteMissionIds: ['lost-collection-route'], rewardCash: 1500, rewardRep: 260, artId: 'private-invitation',
+  },
+  {
+    id: 'lost-collection-finale', chapterId: 'lost-collection', order: 3,
+    title: { ru: 'Последние четыре лота', en: 'The Final Four Lots' },
+    briefing: { ru: 'Четыре объекта уходят подряд под одним бюджетом. Два закрывают историю Вейра, два дают огромную прибыль. Купить всё невозможно.', en: 'Four objects sell back-to-back under one shared envelope. Two resolve Veyr’s history; two maximize profit. You cannot buy everything.' },
+    objective: { type: 'finale', target: 1, description: { ru: 'Войдите в финальный multi-lot аукцион и определите судьбу Чёрного реестра.', en: 'Enter the final multi-lot auction and decide the fate of the Black Ledger.' } },
+    prerequisiteMissionIds: ['lost-collection-prep'], rewardCash: 0, rewardRep: 0, artId: 'campaign-veyr-estate',
   },
 ];
 
@@ -240,6 +309,18 @@ export const CAMPAIGN_EVIDENCE = [
     artId: 'provenance-folder',
   },
   {
+    id: 'veyr-restored-serial',
+    title: { ru: 'Восстановленный серийный номер', en: 'Recovered Serial Mark' },
+    description: { ru: 'Сухая очистка проявила серийный номер ликвидационной фирмы, не повредив патину.', en: 'Dry cleaning revealed a liquidation-company serial without destroying the patina.' },
+    artId: 'evidence-restored-serial',
+  },
+  {
+    id: 'estate-broker-pattern',
+    title: { ru: 'Повторяющийся брокер', en: 'Repeating Broker Pattern' },
+    description: { ru: 'Две ночные распродажи используют ту же систему нумерации и упаковки, что и номер 47-Б.', en: 'Two night clearances use the same numbering and packing system as inventory 47-B.' },
+    artId: 'campaign-records-basement',
+  },
+  {
     id: 'private-auction-lead',
     title: { ru: 'Частное приглашение', en: 'Private Auction Lead' },
     description: { ru: 'След ведёт к закрытой сети дилеров. На приглашении нет адреса — только время и контакт.', en: 'The trail reaches a closed dealer network. The invitation has no address, only a time and contact.' },
@@ -250,6 +331,18 @@ export const CAMPAIGN_EVIDENCE = [
     title: { ru: 'Шаблон утечки', en: 'Leak Pattern' },
     description: { ru: 'Антон появляется на закрытых просмотрах раньше рассылки общего адреса. Кто-то передаёт ему детали заранее.', en: 'Anton reaches private previews before the general address is distributed. Someone is feeding him details early.' },
     artId: 'provenance-folder',
+  },
+  {
+    id: 'proxy-bid-slip',
+    title: { ru: 'Копия proxy-ставки', en: 'Proxy Bid Copy' },
+    description: { ru: 'На обороте архивного конверта осталось имя посредника, через которого закрытый круг покупал лоты.', en: 'The reverse of the archive proxy slip carries the name of the intermediary used by the closed circle.' },
+    artId: 'dealer-proxy-sheet',
+  },
+  {
+    id: 'anton-buyer-alias',
+    title: { ru: 'Псевдоним покупателя', en: 'Buyer Alias' },
+    description: { ru: 'Антон подтверждает псевдоним, который встречается в proxy-ставке и старой описи.', en: 'Anton confirms an alias shared by the proxy slip and the old inventory.' },
+    artId: 'dealer-proxy-sheet',
   },
   {
     id: 'closed-circle-address',
@@ -276,9 +369,21 @@ export const CAMPAIGN_EVIDENCE = [
     artId: 'circle-sponsor-token',
   },
   {
+    id: 'circle-genuine-pair',
+    title: { ru: 'Подлинная пара документов', en: 'Genuine Provenance Pair' },
+    description: { ru: 'Две provenance-улики совпадают по бумаге, воску и микрометке; подделки смешивали признаки разных партий.', en: 'Two provenance pieces match on paper, wax and micro-mark; the fakes mixed details from different batches.' },
+    artId: 'counterfeit-table',
+  },
+  {
     id: 'lost-collection-index',
     title: { ru: 'Индекс потерянной коллекции', en: 'Lost Collection Index' },
     description: { ru: 'В ячейке C-17 лежит индекс последней коллекции Вейра — переход к финальной главе.', en: "Locker C-17 contains the index to Veyr's final collection — the lead into the last chapter." },
     artId: 'evidence-ledger-fragment',
+  },
+  {
+    id: 'veyr-river-route',
+    title: { ru: 'Маршрут к речному архиву', en: 'River Archive Route' },
+    description: { ru: 'Индекс, список покупателей и сектор C-17 сходятся на старом речном архиве, где назначены последние торги.', en: 'The index, buyer list and C-17 sector converge on an old river archive hosting the final sale.' },
+    artId: 'final-route-map',
   },
 ] as const;
