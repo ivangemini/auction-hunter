@@ -146,6 +146,34 @@ export const CAMPAIGN_MISSIONS: CampaignMission[] = [
     objective: { type: 'negotiate', target: 1, description: { ru: 'Решите, чем заплатить Мире — или откажитесь от её короткого пути.', en: 'Choose how to pay Mira — or refuse her shortcut.' } },
     prerequisiteMissionIds: ['estate-false-paper'], rewardCash: 700, rewardRep: 80, evidenceRewardIds: ['private-auction-lead'], featuredRivalId: 'npc-1', artId: 'private-invitation',
   },
+  {
+    id: 'dealer-war-leak', chapterId: 'dealer-war', order: 1,
+    title: { ru: 'Кто слил время?', en: 'Who Leaked the Time?' },
+    briefing: { ru: 'На закрытом показе Антон появляется раньше приглашённых и знает точное время из карточки Миры. Совпадение слишком удобное.', en: "Anton reaches the private preview before the invited dealers and knows the exact time from Mira's card. The coincidence is too clean." },
+    objective: { type: 'track-rival', target: 1, description: { ru: 'Сопоставьте поведение дилеров и найдите источник утечки.', en: 'Compare dealer behavior and identify the source of the leak.' } },
+    prerequisiteMissionIds: ['estate-mira-offer'], rewardCash: 950, rewardRep: 90, evidenceRewardIds: ['dealer-leak-pattern'], featuredRivalId: 'npc-2', artId: 'private-invitation',
+  },
+  {
+    id: 'dealer-war-pressure', chapterId: 'dealer-war', order: 2,
+    title: { ru: 'Поднять цену', en: 'Run the Price Up' },
+    briefing: { ru: 'Антон теперь знает, что вы идёте по следу Вейра, и специально давит на ваши ставки. Отношения с дилерами впервые меняют потолки торгов.', en: 'Anton now knows you are following Veyr and deliberately pressures your bids. Dealer relationships now change auction ceilings.' },
+    objective: { type: 'win-auction', target: 1, description: { ru: 'Выиграйте аукцион после начала задания, несмотря на давление дилеров.', en: 'Win an auction after starting the mission despite dealer pressure.' } },
+    prerequisiteMissionIds: ['dealer-war-leak'], rewardCash: 1250, rewardRep: 105, featuredRivalId: 'npc-2',
+  },
+  {
+    id: 'dealer-war-ally', chapterId: 'dealer-war', order: 3,
+    title: { ru: 'Один союзник', en: 'One Ally' },
+    briefing: { ru: 'Виктор предлагает тихо убрать Антона с одного просмотра. Мира предлагает ложный адрес. Обоих одновременно использовать нельзя.', en: 'Victor offers to quietly keep Anton out of one preview. Mira offers a false address. You cannot use both plays at once.' },
+    objective: { type: 'branch-choice', target: 1, description: { ru: 'Выберите, чью помощь принять перед следующим закрытым просмотром.', en: 'Choose whose help to accept before the next private preview.' } },
+    prerequisiteMissionIds: ['dealer-war-pressure'], rewardCash: 800, rewardRep: 120, artId: 'provenance-folder',
+  },
+  {
+    id: 'dealer-war-address', chapterId: 'dealer-war', order: 4,
+    title: { ru: 'Сгоревший адрес', en: 'The Burned Address' },
+    briefing: { ru: 'После вашей сделки сеть меняет место встречи. На трёх карточках только одна использует тот же типографский дефект, что и настоящее приглашение.', en: 'After your move, the network changes venues. Only one of three cards carries the same printing defect as the genuine invitation.' },
+    objective: { type: 'select-evidence-lot', target: 1, description: { ru: 'Найдите настоящий новый адрес по дефекту печати.', en: 'Find the genuine new address from the printing defect.' } },
+    prerequisiteMissionIds: ['dealer-war-ally'], rewardCash: 1500, rewardRep: 140, evidenceRewardIds: ['closed-circle-address'], artId: 'private-invitation',
+  },
 ];
 
 export const CAMPAIGN_EVIDENCE = [
@@ -183,6 +211,18 @@ export const CAMPAIGN_EVIDENCE = [
     id: 'private-auction-lead',
     title: { ru: 'Частное приглашение', en: 'Private Auction Lead' },
     description: { ru: 'След ведёт к закрытой сети дилеров. На приглашении нет адреса — только время и контакт.', en: 'The trail reaches a closed dealer network. The invitation has no address, only a time and contact.' },
+    artId: 'private-invitation',
+  },
+  {
+    id: 'dealer-leak-pattern',
+    title: { ru: 'Шаблон утечки', en: 'Leak Pattern' },
+    description: { ru: 'Антон появляется на закрытых просмотрах раньше рассылки общего адреса. Кто-то передаёт ему детали заранее.', en: 'Anton reaches private previews before the general address is distributed. Someone is feeding him details early.' },
+    artId: 'provenance-folder',
+  },
+  {
+    id: 'closed-circle-address',
+    title: { ru: 'Новый адрес круга', en: 'Closed Circle Address' },
+    description: { ru: 'Типографский дефект подтверждает подлинность новой карточки. След ведёт в закрытый круг покупателей.', en: 'A printing defect authenticates the new card. The trail now leads into the closed circle of buyers.' },
     artId: 'private-invitation',
   },
 ] as const;
