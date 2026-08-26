@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import './styles.css';
 import { trackEvent } from './analytics';
 import { registerCampaignBreadth } from './data/campaignBreadth';
+import { registerCampaignBreadthThree } from './data/campaignBreadthThree';
 import { registerCampaignBreadthTwo } from './data/campaignBreadthTwo';
 import { registerCampaignDiscoveryChains } from './data/campaignDiscoveryChains';
 import { registerCampaignFinaleBreadth } from './data/campaignFinaleBreadth';
@@ -35,6 +36,7 @@ async function bootstrap(): Promise<void> {
   registerItemBreadth();
   registerCampaignBreadth();
   registerCampaignBreadthTwo();
+  registerCampaignBreadthThree();
   registerCampaignFinaleBreadth();
   registerNadiaCampaignArc();
   registerCampaignDiscoveryChains();
