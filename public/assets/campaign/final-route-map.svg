@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 360">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#121519"/><stop offset="1" stop-color="#2a2119"/></linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ddcba2"/><stop offset="1" stop-color="#9c835c"/></linearGradient>
+    <filter id="shadow"><feGaussianBlur stdDeviation="8"/></filter>
+  </defs>
+  <rect width="512" height="360" fill="url(#bg)"/>
+  <ellipse cx="258" cy="303" rx="178" ry="25" fill="#000" opacity=".44" filter="url(#shadow)"/>
+  <g transform="rotate(-3 256 185)">
+    <path d="M74 84 Q89 70 107 76 L416 93 Q437 96 438 116 L423 283 Q420 301 398 300 L94 281 Q73 277 72 257Z" fill="url(#paper)" stroke="#6d593d" stroke-width="5"/>
+    <path d="M100 107 C152 137 166 190 132 253 M153 91 C187 133 228 148 274 133 C325 117 366 137 414 177 M81 194 C143 173 205 187 247 222 C289 257 348 268 420 235" fill="none" stroke="#53686a" stroke-width="7" opacity=".58"/>
+    <path d="M121 119 L180 151 L215 126 L273 155 L326 131 L390 159" fill="none" stroke="#7b6947" stroke-width="4" stroke-dasharray="7 7" opacity=".65"/>
+    <path d="M102 238 L163 211 L224 235 L291 199 L355 220 L410 194" fill="none" stroke="#7d553b" stroke-width="5" opacity=".67"/>
+    <g fill="#3e3324" stroke="#bd8c45" stroke-width="3">
+      <circle cx="146" cy="205" r="10"/><circle cx="287" cy="198" r="10"/><circle cx="386" cy="194" r="10"/>
+    </g>
+    <g fill="#8a2c26"><circle cx="287" cy="198" r="5"/><path d="M279 180 l8 -14 l8 14Z"/></g>
+    <path d="M324 105 q22 9 39 28 M329 114 q18 6 31 20" fill="none" stroke="#4e4030" stroke-width="4" opacity=".55"/>
+    <path d="M181 255 q30 -18 59 -5 q25 12 47 -5" fill="none" stroke="#5f4a34" stroke-width="4" opacity=".48"/>
+    <circle cx="115" cy="113" r="20" fill="none" stroke="#6d3d30" stroke-width="5" opacity=".75"/><path d="M101 113 h28 M115 99 v28" stroke="#6d3d30" stroke-width="3" opacity=".75"/>
+  </g>
+  <path d="M82 76 Q111 58 137 76" fill="none" stroke="#ead69f" stroke-width="3" opacity=".32"/>
+</svg>
