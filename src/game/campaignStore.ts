@@ -60,10 +60,38 @@ export class CampaignStore {
 
   chooseBranch(choiceId: string, rivalId?: string, delta?: Partial<Record<'trust' | 'rivalry' | 'debt', number>>): void {
     const save = loadLocalSave();
+    if (save.campaign.branchChoiceIds.includes(choiceId)) return;
     save.campaign = recordCampaignBranchChoice(save.campaign, choiceId);
     if (rivalId && delta) save.campaign = applyCampaignRelationshipDelta(save.campaign, rivalId, delta);
     this.persist(save);
     trackEvent('campaign_branch_chosen', { choiceId, rivalId });
+  }
+
+  payBranchChoice(
+    choiceId: string,
+    cost: number,
+    rivalId?: string,
+    delta?: Partial<Record<'trust' | 'rivalry' | 'debt', number>>,
+  ): boolean {
+    const save = loadLocalSave();
+    if (save.campaign.branchChoiceIds.includes(choiceId)) return false;
+    const amount = Math.max(0, Math.round(cost));
+    if (save.cash < amount) return false;
+    save.cash -= amount;
+    save.campaign = recordCampaignBranchChoice(save.campaign, choiceId);
+    if (rivalId && delta) save.campaign = applyCampaignRelationshipDelta(save.campaign, rivalId, delta);
+    this.persist(save);
+    trackEvent('campaign_branch_chosen', { choiceId, rivalId });
+    return true;
+  }
+
+  resetBranchChoices(prefix: string): void {
+    const save = loadLocalSave();
+    save.campaign = {
+      ...save.campaign,
+      branchChoiceIds: save.campaign.branchChoiceIds.filter((choiceId) => !choiceId.startsWith(prefix)),
+    };
+    this.persist(save);
   }
 
   private persist(save: PlayerSave): void {
