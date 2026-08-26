@@ -27,8 +27,8 @@ describe('P9 Chapter III Dealer War', () => {
   it('gives Nadia a real relationship mission before the shared-envelope auction', () => {
     expect(missions[3]?.id).toBe('dealer-war-nadia-archive');
     expect(missions[3]?.featuredRivalId).toBe('npc-6');
-    expect(missions[3]?.evidenceRewardIds).toContain('nadia-carrier-card');
-    expect(CAMPAIGN_EVIDENCE.some((evidence) => evidence.id === 'nadia-carrier-card')).toBe(true);
+    expect(missions[3]?.objective.type).toBe('rival-deal');
+    expect(missions[3]?.rewardRep).toBeGreaterThan(0);
     expect(missions[4]?.prerequisiteMissionIds).toEqual(['dealer-war-nadia-archive']);
   });
 
