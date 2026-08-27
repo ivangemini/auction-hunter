@@ -175,11 +175,6 @@ function installLotHitTarget(
     if (scene.lotSelectionPending) return;
     scene.lotSelectionPending = true;
     playFeedbackCue(scene, 'ui');
-    trackEvent('commercial_lot_card_selected', {
-      tierId: scene.currentTierId,
-      lotId: choice.lot.id,
-      optionIndex,
-    });
 
     if (prefersReducedMotion()) {
       scene.selectLotChoice(choice, optionIndex);
