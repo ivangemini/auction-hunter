@@ -165,13 +165,26 @@ function installLotHitTarget(
   const glow = scene.add.rectangle(centerX, 683, 348, 58, accent, 0)
     .setStrokeStyle(3, accent, 0)
     .setDepth(7);
+
+  const enterLobby = (): void => {
+    // Phaser may finish dispatching the pointer event after renderLobby has
+    // already destroyed the selection objects. Freeze input briefly so a
+    // compatibility target from the previous screen cannot receive the next
+    // click before the InputPlugin has settled its interactive list.
+    scene.input.enabled = false;
+    scene.selectLotChoice(choice, optionIndex);
+    scene.time.delayedCall(80, () => {
+      scene.input.enabled = true;
+    });
+  };
+
   const commitSelection = (): void => {
     if (scene.lotSelectionPending) return;
     scene.lotSelectionPending = true;
     playFeedbackCue(scene, 'ui');
 
     if (prefersReducedMotion()) {
-      scene.selectLotChoice(choice, optionIndex);
+      enterLobby();
       return;
     }
 
@@ -182,7 +195,7 @@ function installLotHitTarget(
       scaleY: { from: 1, to: 1.025 },
       duration: 130,
       ease: 'Cubic.Out',
-      onComplete: () => scene.selectLotChoice(choice, optionIndex),
+      onComplete: enterLobby,
     });
   };
 
