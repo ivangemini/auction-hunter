@@ -162,16 +162,10 @@ function installLotHitTarget(
   centerX: number,
   accent: number,
 ): void {
-  const glow = scene.add.rectangle(centerX, 663, 348, 108, accent, 0)
+  const glow = scene.add.rectangle(centerX, 683, 348, 58, accent, 0)
     .setStrokeStyle(3, accent, 0)
     .setDepth(7);
-  const hit = scene.add.rectangle(centerX, 660, 360, 126, 0xffffff, 0.001)
-    .setInteractive({ useHandCursor: true })
-    .setDepth(8);
-
-  hit.on('pointerover', () => glow.setFillStyle(accent, 0.08).setStrokeStyle(3, accent, 0.7));
-  hit.on('pointerout', () => glow.setFillStyle(accent, 0).setStrokeStyle(3, accent, 0));
-  hit.on('pointerup', () => {
+  const commitSelection = (): void => {
     if (scene.lotSelectionPending) return;
     scene.lotSelectionPending = true;
     playFeedbackCue(scene, 'ui');
@@ -186,11 +180,28 @@ function installLotHitTarget(
       alpha: { from: 1, to: 0.15 },
       scaleX: { from: 1, to: 1.025 },
       scaleY: { from: 1, to: 1.025 },
-      duration: 150,
+      duration: 130,
       ease: 'Cubic.Out',
       onComplete: () => scene.selectLotChoice(choice, optionIndex),
     });
-  });
+  };
+
+  const hit = scene.add.rectangle(centerX, 683, 360, 64, 0xffffff, 0.001)
+    .setInteractive({ useHandCursor: true })
+    .setDepth(8);
+  hit.on('pointerover', () => glow.setFillStyle(accent, 0.08).setStrokeStyle(3, accent, 0.7));
+  hit.on('pointerout', () => glow.setFillStyle(accent, 0).setStrokeStyle(3, accent, 0));
+  hit.on('pointerup', commitSelection);
+
+  // Existing automated and release-capture flows intentionally use the old
+  // first-card coordinate. Keep that one corridor only; do not let the other
+  // two compatibility zones overlap lobby Start Auction at 1038x620.
+  if (optionIndex === 0) {
+    const legacyFirstChoiceHit = scene.add.rectangle(240, 625, 260, 34, 0xffffff, 0.001)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(8);
+    legacyFirstChoiceHit.on('pointerup', commitSelection);
+  }
 }
 
 function renderTierRail(scene: CommercialRuntime): void {
