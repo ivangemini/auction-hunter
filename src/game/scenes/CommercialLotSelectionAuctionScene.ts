@@ -2,15 +2,20 @@ import Phaser from 'phaser';
 import type { PlayerSave } from '../../domain/types';
 import { t } from '../../i18n';
 import { setGameplayActive } from '../../platform/yandex';
+import { resolveLotTexture } from '../art';
+import backplate0 from '../commercialArt/backplate0';
+import backplate1 from '../commercialArt/backplate1';
+import backplate2 from '../commercialArt/backplate2';
+import backplate3 from '../commercialArt/backplate3';
+import backplate4 from '../commercialArt/backplate4';
+import backplate5 from '../commercialArt/backplate5';
 import { playFeedbackCue } from '../feedback';
 import type { LotChoice } from '../lotMarket';
 import { prefersReducedMotion } from '../motion';
 import { CampaignProvenanceAuctionScene } from './CampaignProvenanceAuctionScene';
 
 const COMMERCIAL_LOT_TEXTURE = 'ui:lot-selection-commercial';
-const COMMERCIAL_LOT_ASSET = '/assets/ui/lot-selection-commercial.webp';
-const COMMERCIAL_CARD_TEXTURE = 'ui:lot-card-commercial';
-const COMMERCIAL_CARD_ASSET = '/assets/ui/lot-card-commercial.webp';
+const COMMERCIAL_LOT_ASSET = `data:image/webp;base64,${backplate0}${backplate1}${backplate2}${backplate3}${backplate4}${backplate5}`;
 const CARD_CENTERS = [226, 638, 1050] as const;
 const CARD_ACCENTS = [0x3d9cff, 0xa454e8, 0xe9a72b] as const;
 
@@ -28,8 +33,8 @@ type CommercialRuntime = Phaser.Scene & {
 
 /**
  * Painterly production presentation for the real lot-selection runtime.
- * Raster assets own scene/character/material richness; Phaser owns live data,
- * navigation, hit targets, localization, analytics and auction/economy truth.
+ * Authored raster art owns the room/character/material read; Phaser owns live
+ * values, semantic lot imagery, localization, navigation and interaction.
  */
 export class CommercialLotSelectionAuctionScene extends CampaignProvenanceAuctionScene {
   constructor() {
@@ -41,10 +46,10 @@ export class CommercialLotSelectionAuctionScene extends CampaignProvenanceAuctio
   preload(): void {
     super.preload();
     if (!this.textures.exists(COMMERCIAL_LOT_TEXTURE)) {
+      // The verified production WebP is staged as source chunks in this branch.
+      // Loading the data URI removes the broken temporary 7.5 KB public blob
+      // and avoids package/base-path differences at runtime.
       this.load.image(COMMERCIAL_LOT_TEXTURE, COMMERCIAL_LOT_ASSET);
-    }
-    if (!this.textures.exists(COMMERCIAL_CARD_TEXTURE)) {
-      this.load.image(COMMERCIAL_CARD_TEXTURE, COMMERCIAL_CARD_ASSET);
     }
   }
 }
@@ -57,6 +62,7 @@ function renderCommercialLotSelection(scene: CommercialRuntime): void {
   renderCommercialBackdrop(scene);
   renderLiveHeader(scene);
 
+  // AuctionScene remains the single owner of tier state and market cycles.
   scene.renderTierTabs(true);
 
   renderNavigation(scene);
@@ -66,9 +72,7 @@ function renderCommercialLotSelection(scene: CommercialRuntime): void {
     const centerX = CARD_CENTERS[index];
     if (centerX === undefined) return;
     const accent = CARD_ACCENTS[index] ?? CARD_ACCENTS[0];
-    renderCommercialCardShell(scene, centerX, accent);
-    renderLiveLotData(scene, choice, centerX);
-    installLotHitTarget(scene, choice, index, centerX, accent);
+    renderCommercialCard(scene, choice, index, centerX, accent);
   });
 }
 
@@ -80,114 +84,124 @@ function renderCommercialBackdrop(scene: CommercialRuntime): void {
     return;
   }
 
-  scene.add.rectangle(640, 360, 1280, 720, 0x251412, 1).setDepth(0);
-  scene.add.text(640, 260, 'COMMERCIAL ART LOAD FAILED', {
-    fontFamily: 'Arial, sans-serif',
-    fontSize: '30px',
-    fontStyle: 'bold',
-    color: '#ffca70',
+  // A visible fallback is deliberately preferable to silently shipping black.
+  scene.add.rectangle(640, 360, 1280, 720, 0x17100d, 1).setDepth(0);
+  scene.add.ellipse(640, 260, 980, 460, 0xd18431, 0.15).setDepth(0);
+  scene.add.text(640, 250, 'COMMERCIAL ART LOAD FAILED', {
+    fontFamily: 'Arial, sans-serif', fontSize: '24px', fontStyle: 'bold', color: '#ffca70',
   }).setOrigin(0.5).setDepth(1);
-}
-
-function renderCommercialCardShell(scene: CommercialRuntime, centerX: number, accent: number): void {
-  if (scene.textures.exists(COMMERCIAL_CARD_TEXTURE)) {
-    scene.add.image(centerX, 535, COMMERCIAL_CARD_TEXTURE)
-      .setDisplaySize(388, 328)
-      .setTint(accent)
-      .setAlpha(0.94)
-      .setDepth(2);
-    return;
-  }
-
-  scene.add.text(centerX, 500, 'ART', {
-    fontFamily: 'Arial, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#ffca70',
-  }).setOrigin(0.5).setDepth(2);
 }
 
 function renderLiveHeader(scene: CommercialRuntime): void {
   const save = scene.store.snapshot;
 
+  scene.add.rectangle(166, 52, 300, 76, 0x05070a, 0.58)
+    .setStrokeStyle(1, 0xd8a63a, 0.46)
+    .setDepth(5);
+
   scene.add.text(32, 24, scene.locale === 'ru' ? 'РЕПУТАЦИЯ' : 'REPUTATION', {
     fontFamily: 'Georgia, serif', fontSize: '10px', color: '#d6c7ae',
-    stroke: '#07090c', strokeThickness: 3,
   }).setDepth(6);
   scene.add.text(32, 42, String(Math.floor(save.reputationXp)), {
     fontFamily: 'Georgia, serif', fontSize: '23px', fontStyle: 'bold', color: '#d99cff',
-    stroke: '#07090c', strokeThickness: 4,
   }).setDepth(6);
 
   scene.add.text(178, 24, scene.locale === 'ru' ? 'СРЕДСТВА' : 'FUNDS', {
     fontFamily: 'Georgia, serif', fontSize: '10px', color: '#d6c7ae',
-    stroke: '#07090c', strokeThickness: 3,
   }).setDepth(6);
   scene.add.text(178, 42, scene.money(save.cash), {
     fontFamily: 'Georgia, serif', fontSize: '23px', fontStyle: 'bold', color: '#83e87a',
-    stroke: '#07090c', strokeThickness: 4,
   }).setDepth(6);
 
-  if (scene.locale === 'ru') {
-    scene.add.text(640, 24, 'ВЫБЕРИ СЛЕДУЮЩИЙ ЛОТ', {
-      fontFamily: 'Georgia, serif', fontSize: '31px', fontStyle: 'bold', color: '#f2d488',
-      stroke: '#07090c', strokeThickness: 5,
-    }).setOrigin(0.5, 0).setDepth(6);
-    scene.add.text(640, 66, 'Три разных лота. Оцени риск и выбери, за что торговаться.', {
-      fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#f3eee4',
-      stroke: '#07090c', strokeThickness: 3,
-    }).setOrigin(0.5, 0).setDepth(6);
-  }
+  scene.add.rectangle(640, 53, 560, 82, 0x05070a, 0.46).setDepth(5);
+  scene.add.text(640, 24, scene.locale === 'ru' ? 'ВЫБЕРИ СЛЕДУЮЩИЙ ЛОТ' : 'CHOOSE YOUR NEXT LOT', {
+    fontFamily: 'Georgia, serif', fontSize: '31px', fontStyle: 'bold', color: '#f2d488',
+    stroke: '#1b0e06', strokeThickness: 2,
+  }).setOrigin(0.5, 0).setDepth(6);
+  scene.add.text(640, 66, scene.locale === 'ru'
+    ? 'Три разных лота. Оцени риск и выбери, за что торговаться.'
+    : 'Three different lots. Read the risk, then choose what to bid on.', {
+    fontFamily: 'Arial, sans-serif', fontSize: '12px', color: '#f3eee4',
+    stroke: '#05070a', strokeThickness: 2,
+  }).setOrigin(0.5, 0).setDepth(6);
 }
 
-function renderLiveLotData(
+function renderCommercialCard(
   scene: CommercialRuntime,
   choice: LotChoice,
+  optionIndex: number,
   centerX: number,
+  accent: number,
 ): void {
-  scene.add.text(centerX, 386, choice.lot.name[scene.locale], {
+  // Keep chrome translucent: authored imagery must dominate the card.
+  scene.add.rectangle(centerX + 5, 550, 366, 306, 0x000000, 0.28)
+    .setStrokeStyle(2, 0x000000, 0.26)
+    .setDepth(2);
+  scene.add.rectangle(centerX, 545, 366, 306, 0x07090c, 0.54)
+    .setStrokeStyle(2, accent, 0.72)
+    .setDepth(3);
+  scene.add.rectangle(centerX, 403, 334, 4, accent, 0.92).setDepth(4);
+
+  const texture = resolveLotTexture(scene, choice.lot.artId ?? choice.lot.id);
+  if (texture) {
+    scene.add.image(centerX, 474, texture)
+      .setDisplaySize(330, 138)
+      .setDepth(4);
+  } else {
+    scene.add.rectangle(centerX, 474, 330, 138, accent, 0.14)
+      .setStrokeStyle(1, accent, 0.4)
+      .setDepth(4);
+  }
+
+  scene.add.rectangle(centerX, 525, 330, 34, 0x030405, 0.38).setDepth(4);
+
+  scene.add.text(centerX - 148, 414, String(optionIndex + 1), {
+    fontFamily: 'Georgia, serif', fontSize: '26px', fontStyle: 'bold', color: '#fff4d5',
+    stroke: '#160b05', strokeThickness: 3,
+  }).setDepth(6);
+  scene.add.rectangle(centerX - 139, 437, 40, 2, accent, 0.9).setDepth(5);
+
+  scene.add.text(centerX, 536, choice.lot.name[scene.locale], {
     fontFamily: 'Georgia, serif',
     fontSize: '18px',
     fontStyle: 'bold',
     color: '#fff7e8',
     stroke: '#05070a',
-    strokeThickness: 4,
+    strokeThickness: 3,
     align: 'center',
-    wordWrap: { width: 286 },
+    wordWrap: { width: 320 },
   }).setOrigin(0.5, 0).setDepth(6);
-  scene.add.text(centerX, 416, choice.lot.location[scene.locale], {
+  scene.add.text(centerX, 562, choice.lot.location[scene.locale], {
     fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#d7ecfa',
-    stroke: '#05070a', strokeThickness: 3,
-  }).setOrigin(0.5, 0).setDepth(6);
-
-  const infoX = centerX + 100;
-  scene.add.text(infoX, 474, t(scene.locale, 'reservePrice').toUpperCase(), {
-    fontFamily: 'Arial, sans-serif', fontSize: '8px', color: '#c9c0ae',
     stroke: '#05070a', strokeThickness: 2,
   }).setOrigin(0.5, 0).setDepth(6);
-  scene.add.text(infoX, 491, scene.money(choice.lot.reservePrice), {
-    fontFamily: 'Georgia, serif', fontSize: '17px', fontStyle: 'bold', color: '#ffe19a',
-    stroke: '#05070a', strokeThickness: 3,
-  }).setOrigin(0.5, 0).setDepth(6);
 
-  scene.add.text(infoX, 531, t(scene.locale, 'itemsInside').toUpperCase(), {
-    fontFamily: 'Arial, sans-serif', fontSize: '8px', color: '#c9c0ae',
-    stroke: '#05070a', strokeThickness: 2,
-  }).setOrigin(0.5, 0).setDepth(6);
-  scene.add.text(infoX, 548, String(choice.lot.itemCount), {
-    fontFamily: 'Georgia, serif', fontSize: '18px', fontStyle: 'bold', color: '#ffffff',
-    stroke: '#05070a', strokeThickness: 3,
-  }).setOrigin(0.5, 0).setDepth(6);
+  renderMetric(scene, centerX - 108, 594, t(scene.locale, 'reservePrice'), scene.money(choice.lot.reservePrice), '#ffe19a');
+  renderMetric(scene, centerX, 594, t(scene.locale, 'itemsInside'), String(choice.lot.itemCount), '#ffffff');
 
   const eventName = choice.modifier
     ? choice.modifier.name[scene.locale]
     : t(scene.locale, 'noEvent');
-  scene.add.text(infoX, 585, t(scene.locale, 'event').toUpperCase(), {
-    fontFamily: 'Arial, sans-serif', fontSize: '8px', color: '#c9c0ae',
-    stroke: '#05070a', strokeThickness: 2,
+  renderMetric(scene, centerX + 108, 594, t(scene.locale, 'event'), eventName, choice.modifier ? '#d9a1ff' : '#aab3bc');
+
+  installLotHitTarget(scene, choice, optionIndex, centerX, accent);
+}
+
+function renderMetric(
+  scene: CommercialRuntime,
+  x: number,
+  y: number,
+  label: string,
+  value: string,
+  valueColor: string,
+): void {
+  scene.add.text(x, y, label.toUpperCase(), {
+    fontFamily: 'Arial, sans-serif', fontSize: '7px', fontStyle: 'bold', color: '#b9b1a5',
   }).setOrigin(0.5, 0).setDepth(6);
-  scene.add.text(infoX, 601, eventName, {
-    fontFamily: 'Arial, sans-serif', fontSize: '8px', fontStyle: 'bold',
-    color: choice.modifier ? '#d9a1ff' : '#d5dde4', align: 'center',
+  scene.add.text(x, y + 16, value, {
+    fontFamily: 'Georgia, serif', fontSize: '13px', fontStyle: 'bold', color: valueColor,
+    align: 'center', wordWrap: { width: 100 },
     stroke: '#05070a', strokeThickness: 2,
-    wordWrap: { width: 98 },
   }).setOrigin(0.5, 0).setDepth(6);
 }
 
@@ -198,9 +212,14 @@ function installLotHitTarget(
   centerX: number,
   accent: number,
 ): void {
-  const glow = scene.add.rectangle(centerX, 681, 344, 54, accent, 0)
-    .setStrokeStyle(3, accent, 0)
+  const glow = scene.add.rectangle(centerX, 681, 332, 50, accent, 0.2)
+    .setStrokeStyle(2, accent, 0.82)
     .setDepth(7);
+  const label = scene.add.text(centerX, 681, t(scene.locale, 'chooseLot').toUpperCase(), {
+    fontFamily: 'Georgia, serif', fontSize: '16px', fontStyle: 'bold', color: '#fff5dc',
+    stroke: '#241205', strokeThickness: 2,
+  }).setOrigin(0.5).setDepth(8);
+
   const commitSelection = (): void => {
     if (scene.lotSelectionPending) return;
     scene.lotSelectionPending = true;
@@ -212,27 +231,28 @@ function installLotHitTarget(
     }
 
     scene.tweens.add({
-      targets: glow,
-      alpha: { from: 1, to: 0.15 },
+      targets: [glow, label],
       scaleX: { from: 1, to: 1.025 },
       scaleY: { from: 1, to: 1.025 },
       duration: 130,
+      yoyo: true,
       ease: 'Cubic.Out',
       onComplete: () => scene.selectLotChoice(choice, optionIndex),
     });
   };
 
-  const hit = scene.add.rectangle(centerX, 681, 354, 62, 0xffffff, 0.001)
+  const hit = scene.add.rectangle(centerX, 681, 342, 56, 0xffffff, 0.001)
     .setInteractive({ useHandCursor: true })
-    .setDepth(8);
-  hit.on('pointerover', () => glow.setFillStyle(accent, 0.08).setStrokeStyle(3, accent, 0.7));
-  hit.on('pointerout', () => glow.setFillStyle(accent, 0).setStrokeStyle(3, accent, 0));
+    .setDepth(9);
+  hit.on('pointerover', () => glow.setFillStyle(accent, 0.36).setStrokeStyle(3, 0xffefbd, 0.85));
+  hit.on('pointerout', () => glow.setFillStyle(accent, 0.2).setStrokeStyle(2, accent, 0.82));
   hit.on('pointerup', commitSelection);
 
+  // Existing automated/release-capture flows intentionally use this corridor.
   if (optionIndex === 0) {
     const legacyFirstChoiceHit = scene.add.rectangle(240, 625, 260, 34, 0xffffff, 0.001)
       .setInteractive({ useHandCursor: true })
-      .setDepth(8);
+      .setDepth(9);
     legacyFirstChoiceHit.on('pointerup', commitSelection);
   }
 }
