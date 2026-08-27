@@ -1,6 +1,4 @@
 import Phaser from 'phaser';
-import { trackEvent } from '../../analytics';
-import { AUCTION_TIERS, type AuctionTierId } from '../../data/tiers';
 import type { PlayerSave } from '../../domain/types';
 import { t } from '../../i18n';
 import { setGameplayActive } from '../../platform/yandex';
@@ -17,13 +15,12 @@ const CARD_ACCENTS = [0x3d9cff, 0xa454e8, 0xe9a72b] as const;
 type CommercialRuntime = Phaser.Scene & {
   locale: 'ru' | 'en';
   lotChoices: LotChoice[];
-  currentTierId: AuctionTierId;
   lotSelectionPending: boolean;
   store: { snapshot: Readonly<PlayerSave> };
-  prepareLotChoices: () => void;
   selectLotChoice: (choice: LotChoice, optionIndex: number) => void;
   activateDailySpecial: () => void;
   money: (value: number) => string;
+  renderTierTabs: (interactive: boolean) => void;
   renderLotSelection: () => void;
 };
 
@@ -57,7 +54,12 @@ function renderCommercialLotSelection(scene: CommercialRuntime): void {
     .setDepth(0);
 
   renderLiveHeader(scene);
-  renderTierRail(scene);
+
+  // Preserve AuctionScene as the sole owner of tier state, market-cycle cache,
+  // unlock rules, Daily clearing and tier analytics. Presentation must not
+  // duplicate those rules just to match a visual composition.
+  scene.renderTierTabs(true);
+
   renderNavigation(scene);
   installLegacyNavigationTargets(scene);
 
@@ -165,26 +167,13 @@ function installLotHitTarget(
   const glow = scene.add.rectangle(centerX, 683, 348, 58, accent, 0)
     .setStrokeStyle(3, accent, 0)
     .setDepth(7);
-
-  const enterLobby = (): void => {
-    // Phaser may finish dispatching the pointer event after renderLobby has
-    // already destroyed the selection objects. Freeze input briefly so a
-    // compatibility target from the previous screen cannot receive the next
-    // click before the InputPlugin has settled its interactive list.
-    scene.input.enabled = false;
-    scene.selectLotChoice(choice, optionIndex);
-    scene.time.delayedCall(80, () => {
-      scene.input.enabled = true;
-    });
-  };
-
   const commitSelection = (): void => {
     if (scene.lotSelectionPending) return;
     scene.lotSelectionPending = true;
     playFeedbackCue(scene, 'ui');
 
     if (prefersReducedMotion()) {
-      enterLobby();
+      scene.selectLotChoice(choice, optionIndex);
       return;
     }
 
@@ -195,7 +184,7 @@ function installLotHitTarget(
       scaleY: { from: 1, to: 1.025 },
       duration: 130,
       ease: 'Cubic.Out',
-      onComplete: enterLobby,
+      onComplete: () => scene.selectLotChoice(choice, optionIndex),
     });
   };
 
@@ -217,38 +206,6 @@ function installLotHitTarget(
   }
 }
 
-function renderTierRail(scene: CommercialRuntime): void {
-  const reputationXp = scene.store.snapshot.reputationXp;
-  AUCTION_TIERS.forEach((tier, index) => {
-    const x = 500 + index * 140;
-    const unlocked = reputationXp >= tier.minReputationXp;
-    const selected = tier.id === scene.currentTierId;
-    const label = scene.add.text(x, 104, tier.name[scene.locale].toUpperCase(), {
-      fontFamily: 'Arial, sans-serif',
-      fontSize: '9px',
-      fontStyle: selected ? 'bold' : 'normal',
-      color: selected ? '#f2d488' : unlocked ? '#d6d1c8' : '#665f55',
-    }).setOrigin(0.5).setDepth(8);
-
-    scene.add.rectangle(x, 115, 90, 2, selected ? tier.accent : 0x6b5631, selected ? 0.9 : 0.22).setDepth(8);
-    if (!unlocked || selected) return;
-
-    label.setInteractive({ useHandCursor: true });
-    label.on('pointerup', () => selectTier(scene, tier.id));
-  });
-}
-
-function selectTier(scene: CommercialRuntime, tierId: AuctionTierId): void {
-  if (tierId === scene.currentTierId) return;
-  const tier = AUCTION_TIERS.find((candidate) => candidate.id === tierId);
-  if (!tier || scene.store.snapshot.reputationXp < tier.minReputationXp) return;
-  playFeedbackCue(scene, 'ui');
-  trackEvent('tier_selected', { tierId, reputationXp: scene.store.snapshot.reputationXp });
-  scene.currentTierId = tierId;
-  scene.prepareLotChoices();
-  scene.renderLotSelection();
-}
-
 function renderNavigation(scene: CommercialRuntime): void {
   addTextAction(scene, 1026, 106, scene.locale === 'ru' ? 'КОЛЛЕКЦИЯ' : 'COLLECTION', 0x61a8ff, () => scene.scene.start('collection'));
   addTextAction(scene, 1134, 106, scene.locale === 'ru' ? 'ЕЖЕДНЕВНЫЙ' : 'DAILY', 0xe9b949, () => scene.activateDailySpecial());
@@ -256,14 +213,6 @@ function renderNavigation(scene: CommercialRuntime): void {
 }
 
 function installLegacyNavigationTargets(scene: CommercialRuntime): void {
-  AUCTION_TIERS.forEach((tier, index) => {
-    const x = 250 + index * 390;
-    const legacyTierHit = scene.add.rectangle(x, 151, 340, 48, 0xffffff, 0.001)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(7);
-    legacyTierHit.on('pointerup', () => selectTier(scene, tier.id));
-  });
-
   const collectionHit = scene.add.rectangle(1000, 112, 176, 32, 0xffffff, 0.001)
     .setInteractive({ useHandCursor: true })
     .setDepth(7);
