@@ -27,6 +27,14 @@ jobs:
       - run: node scripts/validate-campaign-evidence-render.mjs
       - run: node scripts/render-yandex-promos.mjs
       - run: node scripts/capture-yandex-screenshots.mjs
+      - name: Upload generated screenshot diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: auction-hunter-generated-screenshot-debug
+          path: release/screenshots/generated/**/*.png
+          if-no-files-found: ignore
+          retention-days: 3
       - run: node scripts/capture-restoration-review.mjs
       - name: Upload restoration visual review
         uses: actions/upload-artifact@v4
