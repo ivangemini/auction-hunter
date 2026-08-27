@@ -57,8 +57,6 @@ function renderCommercialLotSelection(scene: CommercialRuntime): void {
   renderCommercialBackdrop(scene);
   renderLiveHeader(scene);
 
-  // AuctionScene remains the sole owner of tier state, market-cycle cache,
-  // unlock rules, Daily clearing and tier analytics.
   scene.renderTierTabs(true);
 
   renderNavigation(scene);
@@ -69,7 +67,7 @@ function renderCommercialLotSelection(scene: CommercialRuntime): void {
     if (centerX === undefined) return;
     const accent = CARD_ACCENTS[index] ?? CARD_ACCENTS[0];
     renderCommercialCardShell(scene, centerX, accent);
-    renderLiveLotData(scene, choice, centerX, accent);
+    renderLiveLotData(scene, choice, centerX);
     installLotHitTarget(scene, choice, index, centerX, accent);
   });
 }
@@ -82,8 +80,6 @@ function renderCommercialBackdrop(scene: CommercialRuntime): void {
     return;
   }
 
-  // Never fail silently into a black screen. CI screenshot gates should make
-  // a missing production asset immediately obvious.
   scene.add.rectangle(640, 360, 1280, 720, 0x251412, 1).setDepth(0);
   scene.add.text(640, 260, 'COMMERCIAL ART LOAD FAILED', {
     fontFamily: 'Arial, sans-serif',
@@ -103,7 +99,6 @@ function renderCommercialCardShell(scene: CommercialRuntime, centerX: number, ac
     return;
   }
 
-  // Fallback is intentionally conspicuous rather than a polished rectangle.
   scene.add.text(centerX, 500, 'ART', {
     fontFamily: 'Arial, sans-serif', fontSize: '22px', fontStyle: 'bold', color: '#ffca70',
   }).setOrigin(0.5).setDepth(2);
@@ -146,7 +141,6 @@ function renderLiveLotData(
   scene: CommercialRuntime,
   choice: LotChoice,
   centerX: number,
-  accent: number,
 ): void {
   scene.add.text(centerX, 386, choice.lot.name[scene.locale], {
     fontFamily: 'Georgia, serif',
