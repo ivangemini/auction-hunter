@@ -74,7 +74,7 @@ function renderCommercialLotSelection(scene: CommercialRuntime): void {
 
 function renderLiveHeader(scene: CommercialRuntime): void {
   const save = scene.store.snapshot;
-  scene.add.rectangle(166, 52, 300, 76, 0x05070a, 0.88)
+  scene.add.rectangle(166, 52, 300, 76, 0x05070a, 0.78)
     .setStrokeStyle(1, 0xd8a63a, 0.48)
     .setDepth(5);
 
@@ -93,7 +93,7 @@ function renderLiveHeader(scene: CommercialRuntime): void {
   }).setDepth(6);
 
   if (scene.locale === 'ru') {
-    scene.add.rectangle(640, 53, 560, 82, 0x05070a, 0.86).setDepth(5);
+    scene.add.rectangle(640, 53, 560, 82, 0x05070a, 0.72).setDepth(5);
     scene.add.text(640, 24, 'ВЫБЕРИ СЛЕДУЮЩИЙ ЛОТ', {
       fontFamily: 'Georgia, serif', fontSize: '31px', fontStyle: 'bold', color: '#f2d488',
     }).setOrigin(0.5, 0).setDepth(6);
@@ -109,8 +109,9 @@ function renderLiveLotData(
   centerX: number,
   accent: number,
 ): void {
-  scene.add.rectangle(centerX, 394, 308, 50, 0x05070a, 0.91)
-    .setStrokeStyle(1, accent, 0.32)
+  // Keep live data readable without painting an opaque dashboard over the art.
+  scene.add.rectangle(centerX, 394, 308, 50, 0x05070a, 0.38)
+    .setStrokeStyle(1, accent, 0.42)
     .setDepth(5);
 
   scene.add.text(centerX, 377, choice.lot.name[scene.locale], {
@@ -118,16 +119,19 @@ function renderLiveLotData(
     fontSize: '18px',
     fontStyle: 'bold',
     color: '#fff7e8',
+    stroke: '#05070a',
+    strokeThickness: 3,
     align: 'center',
     wordWrap: { width: 286 },
   }).setOrigin(0.5, 0).setDepth(6);
   scene.add.text(centerX, 407, choice.lot.location[scene.locale], {
-    fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#b9d9ef',
+    fontFamily: 'Arial, sans-serif', fontSize: '10px', color: '#d7ecfa',
+    stroke: '#05070a', strokeThickness: 2,
   }).setOrigin(0.5, 0).setDepth(6);
 
   const infoX = centerX + 128;
-  scene.add.rectangle(infoX, 520, 108, 164, 0x05070a, 0.91)
-    .setStrokeStyle(1, accent, 0.34)
+  scene.add.rectangle(infoX, 520, 108, 164, 0x05070a, 0.68)
+    .setStrokeStyle(1, accent, 0.4)
     .setDepth(5);
 
   scene.add.text(infoX, 453, t(scene.locale, 'reservePrice').toUpperCase(), {
